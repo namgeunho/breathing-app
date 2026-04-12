@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>호흡 훈련 관리자</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f8f9fa;--bg2:#fff;--bg3:#f1f3f5;
+  --text:#212529;--text2:#6c757d;--text3:#adb5bd;
+  --primary:#185fa5;--primary-bg:#e6f1fb;
+  --success:#3b6d11;--success-bg:#eaf3de;
+  --danger:#a32d2d;--danger-bg:#fcebeb;
+  --warning:#854f0b;--warning-bg:#faeeda;
+  --bd:#dee2e6;--bd2:#ced4da;
+  --r:8px;--rl:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+a{color:var(--primary);text-decoration:none;}
+
+/* 로그인 */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+.login-card{background:var(--bg2);border-radius:var(--rl);box-shadow:var(--shadow);padding:2.5rem;width:100%;max-width:400px;}
+.login-logo{text-align:center;margin-bottom:2rem;}
+.login-logo-icon{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#1a4a8a,#0f6e56);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;}
+.login-logo-icon svg{width:28px;height:28px;stroke:#fff;fill:none;}
+.login-title{font-size:20px;font-weight:700;color:var(--text);}
+.login-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+.form-group{margin-bottom:1rem;}
+.form-label{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;}
+.form-input{width:100%;padding:10px 14px;font-size:14px;font-family:inherit;color:var(--text);background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);outline:none;transition:border-color 0.15s;}
+.form-input:focus{border-color:var(--primary);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;font-size:14px;font-weight:500;font-family:inherit;border-radius:var(--r);border:none;cursor:pointer;transition:opacity 0.15s,background 0.15s;}
+.btn:active{transform:scale(0.98);}
+.btn-primary{background:var(--primary);color:#fff;width:100%;padding:12px;}
+.btn-primary:hover{opacity:0.9;}
+.btn-sm{padding:6px 14px;font-size:13px;}
+.btn-outline{background:transparent;border:1px solid var(--bd2);color:var(--text2);}
+.btn-outline:hover{background:var(--bg3);}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f7c1c1;}
+.btn-danger:hover{background:#f7c1c1;}
+.btn-success{background:var(--success-bg);color:var(--success);border:1px solid #c0dd97;}
+.btn-success:hover{opacity:0.85;}
+.err-msg{font-size:13px;color:var(--danger);margin-top:8px;display:none;}
+.err-msg.show{display:block;}
+
+/* 레이아웃 */
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--bd);flex-shrink:0;display:flex;flex-direction:column;}
+.sidebar-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--bd);}
+.sidebar-logo{display:flex;align-items:center;gap:10px;}
+.sidebar-logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#1a4a8a,#0f6e56);display:flex;align-items:center;justify-content:center;}
+.sidebar-logo-icon svg{width:16px;height:16px;stroke:#fff;fill:none;}
+.sidebar-logo-text{font-size:14px;font-weight:700;color:var(--text);}
+.sidebar-logo-sub{font-size:11px;color:var(--text2);}
+.sidebar-nav{padding:1rem 0;flex:1;}
+.nav-section{padding:0 1rem;margin-bottom:0.5rem;}
+.nav-section-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;padding:0 0.5rem;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;font-size:14px;color:var(--text2);margin-bottom:2px;transition:background 0.1s,color 0.1s;}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{background:var(--primary-bg);color:var(--primary);font-weight:500;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;}
+.sidebar-footer{padding:1rem 1.5rem;border-top:1px solid var(--bd);}
+.user-info{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--primary);}
+.user-email{font-size:12px;color:var(--text2);word-break:break-all;}
+.main{flex:1;overflow-y:auto;}
+.main-header{background:var(--bg2);border-bottom:1px solid var(--bd);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.page-title{font-size:18px;font-weight:700;color:var(--text);}
+.main-content{padding:1.5rem;}
+
+/* 카드 */
+.card{background:var(--bg2);border-radius:var(--rl);border:1px solid var(--bd);margin-bottom:1.5rem;}
+.card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:15px;font-weight:600;color:var(--text);}
+.card-body{padding:1.25rem;}
+
+/* 통계 */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.stat-card{background:var(--bg2);border-radius:var(--rl);border:1px solid var(--bd);padding:1.25rem;}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:6px;}
+.stat-value{font-size:28px;font-weight:700;color:var(--text);}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:4px;}
+
+/* 테이블 */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{text-align:left;padding:10px 12px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--bd);white-space:nowrap;}
+td{padding:12px;border-bottom:1px solid var(--bg3);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.badge-blue{background:var(--primary-bg);color:var(--primary);}
+.badge-green{background:var(--success-bg);color:var(--success);}
+.badge-gray{background:var(--bg3);color:var(--text2);}
+
+/* 폼 */
+.form-group{margin-bottom:1.25rem;}
+.form-group:last-child{margin-bottom:0;}
+.form-label{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;}
+.form-input,.form-textarea,.form-select{width:100%;padding:10px 14px;font-size:14px;font-family:inherit;color:var(--text);background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);outline:none;transition:border-color 0.15s;}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--primary);}
+.form-textarea{min-height:140px;resize:vertical;line-height:1.6;}
+.form-hint{font-size:12px;color:var(--text3);margin-top:4px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+/* 이미지 업로드 */
+.img-upload-area{border:2px dashed var(--bd2);border-radius:var(--r);padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.15s,background 0.15s;}
+.img-upload-area:hover{border-color:var(--primary);background:var(--primary-bg);}
+.img-upload-area.has-img{border-style:solid;border-color:var(--bd);}
+.img-preview{max-width:100%;max-height:160px;border-radius:var(--r);margin-bottom:10px;object-fit:cover;}
+.img-upload-icon{font-size:32px;margin-bottom:8px;color:var(--text3);}
+.img-upload-text{font-size:14px;color:var(--text2);margin-bottom:4px;}
+.img-upload-hint{font-size:12px;color:var(--text3);}
+
+/* 알림 */
+.alert{padding:12px 16px;border-radius:var(--r);font-size:14px;margin-bottom:1rem;display:none;}
+.alert.show{display:flex;align-items:center;gap:8px;}
+.alert-success{background:var(--success-bg);color:var(--success);border:1px solid #c0dd97;}
+.alert-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #f7c1c1;}
+
+/* 모달 */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border-radius:var(--rl);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1;}
+.modal-title{font-size:16px;font-weight:600;color:var(--text);}
+.modal-close{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);}
+.modal-close:hover{background:var(--bd);}
+.modal-body{padding:1.5rem;}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;}
+
+/* 빈 상태 */
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text2);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-text{font-size:14px;}
+
+/* 페이지 */
+.page-section{display:none;}
+.page-section.active{display:block;}
+
+/* 반응형 */
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .form-row{grid-template-columns:1fr;}
+}
+.loading{text-align:center;padding:2rem;color:var(--text2);font-size:14px;}
+</style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      </div>
+      <div class="login-title">호흡 훈련 관리자</div>
+      <div class="login-sub">관리자 계정으로 로그인하세요</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">이메일</label>
+      <input class="form-input" type="email" id="loginEmail" placeholder="admin@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">비밀번호</label>
+      <input class="form-input" type="password" id="loginPassword" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="err-msg" id="loginErr">이메일 또는 비밀번호가 올바르지 않습니다.</div>
+    <button class="btn btn-primary" style="margin-top:0.5rem;" onclick="doLogin()">로그인</button>
+  </div>
+</div>
+
+<!-- 관리자 레이아웃 -->
+<div id="adminLayout" class="layout" style="display:none;">
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">
+          <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        </div>
+        <div>
+          <div class="sidebar-logo-text">호흡 훈련</div>
+          <div class="sidebar-logo-sub">관리자 페이지</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">메뉴</div>
+        <div class="nav-item active" onclick="showPage('dashboard',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          대시보드
+        </div>
+        <div class="nav-item" onclick="showPage('notices',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          공지사항
+        </div>
+        <div class="nav-item" onclick="showPage('banners',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          배너 관리
+        </div>
+        <div class="nav-item" onclick="showPage('columns',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          칼럼 관리
+        </div>
+        <div class="nav-item" onclick="showPage('settings',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          계정 설정
+        </div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div class="user-email" id="sidebarEmail"></div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%;" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- 메인 -->
+  <div class="main">
+    <div class="main-header">
+      <div class="page-title" id="mainTitle">대시보드</div>
+    </div>
+    <div class="main-content">
+      <div class="alert alert-success" id="globalAlert">
+        <span id="globalAlertMsg"></span>
+      </div>
+
+      <!-- 대시보드 -->
+      <div id="dashboardPage" class="page-section active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">공지사항</div>
+            <div class="stat-value" id="statNotices">-</div>
+            <div class="stat-sub">등록된 공지</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">활성 배너</div>
+            <div class="stat-value" id="statBanners">-</div>
+            <div class="stat-sub">현재 표시중</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">칼럼</div>
+            <div class="stat-value" id="statColumns">-</div>
+            <div class="stat-sub">등록된 칼럼</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">최근 공지사항</div></div>
+          <div class="card-body" id="recentNotices"><div class="loading">불러오는 중...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">최근 칼럼</div></div>
+          <div class="card-body" id="recentColumns"><div class="loading">불러오는 중...</div></div>
+        </div>
+      </div>
+
+      <!-- 공지사항 -->
+      <div id="noticesPage" class="page-section">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn btn-primary btn-sm" onclick="openNoticeModal()">+ 새 공지사항</button>
+        </div>
+        <div class="card">
+          <div class="card-body table-wrap" id="noticeTableWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 배너 -->
+      <div id="bannersPage" class="page-section">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn btn-primary btn-sm" onclick="openBannerModal()">+ 새 배너</button>
+        </div>
+        <div class="card">
+          <div class="card-body" id="bannerListWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 칼럼 -->
+      <div id="columnsPage" class="page-section">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn btn-primary btn-sm" onclick="openColumnModal()">+ 새 칼럼</button>
+        </div>
+        <div class="card">
+          <div class="card-body table-wrap" id="columnTableWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 계정 설정 -->
+      <div id="settingsPage" class="page-section">
+        <div class="card">
+          <div class="card-header"><div class="card-title">비밀번호 변경</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">새 비밀번호</label>
+              <input class="form-input" type="password" id="newPassword" placeholder="새 비밀번호 (6자 이상)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">비밀번호 확인</label>
+              <input class="form-input" type="password" id="newPasswordConfirm" placeholder="비밀번호 재입력">
+            </div>
+            <div class="err-msg" id="pwErr" style="margin-bottom:12px;"></div>
+            <button class="btn btn-primary btn-sm" onclick="changePassword()">비밀번호 변경</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 공지사항 모달 -->
+<div class="modal-overlay" id="noticeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="noticeModalTitle">새 공지사항</div>
+      <button class="modal-close" onclick="closeModal('noticeModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">제목 *</label>
+        <input class="form-input" id="noticeTitle" placeholder="공지사항 제목">
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용 *</label>
+        <textarea class="form-textarea" id="noticeContent" placeholder="공지사항 내용을 입력하세요"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">중요 공지 여부</label>
+        <select class="form-select" id="noticePinned">
+          <option value="false">일반</option>
+          <option value="true">중요 (상단 고정)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('noticeModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveNotice()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 배너 모달 -->
+<div class="modal-overlay" id="bannerModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="bannerModalTitle">새 배너</div>
+      <button class="modal-close" onclick="closeModal('bannerModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">배너 이미지 *</label>
+        <div class="img-upload-area" id="bannerUploadArea" onclick="document.getElementById('bannerImageFile').click()">
+          <img id="bannerPreviewImg" class="img-preview" style="display:none;">
+          <div id="bannerUploadPlaceholder">
+            <div class="img-upload-icon">🖼️</div>
+            <div class="img-upload-text">클릭하여 이미지 선택</div>
+            <div class="img-upload-hint">JPG, PNG, GIF (최대 2MB)</div>
+          </div>
+        </div>
+        <input type="file" id="bannerImageFile" accept="image/*" style="display:none;" onchange="previewBannerImage(event)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">연결 URL</label>
+        <input class="form-input" id="bannerUrl" placeholder="https://example.com (클릭 시 이동할 주소)">
+        <div class="form-hint">배너 클릭 시 이동할 URL (없으면 비워두세요)</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">배너 설명 (메모용)</label>
+        <input class="form-input" id="bannerDesc" placeholder="예: 3월 이벤트 배너">
+      </div>
+      <div class="form-group">
+        <label class="form-label">표시 상태</label>
+        <select class="form-select" id="bannerActive">
+          <option value="true">표시</option>
+          <option value="false">숨김</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('bannerModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBanner()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 칼럼 모달 -->
+<div class="modal-overlay" id="columnModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="columnModalTitle">새 칼럼</div>
+      <button class="modal-close" onclick="closeModal('columnModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">제목 *</label>
+        <input class="form-input" id="columnTitle" placeholder="칼럼 제목">
+      </div>
+      <div class="form-group">
+        <label class="form-label">부제목</label>
+        <input class="form-input" id="columnSubtitle" placeholder="한 줄 요약 (선택)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용 *</label>
+        <textarea class="form-textarea" style="min-height:200px;" id="columnContent" placeholder="칼럼 내용을 입력하세요"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">카테고리</label>
+        <input class="form-input" id="columnCategory" placeholder="예: 건강, 명상, 호흡법">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('columnModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveColumn()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAuKsnJixQbgwYudA6tpJyNO9IXmxHwg-0",
+  authDomain: "breathing-app-f51cb.firebaseapp.com",
+  projectId: "breathing-app-f51cb",
+  storageBucket: "breathing-app-f51cb.firebasestorage.app",
+  messagingSenderId: "967554724404",
+  appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+/* ── 전역 상태 ── */
+let currentUser = null;
+let editingId = null;
+let bannerImageData = null; // base64 or URL
+let bannerImageFile = null;
+
+/* ── 유틸 ── */
+function fmtDate(ts) {
+  if (!ts) return '-';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+}
+function showAlert(msg, type='success') {
+  const el = document.getElementById('globalAlert');
+  const msgEl = document.getElementById('globalAlertMsg');
+  el.className = `alert alert-${type} show`;
+  msgEl.textContent = msg;
+  setTimeout(() => { el.className = `alert alert-${type}`; }, 3000);
+}
+function eh(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── 인증 ── */
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminLayout').style.display = 'flex';
+    document.getElementById('sidebarEmail').textContent = user.email;
+    document.getElementById('sidebarAvatar').textContent = user.email[0].toUpperCase();
+    loadDashboard();
+  } else {
+    currentUser = null;
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminLayout').style.display = 'none';
+  }
+});
+
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginErr');
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    err.classList.remove('show');
+  } catch(e) {
+    err.classList.add('show');
+  }
+};
+
+window.doLogout = async function() {
+  await signOut(auth);
+};
+
+window.changePassword = async function() {
+  const np = document.getElementById('newPassword').value;
+  const nc = document.getElementById('newPasswordConfirm').value;
+  const err = document.getElementById('pwErr');
+  err.classList.remove('show');
+  if (np.length < 6) { err.textContent = '비밀번호는 6자 이상이어야 합니다.'; err.classList.add('show'); return; }
+  if (np !== nc) { err.textContent = '비밀번호가 일치하지 않습니다.'; err.classList.add('show'); return; }
+  try {
+    await updatePassword(currentUser, np);
+    document.getElementById('newPassword').value = '';
+    document.getElementById('newPasswordConfirm').value = '';
+    showAlert('비밀번호가 변경됐습니다!');
+  } catch(e) {
+    err.textContent = '변경 실패. 다시 로그인 후 시도해주세요.'; err.classList.add('show');
+  }
+};
+
+/* ── 페이지 이동 ── */
+const pageTitles = { dashboard:'대시보드', notices:'공지사항', banners:'배너 관리', columns:'칼럼 관리', settings:'계정 설정' };
+window.showPage = function(id, el) {
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id+'Page').classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('mainTitle').textContent = pageTitles[id] || id;
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'notices') loadNotices();
+  if (id === 'banners') loadBanners();
+  if (id === 'columns') loadColumns();
+};
+
+/* ── 모달 ── */
+window.closeModal = function(id) {
+  document.getElementById(id).classList.remove('open');
+  editingId = null;
+  bannerImageData = null;
+  bannerImageFile = null;
+};
+
+/* ── 대시보드 ── */
+async function loadDashboard() {
+  try {
+    const [notices, banners, columns] = await Promise.all([
+      getDocs(collection(db,'notices')),
+      getDocs(collection(db,'banners')),
+      getDocs(collection(db,'columns'))
+    ]);
+    document.getElementById('statNotices').textContent = notices.size;
+    document.getElementById('statBanners').textContent = [...banners.docs].filter(d=>d.data().active).length;
+    document.getElementById('statColumns').textContent = columns.size;
+
+    // 최근 공지
+    const rn = document.getElementById('recentNotices');
+    const noticeList = notices.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0)).slice(0,3);
+    rn.innerHTML = noticeList.length ? noticeList.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--bg3);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${fmtDate(d.data().createdAt)}</div></div>${d.data().pinned?'<span class="badge badge-blue">중요</span>':''}</div>`).join('') : '<div class="empty-state"><div class="empty-text">공지사항이 없습니다</div></div>';
+
+    // 최근 칼럼
+    const rc = document.getElementById('recentColumns');
+    const colList = columns.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0)).slice(0,3);
+    rc.innerHTML = colList.length ? colList.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--bg3);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${d.data().category||''} · ${fmtDate(d.data().createdAt)}</div></div></div>`).join('') : '<div class="empty-state"><div class="empty-text">칼럼이 없습니다</div></div>';
+  } catch(e) { console.error(e); }
+}
+
+/* ── 공지사항 ── */
+async function loadNotices() {
+  const wrap = document.getElementById('noticeTableWrap');
+  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'notices'), orderBy('createdAt','desc')));
+    if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-text">등록된 공지사항이 없습니다</div></div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>구분</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`
+      <tr>
+        <td style="font-weight:500;max-width:300px;">${eh(d.data().title)}</td>
+        <td>${d.data().pinned ? '<span class="badge badge-blue">중요</span>' : '<span class="badge badge-gray">일반</span>'}</td>
+        <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
+        <td><div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="editNotice('${d.id}','${eh(d.data().title)}',\`${d.data().content.replace(/`/g,"'")}\`,'${d.data().pinned}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteNotice('${d.id}')">삭제</button>
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+}
+
+window.openNoticeModal = function() {
+  editingId = null;
+  document.getElementById('noticeModalTitle').textContent = '새 공지사항';
+  document.getElementById('noticeTitle').value = '';
+  document.getElementById('noticeContent').value = '';
+  document.getElementById('noticePinned').value = 'false';
+  document.getElementById('noticeModal').classList.add('open');
+};
+
+window.editNotice = function(id, title, content, pinned) {
+  editingId = id;
+  document.getElementById('noticeModalTitle').textContent = '공지사항 수정';
+  document.getElementById('noticeTitle').value = title;
+  document.getElementById('noticeContent').value = content;
+  document.getElementById('noticePinned').value = pinned;
+  document.getElementById('noticeModal').classList.add('open');
+};
+
+window.saveNotice = async function() {
+  const title = document.getElementById('noticeTitle').value.trim();
+  const content = document.getElementById('noticeContent').value.trim();
+  const pinned = document.getElementById('noticePinned').value === 'true';
+  if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
+  try {
+    if (editingId) {
+      await updateDoc(doc(db,'notices',editingId), { title, content, pinned, updatedAt: serverTimestamp() });
+      showAlert('공지사항이 수정됐습니다!');
+    } else {
+      await addDoc(collection(db,'notices'), { title, content, pinned, createdAt: serverTimestamp() });
+      showAlert('공지사항이 등록됐습니다!');
+    }
+    closeModal('noticeModal');
+    loadNotices();
+    loadDashboard();
+  } catch(e) { alert('저장 실패: ' + e.message); }
+};
+
+window.deleteNotice = async function(id) {
+  if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
+  await deleteDoc(doc(db,'notices',id));
+  showAlert('삭제됐습니다.', 'success');
+  loadNotices();
+  loadDashboard();
+};
+
+/* ── 배너 ── */
+async function loadBanners() {
+  const wrap = document.getElementById('bannerListWrap');
+  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'banners'), orderBy('createdAt','desc')));
+    if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🖼️</div><div class="empty-text">등록된 배너가 없습니다</div></div>'; return; }
+    wrap.innerHTML = snap.docs.map(d => {
+      const data = d.data();
+      return `<div style="display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--bg3);">
+        <img src="${data.imageUrl}" style="width:120px;height:50px;object-fit:cover;border-radius:6px;border:1px solid var(--bd);flex-shrink:0;" onerror="this.style.display='none'">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:500;margin-bottom:3px;">${eh(data.desc||'배너')}</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">${data.url ? `<a href="${eh(data.url)}" target="_blank">${eh(data.url)}</a>` : 'URL 없음'}</div>
+          <span class="${data.active ? 'badge badge-green' : 'badge badge-gray'}">${data.active ? '표시중' : '숨김'}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="btn btn-outline btn-sm" onclick="editBanner('${d.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBanner('${d.id}','${data.imagePath||''}')">삭제</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+}
+
+window.openBannerModal = function() {
+  editingId = null;
+  bannerImageData = null;
+  bannerImageFile = null;
+  document.getElementById('bannerModalTitle').textContent = '새 배너';
+  document.getElementById('bannerUrl').value = '';
+  document.getElementById('bannerDesc').value = '';
+  document.getElementById('bannerActive').value = 'true';
+  document.getElementById('bannerPreviewImg').style.display = 'none';
+  document.getElementById('bannerUploadPlaceholder').style.display = 'block';
+  document.getElementById('bannerModal').classList.add('open');
+};
+
+window.editBanner = async function(id) {
+  editingId = id;
+  const snap = await getDocs(collection(db,'banners'));
+  const d = snap.docs.find(x=>x.id===id);
+  if (!d) return;
+  const data = d.data();
+  bannerImageData = data.imageUrl;
+  document.getElementById('bannerModalTitle').textContent = '배너 수정';
+  document.getElementById('bannerUrl').value = data.url || '';
+  document.getElementById('bannerDesc').value = data.desc || '';
+  document.getElementById('bannerActive').value = String(data.active);
+  if (data.imageUrl) {
+    document.getElementById('bannerPreviewImg').src = data.imageUrl;
+    document.getElementById('bannerPreviewImg').style.display = 'block';
+    document.getElementById('bannerUploadPlaceholder').style.display = 'none';
+  }
+  document.getElementById('bannerModal').classList.add('open');
+};
+
+window.previewBannerImage = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  bannerImageFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    bannerImageData = ev.target.result;
+    document.getElementById('bannerPreviewImg').src = bannerImageData;
+    document.getElementById('bannerPreviewImg').style.display = 'block';
+    document.getElementById('bannerUploadPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+};
+
+window.saveBanner = async function() {
+  const url = document.getElementById('bannerUrl').value.trim();
+  const desc = document.getElementById('bannerDesc').value.trim();
+  const active = document.getElementById('bannerActive').value === 'true';
+  if (!bannerImageData && !bannerImageFile) { alert('배너 이미지를 선택하세요.'); return; }
+  try {
+    let imageUrl = bannerImageData;
+    let imagePath = '';
+    if (bannerImageFile) {
+      const storageRef = ref(storage, `banners/${Date.now()}_${bannerImageFile.name}`);
+      await uploadBytes(storageRef, bannerImageFile);
+      imageUrl = await getDownloadURL(storageRef);
+      imagePath = storageRef.fullPath;
+    }
+    if (editingId) {
+      const updateData = { url, desc, active, updatedAt: serverTimestamp() };
+      if (bannerImageFile) { updateData.imageUrl = imageUrl; updateData.imagePath = imagePath; }
+      await updateDoc(doc(db,'banners',editingId), updateData);
+      showAlert('배너가 수정됐습니다!');
+    } else {
+      await addDoc(collection(db,'banners'), { imageUrl, imagePath, url, desc, active, createdAt: serverTimestamp() });
+      showAlert('배너가 등록됐습니다!');
+    }
+    closeModal('bannerModal');
+    loadBanners();
+    loadDashboard();
+  } catch(e) { alert('저장 실패: ' + e.message); }
+};
+
+window.deleteBanner = async function(id, imagePath) {
+  if (!confirm('이 배너를 삭제하시겠습니까?')) return;
+  await deleteDoc(doc(db,'banners',id));
+  if (imagePath) { try { await deleteObject(ref(storage, imagePath)); } catch(e) {} }
+  showAlert('삭제됐습니다.');
+  loadBanners();
+  loadDashboard();
+};
+
+/* ── 칼럼 ── */
+async function loadColumns() {
+  const wrap = document.getElementById('columnTableWrap');
+  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'columns'), orderBy('createdAt','desc')));
+    if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">등록된 칼럼이 없습니다</div></div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`
+      <tr>
+        <td style="max-width:280px;"><div style="font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(d.data().subtitle||'')}</div></td>
+        <td><span class="badge badge-gray">${eh(d.data().category||'일반')}</span></td>
+        <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
+        <td><div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
+        </div></td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+}
+
+window.openColumnModal = function() {
+  editingId = null;
+  document.getElementById('columnModalTitle').textContent = '새 칼럼';
+  document.getElementById('columnTitle').value = '';
+  document.getElementById('columnSubtitle').value = '';
+  document.getElementById('columnContent').value = '';
+  document.getElementById('columnCategory').value = '';
+  document.getElementById('columnModal').classList.add('open');
+};
+
+window.editColumn = async function(id) {
+  editingId = id;
+  const snap = await getDocs(collection(db,'columns'));
+  const d = snap.docs.find(x=>x.id===id);
+  if (!d) return;
+  const data = d.data();
+  document.getElementById('columnModalTitle').textContent = '칼럼 수정';
+  document.getElementById('columnTitle').value = data.title || '';
+  document.getElementById('columnSubtitle').value = data.subtitle || '';
+  document.getElementById('columnContent').value = data.content || '';
+  document.getElementById('columnCategory').value = data.category || '';
+  document.getElementById('columnModal').classList.add('open');
+};
+
+window.saveColumn = async function() {
+  const title = document.getElementById('columnTitle').value.trim();
+  const subtitle = document.getElementById('columnSubtitle').value.trim();
+  const content = document.getElementById('columnContent').value.trim();
+  const category = document.getElementById('columnCategory').value.trim();
+  if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
+  try {
+    if (editingId) {
+      await updateDoc(doc(db,'columns',editingId), { title, subtitle, content, category, updatedAt: serverTimestamp() });
+      showAlert('칼럼이 수정됐습니다!');
+    } else {
+      await addDoc(collection(db,'columns'), { title, subtitle, content, category, createdAt: serverTimestamp() });
+      showAlert('칼럼이 등록됐습니다!');
+    }
+    closeModal('columnModal');
+    loadColumns();
+    loadDashboard();
+  } catch(e) { alert('저장 실패: ' + e.message); }
+};
+
+window.deleteColumn = async function(id) {
+  if (!confirm('이 칼럼을 삭제하시겠습니까?')) return;
+  await deleteDoc(doc(db,'columns',id));
+  showAlert('삭제됐습니다.');
+  loadColumns();
+  loadDashboard();
+};
+</script>
+</body>
+</html>
