@@ -1,4 +1,4 @@
-const CACHE = 'breath-v1';
+const CACHE = 'breath-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -24,12 +24,13 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
-      if (res.ok && e.request.url.startsWith('http')) {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-      }
-      return res;
-    }))
+    caches.match(e.request).then(cached =>
+      cached || fetch(e.request).then(res => {
+        if (res.ok && e.request.url.startsWith('http')) {
+          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        }
+        return res;
+      }).catch(() => cached)
+    )
   );
 });
