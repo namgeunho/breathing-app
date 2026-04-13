@@ -264,6 +264,16 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .sound-chip:hover{border-color:var(--info-bd);color:var(--info);}
 .sound-chip.act-chip{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
 .sound-chip.act-off{background:var(--bg3);color:var(--text3);border-color:var(--bd);}
+/* ── 카운트다운 오버레이 ── */
+.countdown-num{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  font-size:42px;font-weight:700;color:#fff;
+  text-shadow:0 1px 6px rgba(0,0,0,0.35);
+  pointer-events:none;z-index:2;
+  animation:cdPop 0.4s ease-out;
+}
+@keyframes cdPop{from{transform:translate(-50%,-50%) scale(1.5);opacity:0;}to{transform:translate(-50%,-50%) scale(1);opacity:1;}}
 /* ── 프리셋 편집 인라인 ── */
 .pe{background:var(--bg3);border-radius:8px;padding:1rem;margin-top:8px;}
 /* 공지사항 클릭 카드 */
@@ -357,7 +367,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
       <div class="br">
         <button class="bshr" onclick="shareResult()">
           <svg style="width:15px;height:15px;" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
-          공유하기
+          친구에게 공유하기
         </button>
         <button class="bp" onclick="resetAll()">다시 시작</button>
       </div>
@@ -434,6 +444,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
 
 <script>
 /* ── Firebase 초기화 ── */
@@ -443,10 +454,17 @@ const firebaseConfig = {
   projectId: "breathing-app-f51cb",
   storageBucket: "breathing-app-f51cb.firebasestorage.app",
   messagingSenderId: "967554724404",
-  appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061"
+  appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061",
+  measurementId: "G-XXXXXXXXXX" // Firebase 콘솔에서 확인 후 교체
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const analytics = firebase.analytics();
+
+/* ── Analytics 이벤트 로깅 ── */
+function logEvent(name, params){
+  try{ analytics.logEvent(name, params||{}); }catch(e){}
+}
 
 /* ── Firebase 데이터 로드 ── */
 let _banners = [];
@@ -464,14 +482,7 @@ async function loadBanner() {
     if (!_banners.length) return;
     _bannerIdx = 0;
     renderBanner();
-    // 배너가 2개 이상이면 10초마다 자동 전환
-    if (_banners.length > 1) {
-      if (_bannerTimer) clearInterval(_bannerTimer);
-      _bannerTimer = setInterval(() => {
-        _bannerIdx = (_bannerIdx + 1) % _banners.length;
-        renderBanner();
-      }, 10000);
-    }
+    if (_banners.length > 1) startBannerTimer();
   } catch(e) { console.log('배너 로드 실패:', e.message); }
 }
 
@@ -488,11 +499,20 @@ function renderBanner() {
   wrap.innerHTML = imgHtml + dots + `<div class="bnf"><span class="bnc">제휴 문의</span></div>`;
 }
 
+function startBannerTimer(){
+  if(_bannerTimer)clearInterval(_bannerTimer);
+  const dur=(_banners[_bannerIdx]?.duration||10)*1000;
+  _bannerTimer=setInterval(()=>{
+    _bannerIdx=(_bannerIdx+1)%_banners.length;
+    renderBanner();
+    startBannerTimer(); // 다음 배너의 duration으로 재시작
+  },dur);
+}
+
 function goBanner(i) {
   _bannerIdx = i;
   renderBanner();
-  // 수동 이동 시 타이머 리셋
-  if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = setInterval(() => { _bannerIdx = (_bannerIdx+1) % _banners.length; renderBanner(); }, 10000); }
+  if(_banners.length>1)startBannerTimer();
 }
 
 let _notices = [];
@@ -896,15 +916,153 @@ function cancelSettings(){
 function getScale(n,p,g){if(n==='들숨')return 1+p*0.8;if(n==='날숨')return 1.8-p*0.8;if(n==='멈춤')return g===1?1.8:1.0;return 1.0;}
 function tick(ts){if(!running)return;if(!lastTs)lastTs=ts;const dt=(ts-lastTs)/1000;lastTs=ts;totalElapsed+=dt;const tSec=parseInt(document.getElementById('duration').value)*60;if(totalElapsed>=tSec){totalElapsed=tSec;finish();return;}const list=getPL();if(!list.length)return;phaseTime+=dt;const ci=phase%list.length;const cur=list[ci];const prog=Math.min(phaseTime/cur.dur,1);if(ci!==prevPI){prevPI=ci;playPS(cur.name);}const rem=Math.max(0,cur.dur-phaseTime);document.getElementById('circle').style.transform=`translate(-50%,-50%) scale(${getScale(cur.name,prog,cur.gi)})`;document.getElementById('circle').style.background=pGrads[cur.gi];document.getElementById('phaseLabel').textContent=cur.name;document.getElementById('timerLabel').textContent=Math.ceil(rem)+'초';document.getElementById('progressFill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('elapsedDisplay').textContent=fmt(totalElapsed);document.getElementById('remainDisplay').textContent=fmt(tSec-totalElapsed);if(screenOff){document.getElementById('bs-phase').textContent=cur.name;document.getElementById('bs-timer').textContent=Math.ceil(rem);document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);}if(phaseTime>=cur.dur){phaseTime=0;phase++;if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}}raf=requestAnimationFrame(tick);}
 function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
-function finish(){running=false;cancelAnimationFrame(raf);saveRec();playFS();stopBgm();document.getElementById('blackScreen').classList.remove('active');screenOff=false;document.getElementById('screenOffBtn').className='ib';releaseWakeLock();const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm};showCC();}
+function finish(){
+  running=false;cancelAnimationFrame(raf);saveRec();playFS();stopBgm();
+  document.getElementById('blackScreen').classList.remove('active');
+  screenOff=false;document.getElementById('screenOffBtn').className='ib';
+  releaseWakeLock();
+  const s=getAS();
+  const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;
+  lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm};
+  // 훈련 완료 이벤트
+  logEvent('training_complete',{
+    mode:curMode,
+    preset:nm||'manual',
+    duration_min:lastResult.duration,
+    cycles:cyclesDone
+  });
+  showCC();
+}
 function showCC(){document.getElementById('mainArea').style.display='none';document.getElementById('completeArea').style.display='block';const r=lastResult;document.getElementById('cc-date').textContent=r.date;document.getElementById('cc-time').textContent=r.time+' 완료';document.getElementById('cc-duration').textContent=r.duration+'분';document.getElementById('cc-cycles').textContent=r.cycles+'회';let pat=r.level?`[${r.level}] `:'';pat+=`들숨 ${r.inhale}초`;if(r.holdIn>0)pat+=` · 멈춤 ${r.holdIn}초`;pat+=` · 날숨 ${r.exhale}초`;if(r.holdOut>0)pat+=` · 멈춤 ${r.holdOut}초`;document.getElementById('cc-pattern').textContent=pat;}
-function startStop(){try{getACtx().resume();}catch(e){}if(running){running=false;cancelAnimationFrame(raf);lastTs=null;document.getElementById('startBtn').textContent='계속';document.getElementById('phaseLabel').textContent='일시정지';if(screenOff)document.getElementById('blackScreen').classList.remove('active');releaseWakeLock();stopBgm();}else{if(settingsOpen)toggleSettings();running=true;lastTs=null;prevPI=-1;document.getElementById('startBtn').textContent='일시정지';if(screenOff)document.getElementById('blackScreen').classList.add('active');requestWakeLock();startBgm();raf=requestAnimationFrame(tick);}}
-function resetAll(){running=false;cancelAnimationFrame(raf);releaseWakeLock();stopBgm();phase=0;phaseTime=0;totalElapsed=0;cyclesDone=0;lastTs=null;prevPI=-1;document.getElementById('blackScreen').classList.remove('active');screenOff=false;document.getElementById('screenOffBtn').className='ib';const tSec=parseInt(document.getElementById('duration').value)*60;document.getElementById('mainArea').style.display='block';document.getElementById('completeArea').style.display='none';document.getElementById('phaseLabel').textContent='준비';document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';document.getElementById('startBtn').textContent='시작';document.getElementById('cycleCount').textContent='0';document.getElementById('progressFill').style.width='0%';document.getElementById('elapsedDisplay').textContent='0:00';document.getElementById('remainDisplay').textContent=fmt(tSec);document.getElementById('circle').style.transform='translate(-50%,-50%) scale(1)';document.getElementById('circle').style.background=dGrad;}
+/* ── 카운트다운 ── */
+let countdownRaf=null;
+function startCountdown(cb){
+  let n=5;
+  const circle=document.getElementById('circle');
+  const phaseLabel=document.getElementById('phaseLabel');
+  const timerLabel=document.getElementById('timerLabel');
+  phaseLabel.textContent='준비';
+  timerLabel.textContent='잠시 후 시작됩니다';
+  document.getElementById('startBtn').textContent='취소';
+
+  function showNum(num){
+    // 기존 숫자 제거
+    const old=document.getElementById('cdNum');
+    if(old)old.remove();
+    if(num<=0){cb();return;}
+    const el=document.createElement('div');
+    el.id='cdNum';el.className='countdown-num';
+    el.textContent=num;
+    circle.parentNode.appendChild(el);
+    // 원 크기 애니메이션
+    circle.style.transform=`translate(-50%,-50%) scale(${1+num*0.1})`;
+    circle.style.background='radial-gradient(circle,#FFD700 15%,rgba(255,200,0,0.45)58%,transparent 100%)';
+    // 효과음
+    if(soundOn)try{const ctx=getACtx();const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(num===1?880:660,ctx.currentTime);g.gain.setValueAtTime(0.15,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.3);}catch(e){}
+    n--;
+    countdownRaf=setTimeout(()=>showNum(n),1000);
+  }
+  showNum(n);
+}
+
+function cancelCountdown(){
+  if(countdownRaf){clearTimeout(countdownRaf);countdownRaf=null;}
+  const el=document.getElementById('cdNum');if(el)el.remove();
+  document.getElementById('circle').style.transform='translate(-50%,-50%) scale(1)';
+  document.getElementById('circle').style.background=dGrad;
+  document.getElementById('phaseLabel').textContent='준비';
+  document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';
+  document.getElementById('startBtn').textContent='시작';
+}
+
+function startStop(){
+  try{getACtx().resume();}catch(e){}
+  // 카운트다운 중이면 취소
+  if(countdownRaf){cancelCountdown();return;}
+  if(running){
+    running=false;cancelAnimationFrame(raf);lastTs=null;
+    document.getElementById('startBtn').textContent='계속';
+    document.getElementById('phaseLabel').textContent='일시정지';
+    if(screenOff)document.getElementById('blackScreen').classList.remove('active');
+    releaseWakeLock();stopBgm();
+    logEvent('training_paused',{elapsed:Math.round(totalElapsed)});
+  }else{
+    if(settingsOpen)cancelSettings();
+    // 카운트다운 후 실제 시작
+    startCountdown(()=>{
+      const el=document.getElementById('cdNum');if(el)el.remove();
+      running=true;lastTs=null;prevPI=-1;
+      document.getElementById('startBtn').textContent='일시정지';
+      if(screenOff)document.getElementById('blackScreen').classList.add('active');
+      requestWakeLock();startBgm();
+      raf=requestAnimationFrame(tick);
+      const s=getAS();
+      logEvent('training_start',{
+        mode:curMode,
+        preset:curMode==='program'?presets[selPI>=0?selPI:0].name:'manual',
+        inhale:s.inhale,exhale:s.exhale,
+        duration:parseInt(document.getElementById('duration').value)
+      });
+    });
+  }
+}
+function resetAll(){
+  running=false;cancelAnimationFrame(raf);
+  cancelCountdown(); // 카운트다운 중이면 취소
+  releaseWakeLock();stopBgm();
+  phase=0;phaseTime=0;totalElapsed=0;cyclesDone=0;lastTs=null;prevPI=-1;
+  document.getElementById('blackScreen').classList.remove('active');
+  screenOff=false;document.getElementById('screenOffBtn').className='ib';
+  const tSec=parseInt(document.getElementById('duration').value)*60;
+  document.getElementById('mainArea').style.display='block';
+  document.getElementById('completeArea').style.display='none';
+  document.getElementById('phaseLabel').textContent='준비';
+  document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';
+  document.getElementById('startBtn').textContent='시작';
+  document.getElementById('cycleCount').textContent='0';
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('elapsedDisplay').textContent='0:00';
+  document.getElementById('remainDisplay').textContent=fmt(tSec);
+  document.getElementById('circle').style.transform='translate(-50%,-50%) scale(1)';
+  document.getElementById('circle').style.background=dGrad;
+}
 function toggleScreenOff(){screenOff=!screenOff;const btn=document.getElementById('screenOffBtn');if(screenOff){btn.className='ib ascr';if(running)document.getElementById('blackScreen').classList.add('active');}else{btn.className='ib';document.getElementById('blackScreen').classList.remove('active');}}
 function exitBlackScreen(){screenOff=false;document.getElementById('screenOffBtn').className='ib';document.getElementById('blackScreen').classList.remove('active');}
-async function shareResult(){const card=document.getElementById('completeCard');try{const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'b.png',{type:'image/png'})]})){await navigator.share({title:'호흡 훈련 완료!',files:[new File([blob],'b.png',{type:'image/png'})]});}else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='호흡훈련.png';a.click();URL.revokeObjectURL(url);showToast('이미지가 저장됐어요!');}}catch(e){showToast('공유를 취소했어요');}}
+async function shareResult(){
+  const card=document.getElementById('completeCard');
+  const appUrl=window.location.href.split('?')[0]; // 현재 앱 URL
+  const r=lastResult;
+  const shareText=`🌬️ 호흡 훈련 완료!\n\n📅 ${r.date}\n⏱️ ${r.duration}분 훈련 · ${r.cycles}회 완료\n\n나도 호흡 훈련 해볼래요 👉 ${appUrl}`;
+  try{
+    const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    const file=new File([blob],'호흡훈련.png',{type:'image/png'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({title:'호흡 훈련 완료!',text:shareText,files:[file]});
+    } else if(navigator.share){
+      await navigator.share({title:'호흡 훈련 완료!',text:shareText,url:appUrl});
+    } else {
+      // 공유 API 없으면 텍스트 클립보드 복사
+      await navigator.clipboard.writeText(shareText);
+      showToast('공유 내용이 복사됐어요!');
+    }
+  }catch(e){
+    if(e.name!=='AbortError')showToast('공유를 취소했어요');
+  }
+}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
-function showPage(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(el)el.classList.add('active');else{document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active');});}document.getElementById('userBar').style.display=(id==='config')?'none':'flex';curPage=id;save();if(id==='calendar'){renderCal();updateCalSt();}if(id==='config'){document.getElementById('configMain').style.display='block';document.getElementById('configSub').style.display='none';renderConfigMain();}}
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  else{document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active');});}
+  document.getElementById('userBar').style.display=(id==='config')?'none':'flex';
+  curPage=id;save();
+  logEvent('page_view',{page:id});
+  if(id==='calendar'){renderCal();updateCalSt();}
+  if(id==='config'){document.getElementById('configMain').style.display='block';document.getElementById('configSub').style.display='none';renderConfigMain();}
+}
 function renderCal(){const now=new Date();if(calYear===undefined){calYear=now.getFullYear();calMonth=now.getMonth();}document.getElementById('calTitle').textContent=calYear+'년 '+mNames[calMonth];const grid=document.getElementById('calGrid');grid.innerHTML='';dNames.forEach(d=>{const el=document.createElement('div');el.className='dn';el.textContent=d;grid.appendChild(el);});const fd=new Date(calYear,calMonth,1).getDay();const dim=new Date(calYear,calMonth+1,0).getDate();const tk=today();for(let i=0;i<fd;i++){const el=document.createElement('div');el.className='cc empty';grid.appendChild(el);}for(let d=1;d<=dim;d++){const key=dk(calYear,calMonth,d);const el=document.createElement('div');el.className='cc';if(key===tk)el.classList.add('today');if(key===selDate)el.classList.add('sel');const num=document.createElement('div');num.className='cn';num.textContent=d;el.appendChild(num);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();if(hasR||hasM){const dr=document.createElement('div');dr.className='dr';if(hasR){const dot=document.createElement('div');dot.className='dot dg';dr.appendChild(dot);}if(hasM){const dot=document.createElement('div');dot.className='dot da';dr.appendChild(dot);}el.appendChild(dr);}el.addEventListener('click',()=>selD(key));grid.appendChild(el);}}
 function selD(key){selDate=key;renderCal();document.getElementById('detailTitle').textContent=fl(key);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();document.getElementById('xBtn').style.display=(hasR||hasM)?'flex':'none';renderDB(key);}
 function renderDB(key){const body=document.getElementById('detailBody');const recs=records[key]||[];const memo=memos[key]||'';let html='';if(recs.length>0){html+='<div class="sl3">훈련 기록</div>';recs.forEach((r,i)=>{const lv=r.level?`<span class="bg bga" style="font-size:11px;padding:2px 6px;margin-left:4px;">${r.level}</span>`:'';html+=`<div class="ti"><div class="tl2"><div class="tn">${i+1}회차 · ${r.time}${lv}</div><div class="ts">들숨${r.inhale}/멈춤${r.holdIn}/날숨${r.exhale}/멈춤${r.holdOut}</div></div><div class="bgs"><span class="bg bbl">${r.duration}분</span><span class="bg bgn">${r.cycles}사이클</span></div></div>`;});}else{html+='<div class="em">훈련 기록이 없어요</div>';}html+='<div class="cdiv"></div><div class="sl3">메모</div>';if(memo){html+=`<div class="mb2">${eh(memo)}</div><div style="display:flex;gap:8px;justify-content:flex-end;"><button class="bsm" onclick="editMemo('${key}')">수정</button><button class="bsm bdng" onclick="delMemo('${key}')">삭제</button></div>`;}else{html+=`<textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="bsm bp" onclick="saveMemo('${key}')">저장</button></div>`;}body.innerHTML=html;}
@@ -948,6 +1106,14 @@ if(curPage&&curPage!=='train'){showPage(curPage,null);}
 Promise.all([loadBanner(),loadNotices(),loadColumns()]).then(()=>{
   renderUserBar();
 }).catch(e=>console.log('Firebase 로드 오류:',e));
+
+/* ── Analytics: 앱 실행 이벤트 ── */
+logEvent('app_open');
+
+/* ── Analytics: PWA 설치 이벤트 ── */
+window.addEventListener('appinstalled', ()=>{
+  logEvent('pwa_installed');
+});
 </script>
 </body>
 </html>
