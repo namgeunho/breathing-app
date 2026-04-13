@@ -947,10 +947,13 @@ function startCountdown(cb){
   document.getElementById('startBtn').textContent='취소';
 
   function showNum(num){
-    // 기존 숫자 제거
     const old=document.getElementById('cdNum');
     if(old)old.remove();
-    if(num<=0){cb();return;}
+    if(num<=0){
+      countdownRaf=null; // 카운트다운 완료 시 반드시 초기화
+      cb();
+      return;
+    }
     const el=document.createElement('div');
     el.id='cdNum';el.className='countdown-num';
     el.textContent=num;
