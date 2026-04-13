@@ -264,12 +264,8 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .sound-chip:hover{border-color:var(--info-bd);color:var(--info);}
 .sound-chip.act-chip{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
 .sound-chip.act-off{background:var(--bg3);color:var(--text3);border-color:var(--bd);}
-/* ── 프리셋 편집 오버레이 ── */
-.preset-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:120;display:flex;align-items:flex-end;justify-content:center;}
-.preset-edit-modal{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:520px;padding-bottom:env(safe-area-inset-bottom,0px);}
-.preset-edit-modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.25rem 0;}
-.preset-edit-modal-body{padding:1rem 1.25rem;}
-.preset-edit-modal-footer{display:flex;gap:10px;padding:0.75rem 1.25rem 1.25rem;}
+/* ── 프리셋 편집 인라인 ── */
+.pe{background:var(--bg3);border-radius:8px;padding:1rem;margin-top:8px;}
 /* 공지사항 클릭 카드 */
 .notice-card{cursor:pointer;}
 .notice-card:hover{border-color:var(--info-bd);}
@@ -328,27 +324,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
       </div>
     </div>
 
-    <!-- 프리셋 편집 패널 (별도 오버레이) -->
-    <div class="preset-edit-overlay" id="presetEditOverlay" style="display:none;">
-      <div class="preset-edit-modal">
-        <div class="preset-edit-modal-header">
-          <div style="font-size:15px;font-weight:600;color:var(--text);" id="presetEditTitle">프리셋 편집</div>
-          <button class="xb" onclick="closePresetEdit()">✕</button>
-        </div>
-        <div class="preset-edit-modal-body">
-          <div style="font-size:13px;color:var(--text2);margin-bottom:6px;">이름</div>
-          <input class="pni" id="pni" placeholder="이름" maxlength="8" oninput="onPN(this.value)" style="margin-bottom:14px;">
-          <div class="row"><span class="lbl">들숨</span><input type="range" id="p-inhale" min="1" max="60" step="1" oninput="onPV('inhale',this.value)"><span class="val" id="p-inhaleVal">4초</span></div>
-          <div class="row"><span class="lbl">멈춤(들숨)</span><input type="range" id="p-holdIn" min="0" max="60" step="1" oninput="onPV('holdIn',this.value)"><span class="val" id="p-holdInVal">0초</span></div>
-          <div class="row"><span class="lbl">날숨</span><input type="range" id="p-exhale" min="1" max="60" step="1" oninput="onPV('exhale',this.value)"><span class="val" id="p-exhaleVal">4초</span></div>
-          <div class="row" style="margin-bottom:0;"><span class="lbl">멈춤(날숨)</span><input type="range" id="p-holdOut" min="0" max="60" step="1" oninput="onPV('holdOut',this.value)"><span class="val" id="p-holdOutVal">0초</span></div>
-        </div>
-        <div class="preset-edit-modal-footer">
-          <button onclick="closePresetEdit()" style="flex:1;">취소</button>
-          <button class="bp" onclick="savePresetEdit()" style="flex:1;">저장하기</button>
-        </div>
-      </div>
-    </div>
+
     <div id="mainArea">
       <div class="cw">
         <div class="co"><div class="cbg"></div><div class="ci" id="circle"></div></div>
@@ -786,7 +762,8 @@ function renderSBody(){
         <div class="pcn">${eh(p.name)}</div>
         <div class="pcs">${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}</div>
       </div>`).join('');
-    body.innerHTML=`<div class="pg">${g}</div>`;
+    body.innerHTML=`<div class="pg">${g}</div><div id="pep"></div>`;
+    renderPE();
   } else {
     const s=manSt;
     body.innerHTML=`
@@ -801,9 +778,27 @@ function selPreset(i){
   selPI=i;
   document.querySelectorAll('.pc').forEach((el,j)=>{el.className='pc'+(j===i?' act':'');});
   updateSum();
-  // 프리셋 칸 클릭 → 바로 편집 패널 열기
-  openPresetEdit(i);
+  renderPE(); // 선택한 프리셋 편집 패널 바로 아래 펼치기
 }
+
+function renderPE(){
+  const p=document.getElementById('pep');
+  if(!p)return;
+  const pr=presets[selPI];
+  p.innerHTML=`<div class="pe">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500;">${eh(pr.name)} 편집</div>
+    <input class="pni" id="pni" value="${eh(pr.name)}" maxlength="8" placeholder="이름" oninput="onPN(this.value)">
+    <div class="row"><span class="lbl">들숨</span><input type="range" id="p-inhale" min="1" max="60" value="${pr.inhale}" step="1" oninput="onPV('inhale',this.value)"><span class="val" id="p-inhaleVal">${pr.inhale}초</span></div>
+    <div class="row"><span class="lbl">멈춤(들숨)</span><input type="range" id="p-holdIn" min="0" max="60" value="${pr.holdIn}" step="1" oninput="onPV('holdIn',this.value)"><span class="val" id="p-holdInVal">${pr.holdIn}초</span></div>
+    <div class="row"><span class="lbl">날숨</span><input type="range" id="p-exhale" min="1" max="60" value="${pr.exhale}" step="1" oninput="onPV('exhale',this.value)"><span class="val" id="p-exhaleVal">${pr.exhale}초</span></div>
+    <div class="row" style="margin-bottom:0;"><span class="lbl">멈춤(날숨)</span><input type="range" id="p-holdOut" min="0" max="60" value="${pr.holdOut}" step="1" oninput="onPV('holdOut',this.value)"><span class="val" id="p-holdOutVal">${pr.holdOut}초</span></div>
+  </div>`;
+}
+
+/* 더 이상 사용하지 않는 오버레이 함수들 */
+function openPresetEdit(){}
+function closePresetEdit(){}
+function savePresetEdit(){}
 
 /* 프리셋 편집 패널 열기 */
 function openPresetEdit(i){
@@ -848,8 +843,22 @@ function saveSettings(){
   document.getElementById('cfgBtn').className='ib';
 }
 
-function renderPE(){} // 더 이상 인라인 편집 없음 — openPresetEdit으로 대체function onPN(v){presets[selPI].name=v;const cs=document.querySelectorAll('.pc');if(cs[selPI])cs[selPI].querySelector('.pcn').textContent=v||'이름없음';save();}
-function onPV(k,v){presets[selPI][k]=parseInt(v);const el=document.getElementById('p-'+k+'Val');if(el)el.textContent=v+'초';const cs=document.querySelectorAll('.pc');const p=presets[selPI];if(cs[selPI])cs[selPI].querySelector('.pcs').textContent=`${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}`;updateSum();save();}
+function renderPE(){} // 더 이상 인라인 편집 없음 — openPresetEdit으로 대체function onPN(v){
+  presets[selPI].name=v;
+  const cs=document.querySelectorAll('.pc');
+  if(cs[selPI])cs[selPI].querySelector('.pcn').textContent=v||'이름없음';
+  const title=document.querySelector('#pep .pe div');
+  if(title)title.textContent=(v||'이름없음')+' 편집';
+  save();
+}
+function onPV(k,v){
+  presets[selPI][k]=parseInt(v);
+  const el=document.getElementById('p-'+k+'Val');if(el)el.textContent=v+'초';
+  const cs=document.querySelectorAll('.pc');
+  const p=presets[selPI];
+  if(cs[selPI])cs[selPI].querySelector('.pcs').textContent=`${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}`;
+  updateSum();save();
+}
 function onMan(k,v){manSt[k]=parseInt(v);const el=document.getElementById(k+'Val');if(el)el.textContent=v+'초';updateSum();save();}
 function onDurChange(){const v=document.getElementById('duration').value;document.getElementById('durationVal').textContent=v+'분';if(!running)document.getElementById('remainDisplay').textContent=fmt(v*60);updateSum();save();}
 function getAS(){if(curMode==='program'){const p=presets[selPI];return{inhale:p.inhale,holdIn:p.holdIn,exhale:p.exhale,holdOut:p.holdOut};}return{...manSt};}
