@@ -792,7 +792,10 @@ function selPreset(i){
     if(pep)pep.innerHTML='';
     return;
   }
+  // 다른 칸 누르면: 원본값으로 리셋 후 편집창 열기
   tempSelPI=i;
+  // 해당 프리셋만 원본에서 새로 복사 (이전에 임시 수정한 값 버림)
+  tempPresets[i]={...presets[i]};
   document.querySelectorAll('.pc').forEach((el,j)=>{el.className='pc'+(j===i?' act':'');});
   renderPE();
 }
@@ -815,22 +818,21 @@ function renderPE(){
 function onPN(v){
   if(tempSelPI<0)return;
   tempPresets[tempSelPI].name=v;
-  const cs=document.querySelectorAll('.pc');
-  if(cs[tempSelPI])cs[tempSelPI].querySelector('.pcn').textContent=v||'이름없음';
+  // 제목 텍스트만 편집창 내부에서 업데이트 (그리드 칸은 저장 전까지 원본 유지)
   const title=document.querySelector('#pep .pe div');
   if(title)title.textContent=(v||'이름없음')+' 편집';
 }
 function onPV(k,v){
   if(tempSelPI<0)return;
   tempPresets[tempSelPI][k]=parseInt(v);
-  const el=document.getElementById('p-'+k+'Val');if(el)el.textContent=v+'초';
-  const cs=document.querySelectorAll('.pc');
-  const p=tempPresets[tempSelPI];
-  if(cs[tempSelPI])cs[tempSelPI].querySelector('.pcs').textContent=`${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}`;
+  const el=document.getElementById('p-'+k+'Val');
+  if(el)el.textContent=v+'초';
+  // 그리드 칸 수치는 저장 전까지 원본값 유지 (업데이트 안 함)
 }
 function onMan(k,v){
   tempManSt[k]=parseInt(v);
-  const el=document.getElementById(k+'Val');if(el)el.textContent=v+'초';
+  const el=document.getElementById(k+'Val');
+  if(el)el.textContent=v+'초';
 }
 function onDurChange(){const v=document.getElementById('duration').value;document.getElementById('durationVal').textContent=v+'분';if(!running)document.getElementById('remainDisplay').textContent=fmt(v*60);updateSum();save();}
 function getAS(){
@@ -866,15 +868,21 @@ function toggleSettings(){
 }
 
 function saveSettings(){
-  // 임시값 → 실제 저장
-  presets=tempPresets.map(p=>({...p}));
-  Object.assign(manSt,tempManSt);
-  selPI=tempSelPI>=0?tempSelPI:selPI;
+  // 현재 편집 중인 프리셋만 실제 데이터에 반영
+  if(curMode==='program' && tempSelPI>=0){
+    presets[tempSelPI]={...tempPresets[tempSelPI]};
+    selPI=tempSelPI;
+  } else if(curMode==='manual'){
+    Object.assign(manSt,tempManSt);
+  }
   save();
   updateSum();
+  // 설정창 닫기
   settingsOpen=false;
   document.getElementById('settingsPanel').className='sp';
   document.getElementById('cfgBtn').className='ib';
+  // temp 초기화
+  tempPresets=[];tempManSt={};tempSelPI=-1;
 }
 
 function cancelSettings(){
