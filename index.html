@@ -207,9 +207,10 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .ibt:disabled{opacity:0.4;cursor:default;}
 .nb{background:var(--bg2);border-radius:12px;padding:2.5rem;text-align:center;}
 /* 배너 */
-.bna{margin-top:1.5rem;overflow:hidden;}
-.bnimg{width:100%;height:80px;object-fit:cover;display:block;cursor:pointer;border-radius:8px;margin-bottom:6px;}
-.bnimg:last-of-type{margin-bottom:0;}
+.bna{margin-top:1.5rem;overflow:hidden;display:flex;flex-direction:column;gap:3px;}
+.bn-item{width:100%;}
+.bn-item a{display:block;}
+.bnimg{width:100%;height:80px;object-fit:cover;display:block;cursor:pointer;border-radius:8px;}
 .bnph{width:100%;height:80px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2);border-radius:8px;}
 .bnf{padding:6px 0;display:flex;justify-content:flex-end;}
 .bnc{font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;}
@@ -518,9 +519,8 @@ function renderBanners() {
     return;
   }
   const imgs = _banners.map(data => {
-    return data.url
-      ? `<a href="${data.url}" target="_blank" rel="noopener"><img class="bnimg" src="${data.imageUrl}" alt="배너"></a>`
-      : `<img class="bnimg" src="${data.imageUrl}" alt="배너">`;
+    const img = `<img class="bnimg" src="${data.imageUrl}" alt="배너">`;
+    return `<div class="bn-item">${data.url ? `<a href="${data.url}" target="_blank" rel="noopener">${img}</a>` : img}</div>`;
   }).join('');
   wrap.innerHTML = imgs + `<div class="bnf"><span class="bnc">제휴 문의</span></div>`;
 }
