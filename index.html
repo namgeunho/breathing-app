@@ -266,8 +266,8 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .sound-chip.act-off{background:var(--bg3);color:var(--text3);border-color:var(--bd);}
 /* ── 볼륨 슬라이더 ── */
 .vol-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
-.vol-icon{font-size:16px;flex-shrink:0;}
-.vol-slider{flex:1;accent-color:var(--info);height:4px;cursor:pointer;}
+.vol-icon{width:18px;height:18px;flex-shrink:0;color:var(--text2);}
+.vol-slider{flex:1;accent-color:var(--info);cursor:pointer;}
 .vol-val{font-size:13px;font-weight:500;color:var(--text2);width:28px;text-align:right;flex-shrink:0;}
 /* ── 카운트다운 오버레이 ── */
 .countdown-num{
@@ -325,7 +325,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
         <div class="sound-section-label">효과음 선택</div>
         <div class="sound-chips" id="sfxChips"></div>
         <div class="vol-row">
-          <span class="vol-icon">🔈</span>
+          <svg class="vol-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3,5 6,5 10,2 10,14 6,11 3,11"/><path d="M12 5.5a3 3 0 0 1 0 5"/></svg>
           <input type="range" id="sfxVol" class="vol-slider" min="0" max="100" value="60" step="5" oninput="setSfxVol(this.value)">
           <span class="vol-val" id="sfxVolVal">60</span>
         </div>
@@ -337,7 +337,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
         <div class="sound-section-label">배경음 선택</div>
         <div class="sound-chips" id="bgmChips"></div>
         <div class="vol-row">
-          <span class="vol-icon">🔈</span>
+          <svg class="vol-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3,5 6,5 10,2 10,14 6,11 3,11"/><path d="M12 5.5a3 3 0 0 1 0 5"/></svg>
           <input type="range" id="bgmVol" class="vol-slider" min="0" max="100" value="40" step="5" oninput="setBgmVol(this.value)">
           <span class="vol-val" id="bgmVolVal">40</span>
         </div>
@@ -751,18 +751,12 @@ async function triggerInstall(){if(!deferredInstall)return;deferredInstall.promp
 function setSfxVol(v){
   sfxVolume=parseInt(v);
   const el=document.getElementById('sfxVolVal');if(el)el.textContent=v;
-  // 아이콘 업데이트
-  const icon=document.querySelector('#sfxSection .vol-icon');
-  if(icon)icon.textContent=v==0?'🔇':v<40?'🔈':v<70?'🔉':'🔊';
   save();
 }
 function setBgmVol(v){
   bgmVolume=parseInt(v);
   const el=document.getElementById('bgmVolVal');if(el)el.textContent=v;
-  // 실시간으로 재생 중인 배경음 볼륨 반영
-  if(bgmGain) bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,audioCtx.currentTime);
-  const icon=document.querySelector('#bgmSection .vol-icon');
-  if(icon)icon.textContent=v==0?'🔇':v<40?'🔈':v<70?'🔉':'🔊';
+  if(bgmGain)bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,audioCtx.currentTime);
   save();
 }
 function tone(f,t,d,v){
@@ -802,13 +796,50 @@ function startBgm(){
     bgmGain.connect(ctx.destination);
     const cfg={forest:{f:[180,240,320,430],t:'sine'},rain:{f:[250,500,750,1000],t:'sawtooth'},ocean:{f:[60,90,120,150],t:'sine'},white:{f:[300,700,1100,1500],t:'sawtooth'},zen:{f:[136,272,204,340],t:'sine'}};
     const c=cfg[curBgm]||cfg.forest;
-    bgmNode=c.f.map((f,i)=>{const o=ctx.createOscillator();const g=ctx.createGain();o.type=c.t;o.frequency.setValueAtTime(f,ctx.currentTime);o.detune.setValueAtValue((i%2?3:-3)*(i+1),ctx.currentTime);g.gain.setValueAtTime(0.015,ctx.currentTime);o.connect(g);g.connect(bgmGain);o.start();return o;});
-  }catch(e){}
+    bgmNode=c.f.map((f,i)=>{
+      const o=ctx.createOscillator();const g=ctx.createGain();
+      o.type=c.t;
+      o.frequency.setValueAtTime(f,ctx.currentTime);
+      o.detune.setValueAtTime((i%2?3:-3)*(i+1),ctx.currentTime);
+      g.gain.setValueAtTime(0.015,ctx.currentTime);
+      o.connect(g);g.connect(bgmGain);o.start();return o;
+    });
+  }catch(e){console.log('bgm err',e);}
 }
 function stopBgm(){if(bgmNode){bgmNode.forEach(o=>{try{o.stop();}catch(e){}});bgmNode=null;}if(bgmGain){try{bgmGain.disconnect();}catch(e){}bgmGain=null;}}
 function setBgm(on){bgmOn=on;document.getElementById('bgmOn').className=on?'on':'off';document.getElementById('bgmOff').className=on?'off':'on';const sec=document.getElementById('bgmSection');if(sec)sec.style.display=on?'block':'none';if(on&&running)startBgm();else stopBgm();save();}
-function selSfx(id){curSfx=id;renderSfxChips();playSfxTone(id,'들숨');save();}
-function selBgmTrack(id){curBgm=id;stopBgm();renderBgmChips();if(bgmOn&&running)startBgm();save();}
+
+/* 효과음 선택 시 미리듣기 */
+function selSfx(id){
+  curSfx=id;
+  renderSfxChips();
+  // AudioContext 반드시 resume 후 재생
+  try{getACtx().resume().then(()=>playSfxTone(id,'들숨'));}catch(e){playSfxTone(id,'들숨');}
+  save();
+}
+
+/* 배경음 선택 시 3초 미리듣기 */
+let bgmPreviewTimer=null;
+function selBgmTrack(id){
+  curBgm=id;
+  renderBgmChips();
+  // 훈련 중이면 바로 전환
+  if(bgmOn&&running){stopBgm();startBgm();save();return;}
+  // 아니면 3초 미리듣기
+  stopBgm();
+  if(bgmPreviewTimer){clearTimeout(bgmPreviewTimer);bgmPreviewTimer=null;}
+  try{
+    const ctx=getACtx();ctx.resume();
+    // 임시로 bgmOn=true로 켜서 미리 재생 후 복원
+    const wasOn=bgmOn;bgmOn=true;
+    startBgm();
+    bgmPreviewTimer=setTimeout(()=>{
+      if(!running){stopBgm();}
+      bgmOn=wasOn;
+    },3000);
+  }catch(e){}
+  save();
+}
 function renderSfxChips(){const el=document.getElementById('sfxChips');if(!el)return;el.innerHTML=SFX_LIST.map(s=>`<button class="sound-chip${s.id===curSfx?' act-chip':''}" onclick="selSfx('${s.id}')">${s.name}</button>`).join('');}
 function renderBgmChips(){const el=document.getElementById('bgmChips');if(!el)return;el.innerHTML=BGM_LIST.map(b=>`<button class="sound-chip${b.id===curBgm?' act-chip':''}" onclick="selBgmTrack('${b.id}')">${b.name}</button>`).join('');}
 
