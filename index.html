@@ -207,14 +207,12 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .ibt:disabled{opacity:0.4;cursor:default;}
 .nb{background:var(--bg2);border-radius:12px;padding:2.5rem;text-align:center;}
 /* 배너 */
-.bna{margin-top:1.5rem;overflow:hidden;position:relative;}
-.bnimg{width:100%;height:80px;object-fit:cover;display:block;cursor:pointer;}
-.bnph{width:100%;height:80px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2);}
-.bnf{padding:8px 0;display:flex;justify-content:flex-end;}
+.bna{margin-top:1.5rem;overflow:hidden;}
+.bnimg{width:100%;height:80px;object-fit:cover;display:block;cursor:pointer;border-radius:8px;margin-bottom:6px;}
+.bnimg:last-of-type{margin-bottom:0;}
+.bnph{width:100%;height:80px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2);border-radius:8px;}
+.bnf{padding:6px 0;display:flex;justify-content:flex-end;}
 .bnc{font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;}
-.bn-dots{display:flex;justify-content:center;gap:6px;padding:6px 0;}
-.bn-dot{width:6px;height:6px;border-radius:50%;background:var(--bd2);cursor:pointer;transition:background 0.2s;}
-.bn-dot.act-dot{background:var(--info);}
 /* 공지 */
 .notice-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:12px;padding:1.25rem;margin-bottom:10px;}
 .notice-pin{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;margin-bottom:8px;background:var(--info-bg);color:var(--info);}
@@ -490,51 +488,41 @@ function logEvent(name, params){
 
 /* ── Firebase 데이터 로드 ── */
 let _banners = [];
-let _bannerIdx = 0;
-let _bannerTimer = null;
 
 async function loadBanner() {
   try {
     const snap = await db.collection('banners').where('active','==',true).get();
     if (snap.empty) return;
+    const now = Date.now();
     _banners = snap.docs
-      .sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0))
       .map(d => d.data())
-      .filter(d => d.imageUrl);
-    if (!_banners.length) return;
-    _bannerIdx = 0;
-    renderBanner();
-    if (_banners.length > 1) startBannerTimer();
+      .filter(d => {
+        if (!d.imageUrl) return false;
+        // 만료일 체크: expireAt이 있으면 현재 시각과 비교
+        if (d.expireAt) {
+          const exp = d.expireAt.toDate ? d.expireAt.toDate().getTime() : new Date(d.expireAt).getTime();
+          if (exp < now) return false;
+        }
+        return true;
+      })
+      .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0))
+      .slice(0, 3); // 최대 3개
+    renderBanners();
   } catch(e) { console.log('배너 로드 실패:', e.message); }
 }
 
-function renderBanner() {
-  const data = _banners[_bannerIdx];
-  if (!data) return;
+function renderBanners() {
   const wrap = document.getElementById('bannerWrap');
-  const dots = _banners.length > 1
-    ? `<div class="bn-dots">${_banners.map((_,i) => `<span class="bn-dot${i===_bannerIdx?' act-dot':''}" onclick="goBanner(${i})"></span>`).join('')}</div>`
-    : '';
-  const imgHtml = data.url
-    ? `<a href="${data.url}" target="_blank" rel="noopener"><img class="bnimg" src="${data.imageUrl}" alt="배너"></a>`
-    : `<img class="bnimg" src="${data.imageUrl}" alt="배너">`;
-  wrap.innerHTML = imgHtml + dots + `<div class="bnf"><span class="bnc">제휴 문의</span></div>`;
-}
-
-function startBannerTimer(){
-  if(_bannerTimer)clearInterval(_bannerTimer);
-  const dur=(_banners[_bannerIdx]?.duration||10)*1000;
-  _bannerTimer=setInterval(()=>{
-    _bannerIdx=(_bannerIdx+1)%_banners.length;
-    renderBanner();
-    startBannerTimer(); // 다음 배너의 duration으로 재시작
-  },dur);
-}
-
-function goBanner(i) {
-  _bannerIdx = i;
-  renderBanner();
-  if(_banners.length>1)startBannerTimer();
+  if (!_banners.length) {
+    wrap.innerHTML = `<div class="bnph">광고 배너 영역</div><div class="bnf"><span class="bnc">제휴 문의</span></div>`;
+    return;
+  }
+  const imgs = _banners.map(data => {
+    return data.url
+      ? `<a href="${data.url}" target="_blank" rel="noopener"><img class="bnimg" src="${data.imageUrl}" alt="배너"></a>`
+      : `<img class="bnimg" src="${data.imageUrl}" alt="배너">`;
+  }).join('');
+  wrap.innerHTML = imgs + `<div class="bnf"><span class="bnc">제휴 문의</span></div>`;
 }
 
 let _notices = [];
