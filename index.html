@@ -319,7 +319,8 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
         <div class="sound-chips" id="bgmChips"></div>
       </div>
       <div class="divl"></div>
-      <div style="display:flex;justify-content:flex-end;">
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="cancelSettings()">취소</button>
         <button class="bp" style="padding:10px 28px;" onclick="saveSettings()">저장하기</button>
       </div>
     </div>
@@ -580,6 +581,8 @@ let bgmOn=false,bgmNode=null,bgmGain=null;
 let curSfx='basic',curBgm='forest';
 let screenOff=false,lastResult=null;
 let curMode='manual',selPI=-1;
+// 설정 임시 복사본 (저장 전까지 실제 데이터 보호)
+let tempPresets=[],tempManSt={},tempSelPI=-1;
 let userName='사용자',userPhoto=null,curTheme='white';
 let curPage='train';
 let deferredInstall=null;
@@ -752,20 +755,26 @@ function showNoticeDetail(idx){
     <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem;">${fmtDate(n.createdAt)}</div>
     <div class="notice-body" style="line-height:1.8;">${renderContent(n.content)}</div>`;
 }
-function setMode(mode){curMode=mode;document.getElementById('modeProgram').className='mb'+(mode==='program'?' active':'');document.getElementById('modeManual').className='mb'+(mode==='manual'?' active':'');renderSBody();updateSum();save();}
+function setMode(mode){
+  curMode=mode;
+  document.getElementById('modeProgram').className='mb'+(mode==='program'?' active':'');
+  document.getElementById('modeManual').className='mb'+(mode==='manual'?' active':'');
+  tempSelPI=-1; // 모드 전환 시 편집창 닫기
+  renderSBody();
+  updateSum();
+}
 
 function renderSBody(){
   const body=document.getElementById('settingsBody');
   if(curMode==='program'){
-    const g=presets.map((p,i)=>`
-      <div class="pc${i===selPI?' act':''}" onclick="selPreset(${i})">
+    const g=tempPresets.map((p,i)=>`
+      <div class="pc${i===tempSelPI?' act':''}" onclick="selPreset(${i})">
         <div class="pcn">${eh(p.name)}</div>
         <div class="pcs">${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}</div>
       </div>`).join('');
-    // 기본: 편집창 닫힌 상태로 시작
     body.innerHTML=`<div class="pg">${g}</div><div id="pep"></div>`;
   } else {
-    const s=manSt;
+    const s=tempManSt;
     body.innerHTML=`
       <div class="row"><span class="lbl">들숨</span><input type="range" id="inhale" min="1" max="60" value="${s.inhale}" step="1" oninput="onMan('inhale',this.value)"><span class="val" id="inhaleVal">${s.inhale}초</span></div>
       <div class="row"><span class="lbl">멈춤(들숨)</span><input type="range" id="holdIn" min="0" max="60" value="${s.holdIn}" step="1" oninput="onMan('holdIn',this.value)"><span class="val" id="holdInVal">${s.holdIn}초</span></div>
@@ -776,24 +785,23 @@ function renderSBody(){
 
 function selPreset(i){
   // 같은 칸 다시 누르면 닫기 (토글)
-  if(selPI===i){
-    selPI=-1;
+  if(tempSelPI===i){
+    tempSelPI=-1;
     document.querySelectorAll('.pc').forEach(el=>el.classList.remove('act'));
     const pep=document.getElementById('pep');
     if(pep)pep.innerHTML='';
-    updateSum();
     return;
   }
-  selPI=i;
+  tempSelPI=i;
   document.querySelectorAll('.pc').forEach((el,j)=>{el.className='pc'+(j===i?' act':'');});
-  updateSum();
   renderPE();
 }
 
 function renderPE(){
   const p=document.getElementById('pep');
   if(!p)return;
-  const pr=presets[selPI];
+  const pr=tempPresets[tempSelPI];
+  if(!pr)return;
   p.innerHTML=`<div class="pe">
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500;">${eh(pr.name)} 편집</div>
     <input class="pni" id="pni" value="${eh(pr.name)}" maxlength="8" placeholder="이름" oninput="onPN(this.value)">
@@ -804,31 +812,26 @@ function renderPE(){
   </div>`;
 }
 
-/* 저장하기 버튼 → 설정창 닫기 */
-function saveSettings(){
-  save();
-  settingsOpen=false;
-  document.getElementById('settingsPanel').className='sp';
-  document.getElementById('cfgBtn').className='ib';
-}
-
 function onPN(v){
-  presets[selPI].name=v;
+  if(tempSelPI<0)return;
+  tempPresets[tempSelPI].name=v;
   const cs=document.querySelectorAll('.pc');
-  if(cs[selPI])cs[selPI].querySelector('.pcn').textContent=v||'이름없음';
+  if(cs[tempSelPI])cs[tempSelPI].querySelector('.pcn').textContent=v||'이름없음';
   const title=document.querySelector('#pep .pe div');
   if(title)title.textContent=(v||'이름없음')+' 편집';
-  save();
 }
 function onPV(k,v){
-  presets[selPI][k]=parseInt(v);
+  if(tempSelPI<0)return;
+  tempPresets[tempSelPI][k]=parseInt(v);
   const el=document.getElementById('p-'+k+'Val');if(el)el.textContent=v+'초';
   const cs=document.querySelectorAll('.pc');
-  const p=presets[selPI];
-  if(cs[selPI])cs[selPI].querySelector('.pcs').textContent=`${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}`;
-  updateSum();save();
+  const p=tempPresets[tempSelPI];
+  if(cs[tempSelPI])cs[tempSelPI].querySelector('.pcs').textContent=`${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}`;
 }
-function onMan(k,v){manSt[k]=parseInt(v);const el=document.getElementById(k+'Val');if(el)el.textContent=v+'초';updateSum();save();}
+function onMan(k,v){
+  tempManSt[k]=parseInt(v);
+  const el=document.getElementById(k+'Val');if(el)el.textContent=v+'초';
+}
 function onDurChange(){const v=document.getElementById('duration').value;document.getElementById('durationVal').textContent=v+'분';if(!running)document.getElementById('remainDisplay').textContent=fmt(v*60);updateSum();save();}
 function getAS(){
   if(curMode==='program'){
@@ -848,8 +851,40 @@ function updateSum(){
   p+=`들숨${s.inhale}`;if(s.holdIn>0)p+=` / 멈춤${s.holdIn}`;p+=` / 날숨${s.exhale}`;if(s.holdOut>0)p+=` / 멈춤${s.holdOut}`;p+=` · ${d}분`;
   document.getElementById('cfgSummary').textContent=p;
 }
-function toggleSettings(){settingsOpen=!settingsOpen;document.getElementById('settingsPanel').className='sp'+(settingsOpen?' open':'');document.getElementById('cfgBtn').className='ib'+(settingsOpen?' acfg':'');}
-function getPL(){const s=getAS();return[{name:'들숨',dur:s.inhale,gi:0},{name:'멈춤',dur:s.holdIn,gi:1},{name:'날숨',dur:s.exhale,gi:2},{name:'멈춤',dur:s.holdOut,gi:3}].filter(x=>x.dur>0);}
+function toggleSettings(){
+  if(!settingsOpen){
+    // 열 때: 임시 복사본 만들기
+    settingsOpen=true;
+    tempPresets=presets.map(p=>({...p}));
+    tempManSt={...manSt};
+    tempSelPI=-1; // 편집창 초기 닫힘
+    document.getElementById('settingsPanel').className='sp open';
+    document.getElementById('cfgBtn').className='ib acfg';
+    renderSBody();
+  }
+  // 버튼 다시 눌러도 닫히지 않음 (저장/취소로만 닫힘)
+}
+
+function saveSettings(){
+  // 임시값 → 실제 저장
+  presets=tempPresets.map(p=>({...p}));
+  Object.assign(manSt,tempManSt);
+  selPI=tempSelPI>=0?tempSelPI:selPI;
+  save();
+  updateSum();
+  settingsOpen=false;
+  document.getElementById('settingsPanel').className='sp';
+  document.getElementById('cfgBtn').className='ib';
+}
+
+function cancelSettings(){
+  // 변경 취소 — 실제 데이터 건드리지 않음
+  settingsOpen=false;
+  document.getElementById('settingsPanel').className='sp';
+  document.getElementById('cfgBtn').className='ib';
+  // 편집창도 초기화
+  tempPresets=[];tempManSt={};tempSelPI=-1;
+}function getPL(){const s=getAS();return[{name:'들숨',dur:s.inhale,gi:0},{name:'멈춤',dur:s.holdIn,gi:1},{name:'날숨',dur:s.exhale,gi:2},{name:'멈춤',dur:s.holdOut,gi:3}].filter(x=>x.dur>0);}
 function getScale(n,p,g){if(n==='들숨')return 1+p*0.8;if(n==='날숨')return 1.8-p*0.8;if(n==='멈춤')return g===1?1.8:1.0;return 1.0;}
 function tick(ts){if(!running)return;if(!lastTs)lastTs=ts;const dt=(ts-lastTs)/1000;lastTs=ts;totalElapsed+=dt;const tSec=parseInt(document.getElementById('duration').value)*60;if(totalElapsed>=tSec){totalElapsed=tSec;finish();return;}const list=getPL();if(!list.length)return;phaseTime+=dt;const ci=phase%list.length;const cur=list[ci];const prog=Math.min(phaseTime/cur.dur,1);if(ci!==prevPI){prevPI=ci;playPS(cur.name);}const rem=Math.max(0,cur.dur-phaseTime);document.getElementById('circle').style.transform=`translate(-50%,-50%) scale(${getScale(cur.name,prog,cur.gi)})`;document.getElementById('circle').style.background=pGrads[cur.gi];document.getElementById('phaseLabel').textContent=cur.name;document.getElementById('timerLabel').textContent=Math.ceil(rem)+'초';document.getElementById('progressFill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('elapsedDisplay').textContent=fmt(totalElapsed);document.getElementById('remainDisplay').textContent=fmt(tSec-totalElapsed);if(screenOff){document.getElementById('bs-phase').textContent=cur.name;document.getElementById('bs-timer').textContent=Math.ceil(rem);document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);}if(phaseTime>=cur.dur){phaseTime=0;phase++;if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}}raf=requestAnimationFrame(tick);}
 function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
