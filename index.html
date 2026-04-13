@@ -971,57 +971,67 @@ function cancelCountdown(){
   const el=document.getElementById('cdNum');if(el)el.remove();
   document.getElementById('circle').style.transform='translate(-50%,-50%) scale(1)';
   document.getElementById('circle').style.background=dGrad;
-  document.getElementById('phaseLabel').textContent='준비';
-  document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';
-  document.getElementById('startBtn').textContent='시작';
+  // 훈련 중이 아닐 때만 초기 상태로 복원
+  if(!running && !isPaused){
+    document.getElementById('phaseLabel').textContent='준비';
+    document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';
+    document.getElementById('startBtn').textContent='시작';
+  }
 }
 
 function startStop(){
   try{getACtx().resume();}catch(e){}
-  // 카운트다운 중이면 취소
-  if(countdownRaf){cancelCountdown();return;}
+
+  // 카운트다운 중 → 취소
+  if(countdownRaf){ cancelCountdown(); return; }
 
   if(running){
-    // 일시정지
+    // ── 일시정지 ──
     running=false;
-    cancelAnimationFrame(raf);
-    lastTs=null;
     isPaused=true;
+    cancelAnimationFrame(raf);
+    raf=null;
+    lastTs=null;
+    releaseWakeLock();
+    stopBgm();
     document.getElementById('startBtn').textContent='계속';
     document.getElementById('phaseLabel').textContent='일시정지';
-    if(screenOff)document.getElementById('blackScreen').classList.remove('active');
-    releaseWakeLock();stopBgm();
+    if(screenOff) document.getElementById('blackScreen').classList.remove('active');
     logEvent('training_paused',{elapsed:Math.round(totalElapsed)});
+
+  } else if(isPaused){
+    // ── 일시정지 → 재개 (카운트다운 없이) ──
+    isPaused=false;
+    running=true;
+    lastTs=null;
+    requestWakeLock();
+    startBgm();
+    document.getElementById('startBtn').textContent='일시정지';
+    if(screenOff) document.getElementById('blackScreen').classList.add('active');
+    raf=requestAnimationFrame(tick);
+
   } else {
-    if(settingsOpen)cancelSettings();
-
-    const doStart = () => {
-      running=true;lastTs=null;
-      document.getElementById('startBtn').textContent='일시정지';
-      if(screenOff)document.getElementById('blackScreen').classList.add('active');
-      requestWakeLock();startBgm();
-      raf=requestAnimationFrame(tick);
-    };
-
-    if(isPaused){
-      // 일시정지에서 재개 — 카운트다운 없이 바로 시작
+    // ── 처음 시작 → 5초 카운트다운 ──
+    if(settingsOpen) cancelSettings();
+    prevPI=-1;
+    startCountdown(()=>{
+      const el=document.getElementById('cdNum'); if(el) el.remove();
+      running=true;
+      lastTs=null;
       isPaused=false;
-      doStart();
-    } else {
-      // 처음 시작 — 5초 카운트다운
-      prevPI=-1;
-      startCountdown(()=>{
-        const el=document.getElementById('cdNum');if(el)el.remove();
-        doStart();
-        const s=getAS();
-        logEvent('training_start',{
-          mode:curMode,
-          preset:curMode==='program'?presets[selPI>=0?selPI:0].name:'manual',
-          inhale:s.inhale,exhale:s.exhale,
-          duration:parseInt(document.getElementById('duration').value)
-        });
+      requestWakeLock();
+      startBgm();
+      document.getElementById('startBtn').textContent='일시정지';
+      if(screenOff) document.getElementById('blackScreen').classList.add('active');
+      raf=requestAnimationFrame(tick);
+      const s=getAS();
+      logEvent('training_start',{
+        mode:curMode,
+        preset:curMode==='program'?presets[selPI>=0?selPI:0].name:'manual',
+        inhale:s.inhale, exhale:s.exhale,
+        duration:parseInt(document.getElementById('duration').value)
       });
-    }
+    });
   }
 }
 function resetAll(){
