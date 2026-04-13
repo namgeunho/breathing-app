@@ -203,11 +203,14 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .ibt:disabled{opacity:0.4;cursor:default;}
 .nb{background:var(--bg2);border-radius:12px;padding:2.5rem;text-align:center;}
 /* 배너 */
-.bna{margin-top:1.5rem;overflow:hidden;}
+.bna{margin-top:1.5rem;overflow:hidden;position:relative;}
 .bnimg{width:100%;height:80px;object-fit:cover;display:block;cursor:pointer;}
 .bnph{width:100%;height:80px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2);}
 .bnf{padding:8px 0;display:flex;justify-content:flex-end;}
 .bnc{font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;}
+.bn-dots{display:flex;justify-content:center;gap:6px;padding:6px 0;}
+.bn-dot{width:6px;height:6px;border-radius:50%;background:var(--bd2);cursor:pointer;transition:background 0.2s;}
+.bn-dot.act-dot{background:var(--info);}
 /* 공지 */
 .notice-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:12px;padding:1.25rem;margin-bottom:10px;}
 .notice-pin{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;margin-bottom:8px;background:var(--info-bg);color:var(--info);}
@@ -437,25 +440,50 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 /* ── Firebase 데이터 로드 ── */
+let _banners = [];
+let _bannerIdx = 0;
+let _bannerTimer = null;
+
 async function loadBanner() {
   try {
-    // orderBy 없이 먼저 시도 (인덱스 불필요)
     const snap = await db.collection('banners').where('active','==',true).get();
     if (snap.empty) return;
-    // createdAt 기준 클라이언트 정렬
-    const docs = snap.docs.sort((a,b)=>{
-      const at = a.data().createdAt?.seconds||0;
-      const bt = b.data().createdAt?.seconds||0;
-      return bt - at;
-    });
-    const data = docs[0].data();
-    if (!data.imageUrl) return;
-    const wrap = document.getElementById('bannerWrap');
-    const imgHtml = data.url
-      ? `<a href="${data.url}" target="_blank" rel="noopener"><img class="bnimg" src="${data.imageUrl}" alt="배너"></a>`
-      : `<img class="bnimg" src="${data.imageUrl}" alt="배너">`;
-    wrap.innerHTML = imgHtml + `<div class="bnf"><span class="bnc">제휴 문의</span></div>`;
+    _banners = snap.docs
+      .sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0))
+      .map(d => d.data())
+      .filter(d => d.imageUrl);
+    if (!_banners.length) return;
+    _bannerIdx = 0;
+    renderBanner();
+    // 배너가 2개 이상이면 10초마다 자동 전환
+    if (_banners.length > 1) {
+      if (_bannerTimer) clearInterval(_bannerTimer);
+      _bannerTimer = setInterval(() => {
+        _bannerIdx = (_bannerIdx + 1) % _banners.length;
+        renderBanner();
+      }, 10000);
+    }
   } catch(e) { console.log('배너 로드 실패:', e.message); }
+}
+
+function renderBanner() {
+  const data = _banners[_bannerIdx];
+  if (!data) return;
+  const wrap = document.getElementById('bannerWrap');
+  const dots = _banners.length > 1
+    ? `<div class="bn-dots">${_banners.map((_,i) => `<span class="bn-dot${i===_bannerIdx?' act-dot':''}" onclick="goBanner(${i})"></span>`).join('')}</div>`
+    : '';
+  const imgHtml = data.url
+    ? `<a href="${data.url}" target="_blank" rel="noopener"><img class="bnimg" src="${data.imageUrl}" alt="배너"></a>`
+    : `<img class="bnimg" src="${data.imageUrl}" alt="배너">`;
+  wrap.innerHTML = imgHtml + dots + `<div class="bnf"><span class="bnc">제휴 문의</span></div>`;
+}
+
+function goBanner(i) {
+  _bannerIdx = i;
+  renderBanner();
+  // 수동 이동 시 타이머 리셋
+  if (_bannerTimer) { clearInterval(_bannerTimer); _bannerTimer = setInterval(() => { _bannerIdx = (_bannerIdx+1) % _banners.length; renderBanner(); }, 10000); }
 }
 
 let _notices = [];
@@ -498,7 +526,7 @@ function showColDetail(i) {
     <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">${eh(c.title)}</div>
     ${c.subtitle ? `<div style="font-size:14px;color:var(--text2);margin-bottom:12px;">${eh(c.subtitle)}</div>` : ''}
     <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem;">${fmtDate(c.createdAt)}</div>
-    <div class="col-body">${eh(c.content)}</div>`;
+    <div class="col-body" style="line-height:1.8;">${renderContent(c.content)}</div>`;
   document.getElementById('colListView').style.display = 'none';
   document.getElementById('colDetailView').style.display = 'block';
 }
@@ -511,6 +539,28 @@ function fmtDate(ts) {
   if (!ts) return '';
   const d = ts.toDate ? ts.toDate() : new Date(ts);
   return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+}
+
+/* ── 본문 렌더링 (이미지 태그 지원) ──
+   관리자에서 [img:https://...] 형식으로 삽입하면 이미지로 표시
+   또는 한 줄 전체가 http로 시작하는 이미지 URL이면 자동 인식 */
+function renderContent(text) {
+  if (!text) return '';
+  const lines = text.split('\n');
+  return lines.map(line => {
+    const trimmed = line.trim();
+    // [img:URL] 형식
+    const imgTag = trimmed.match(/^\[img:(https?:\/\/[^\]]+)\]$/);
+    if (imgTag) {
+      return `<img src="${imgTag[1]}" alt="이미지" style="width:100%;border-radius:8px;margin:8px 0;display:block;">`;
+    }
+    // 단독 이미지 URL (jpg, png, gif, webp로 끝나는)
+    if (/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(trimmed)) {
+      return `<img src="${trimmed}" alt="이미지" style="width:100%;border-radius:8px;margin:8px 0;display:block;">`;
+    }
+    // 일반 텍스트
+    return `<span>${eh(line)}</span>`;
+  }).join('<br>');
 }
 
 /* ── 앱 상태 ── */
@@ -688,7 +738,11 @@ function showNoticeDetail(idx){
   const n=_notices[idx];
   const sub=document.getElementById('configSub');
   const back=`<button class="cbk" onclick="showSub('notice')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10,3 4,8 10,13"/></svg> 공지사항</button>`;
-  sub.innerHTML=back+`${n.pinned?'<div class="notice-pin" style="margin-bottom:10px;">📌 중요</div>':''}<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${eh(n.title)}</div><div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem;">${fmtDate(n.createdAt)}</div><div class="notice-body">${eh(n.content)}</div>`;
+  sub.innerHTML=back+`
+    ${n.pinned?'<div class="notice-pin" style="margin-bottom:10px;">📌 중요</div>':''}
+    <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${eh(n.title)}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem;">${fmtDate(n.createdAt)}</div>
+    <div class="notice-body" style="line-height:1.8;">${renderContent(n.content)}</div>`;
 }
 function setMode(mode){curMode=mode;document.getElementById('modeProgram').className='mb'+(mode==='program'?' active':'');document.getElementById('modeManual').className='mb'+(mode==='manual'?' active':'');renderSBody();updateSum();save();}
 function renderSBody(){const body=document.getElementById('settingsBody');if(curMode==='program'){const g=presets.map((p,i)=>`<div class="pc${i===selPI?' act':''}" onclick="selPreset(${i})"><div class="pcn">${eh(p.name)}</div><div class="pcs">${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}</div></div>`).join('');body.innerHTML=`<div class="pg">${g}</div><div id="pep"></div>`;renderPE();}else{const s=manSt;body.innerHTML=`<div class="row"><span class="lbl">들숨</span><input type="range" id="inhale" min="1" max="60" value="${s.inhale}" step="1" oninput="onMan('inhale',this.value)"><span class="val" id="inhaleVal">${s.inhale}초</span></div><div class="row"><span class="lbl">멈춤(들숨)</span><input type="range" id="holdIn" min="0" max="60" value="${s.holdIn}" step="1" oninput="onMan('holdIn',this.value)"><span class="val" id="holdInVal">${s.holdIn}초</span></div><div class="row"><span class="lbl">날숨</span><input type="range" id="exhale" min="1" max="60" value="${s.exhale}" step="1" oninput="onMan('exhale',this.value)"><span class="val" id="exhaleVal">${s.exhale}초</span></div><div class="row"><span class="lbl">멈춤(날숨)</span><input type="range" id="holdOut" min="0" max="60" value="${s.holdOut}" step="1" oninput="onMan('holdOut',this.value)"><span class="val" id="holdOutVal">${s.holdOut}초</span></div>`;}}
