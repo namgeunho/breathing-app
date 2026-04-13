@@ -748,6 +748,7 @@ function saveName(){const i=document.getElementById('nameInput');if(!i)return;co
 async function triggerInstall(){if(!deferredInstall)return;deferredInstall.prompt();const r=await deferredInstall.userChoice;if(r.outcome==='accepted')deferredInstall=null;}
 
 /* ── Audio ── */
+function getACtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
 function setSfxVol(v){
   sfxVolume=parseInt(v);
   const el=document.getElementById('sfxVolVal');if(el)el.textContent=v;
