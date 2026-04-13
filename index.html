@@ -1048,8 +1048,8 @@ function startCountdown(cb){
     // 원 크기 애니메이션
     circle.style.transform=`translate(-50%,-50%) scale(${1+num*0.1})`;
     circle.style.background='radial-gradient(circle,#FFD700 15%,rgba(255,200,0,0.45)58%,transparent 100%)';
-    // 효과음
-    if(soundOn)try{const ctx=getACtx();const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(num===1?880:660,ctx.currentTime);g.gain.setValueAtTime(0.15,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.3);}catch(e){}
+    // 효과음 (기본 볼륨의 30%)
+    if(soundOn)try{const ctx=getACtx();const o=ctx.createOscillator();const g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(num===1?880:660,ctx.currentTime);g.gain.setValueAtTime(0.15*0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.3);o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.3);}catch(e){}
     n--;
     countdownRaf=setTimeout(()=>showNum(n),1000);
   }
