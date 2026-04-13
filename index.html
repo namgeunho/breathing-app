@@ -266,10 +266,9 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .sound-chip.act-off{background:var(--bg3);color:var(--text3);border-color:var(--bd);}
 /* ── 카운트다운 오버레이 ── */
 .countdown-num{
-  position:absolute;top:50%;left:50%;
+  position:absolute;top:52%;left:50%;
   transform:translate(-50%,-50%);
   font-size:42px;font-weight:700;color:#fff;
-  text-shadow:0 1px 6px rgba(0,0,0,0.35);
   pointer-events:none;z-index:2;
   animation:cdPop 0.4s ease-out;
 }
@@ -988,9 +987,9 @@ function startStop(){
     logEvent('training_paused',{elapsed:Math.round(totalElapsed)});
   }else{
     if(settingsOpen)cancelSettings();
-    // 카운트다운 후 실제 시작
-    startCountdown(()=>{
-      const el=document.getElementById('cdNum');if(el)el.remove();
+    // 일시정지 후 재시작이면 카운트다운 없이 바로 시작
+    const isPaused = totalElapsed > 0;
+    const doStart = () => {
       running=true;lastTs=null;prevPI=-1;
       document.getElementById('startBtn').textContent='일시정지';
       if(screenOff)document.getElementById('blackScreen').classList.add('active');
@@ -1003,7 +1002,15 @@ function startStop(){
         inhale:s.inhale,exhale:s.exhale,
         duration:parseInt(document.getElementById('duration').value)
       });
-    });
+    };
+    if(isPaused){
+      doStart();
+    } else {
+      startCountdown(()=>{
+        const el=document.getElementById('cdNum');if(el)el.remove();
+        doStart();
+      });
+    }
   }
 }
 function resetAll(){
