@@ -264,6 +264,11 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .sound-chip:hover{border-color:var(--info-bd);color:var(--info);}
 .sound-chip.act-chip{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
 .sound-chip.act-off{background:var(--bg3);color:var(--text3);border-color:var(--bd);}
+/* ── 볼륨 슬라이더 ── */
+.vol-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.vol-icon{font-size:16px;flex-shrink:0;}
+.vol-slider{flex:1;accent-color:var(--info);height:4px;cursor:pointer;}
+.vol-val{font-size:13px;font-weight:500;color:var(--text2);width:28px;text-align:right;flex-shrink:0;}
 /* ── 카운트다운 오버레이 ── */
 .countdown-num{
   position:absolute;top:52%;left:50%;
@@ -319,6 +324,11 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
       <div class="sound-section" id="sfxSection">
         <div class="sound-section-label">효과음 선택</div>
         <div class="sound-chips" id="sfxChips"></div>
+        <div class="vol-row">
+          <span class="vol-icon">🔈</span>
+          <input type="range" id="sfxVol" class="vol-slider" min="0" max="100" value="60" step="5" oninput="setSfxVol(this.value)">
+          <span class="vol-val" id="sfxVolVal">60</span>
+        </div>
       </div>
       <div class="divl"></div>
       <!-- 배경음 -->
@@ -326,6 +336,11 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
       <div class="sound-section" id="bgmSection" style="display:none;">
         <div class="sound-section-label">배경음 선택</div>
         <div class="sound-chips" id="bgmChips"></div>
+        <div class="vol-row">
+          <span class="vol-icon">🔈</span>
+          <input type="range" id="bgmVol" class="vol-slider" min="0" max="100" value="40" step="5" oninput="setBgmVol(this.value)">
+          <span class="vol-val" id="bgmVolVal">40</span>
+        </div>
       </div>
       <div class="divl"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -607,6 +622,7 @@ let records={},memos={};
 let soundOn=true,audioCtx=null,prevPI=-1,settingsOpen=false;
 let bgmOn=false,bgmNode=null,bgmGain=null;
 let curSfx='basic',curBgm='forest';
+let sfxVolume=60,bgmVolume=40; // 0~100
 let screenOff=false,lastResult=null;
 let curMode='manual',selPI=-1;
 // 설정 임시 복사본 (저장 전까지 실제 데이터 보호)
@@ -649,8 +665,8 @@ const LS='breath5_';
 
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;});
 
-function save(){try{localStorage.setItem(LS+'pp',JSON.stringify(presets));localStorage.setItem(LS+'mode',curMode);localStorage.setItem(LS+'pi',selPI);localStorage.setItem(LS+'dur',document.getElementById('duration').value);localStorage.setItem(LS+'rec',JSON.stringify(records));localStorage.setItem(LS+'memo',JSON.stringify(memos));localStorage.setItem(LS+'name',userName);localStorage.setItem(LS+'ms',JSON.stringify(manSt));if(userPhoto)localStorage.setItem(LS+'photo',userPhoto);else localStorage.removeItem(LS+'photo');localStorage.setItem(LS+'theme',curTheme);localStorage.setItem(LS+'sfx',curSfx);localStorage.setItem(LS+'bgmOn',bgmOn?'1':'0');localStorage.setItem(LS+'bgm',curBgm);localStorage.setItem(LS+'page',curPage);}catch(e){}}
-function load(){try{const pp=localStorage.getItem(LS+'pp');if(pp)presets=JSON.parse(pp);const m=localStorage.getItem(LS+'mode');if(m)curMode=m;const pi=localStorage.getItem(LS+'pi');if(pi)selPI=parseInt(pi);const d=localStorage.getItem(LS+'dur');if(d){document.getElementById('duration').value=d;document.getElementById('durationVal').textContent=d+'분';}const r=localStorage.getItem(LS+'rec');if(r)records=JSON.parse(r);const mo=localStorage.getItem(LS+'memo');if(mo)memos=JSON.parse(mo);const n=localStorage.getItem(LS+'name');if(n)userName=n;const ms=localStorage.getItem(LS+'ms');if(ms)Object.assign(manSt,JSON.parse(ms));const ph=localStorage.getItem(LS+'photo');if(ph)userPhoto=ph;const th=localStorage.getItem(LS+'theme');if(th)curTheme=th;const sfx=localStorage.getItem(LS+'sfx');if(sfx)curSfx=sfx;const bOn=localStorage.getItem(LS+'bgmOn');if(bOn)bgmOn=bOn==='1';const bgm=localStorage.getItem(LS+'bgm');if(bgm)curBgm=bgm;const pg=localStorage.getItem(LS+'page');if(pg)curPage=pg;}catch(e){}}
+function save(){try{localStorage.setItem(LS+'pp',JSON.stringify(presets));localStorage.setItem(LS+'mode',curMode);localStorage.setItem(LS+'pi',selPI);localStorage.setItem(LS+'dur',document.getElementById('duration').value);localStorage.setItem(LS+'rec',JSON.stringify(records));localStorage.setItem(LS+'memo',JSON.stringify(memos));localStorage.setItem(LS+'name',userName);localStorage.setItem(LS+'ms',JSON.stringify(manSt));if(userPhoto)localStorage.setItem(LS+'photo',userPhoto);else localStorage.removeItem(LS+'photo');localStorage.setItem(LS+'theme',curTheme);localStorage.setItem(LS+'sfx',curSfx);localStorage.setItem(LS+'bgmOn',bgmOn?'1':'0');localStorage.setItem(LS+'bgm',curBgm);localStorage.setItem(LS+'page',curPage);localStorage.setItem(LS+'sfxVol',sfxVolume);localStorage.setItem(LS+'bgmVol',bgmVolume);}catch(e){}}
+function load(){try{const pp=localStorage.getItem(LS+'pp');if(pp)presets=JSON.parse(pp);const m=localStorage.getItem(LS+'mode');if(m)curMode=m;const pi=localStorage.getItem(LS+'pi');if(pi)selPI=parseInt(pi);const d=localStorage.getItem(LS+'dur');if(d){document.getElementById('duration').value=d;document.getElementById('durationVal').textContent=d+'분';}const r=localStorage.getItem(LS+'rec');if(r)records=JSON.parse(r);const mo=localStorage.getItem(LS+'memo');if(mo)memos=JSON.parse(mo);const n=localStorage.getItem(LS+'name');if(n)userName=n;const ms=localStorage.getItem(LS+'ms');if(ms)Object.assign(manSt,JSON.parse(ms));const ph=localStorage.getItem(LS+'photo');if(ph)userPhoto=ph;const th=localStorage.getItem(LS+'theme');if(th)curTheme=th;const sfx=localStorage.getItem(LS+'sfx');if(sfx)curSfx=sfx;const bOn=localStorage.getItem(LS+'bgmOn');if(bOn)bgmOn=bOn==='1';const bgm=localStorage.getItem(LS+'bgm');if(bgm)curBgm=bgm;const pg=localStorage.getItem(LS+'page');if(pg)curPage=pg;const sv=localStorage.getItem(LS+'sfxVol');if(sv)sfxVolume=parseInt(sv);const bv=localStorage.getItem(LS+'bgmVol');if(bv)bgmVolume=parseInt(bv);}catch(e){}}
 
 function fmt(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return m+':'+(ss<10?'0':'')+ss;}
 function today(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
@@ -732,8 +748,31 @@ function saveName(){const i=document.getElementById('nameInput');if(!i)return;co
 async function triggerInstall(){if(!deferredInstall)return;deferredInstall.prompt();const r=await deferredInstall.userChoice;if(r.outcome==='accepted')deferredInstall=null;}
 
 /* ── Audio ── */
-function getACtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
-function tone(f,t,d,v){try{const ctx=getACtx();const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=t;o.frequency.setValueAtTime(f,ctx.currentTime);g.gain.setValueAtTime(v,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+d);o.start(ctx.currentTime);o.stop(ctx.currentTime+d);}catch(e){}}
+function setSfxVol(v){
+  sfxVolume=parseInt(v);
+  const el=document.getElementById('sfxVolVal');if(el)el.textContent=v;
+  // 아이콘 업데이트
+  const icon=document.querySelector('#sfxSection .vol-icon');
+  if(icon)icon.textContent=v==0?'🔇':v<40?'🔈':v<70?'🔉':'🔊';
+  save();
+}
+function setBgmVol(v){
+  bgmVolume=parseInt(v);
+  const el=document.getElementById('bgmVolVal');if(el)el.textContent=v;
+  // 실시간으로 재생 중인 배경음 볼륨 반영
+  if(bgmGain) bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,audioCtx.currentTime);
+  const icon=document.querySelector('#bgmSection .vol-icon');
+  if(icon)icon.textContent=v==0?'🔇':v<40?'🔈':v<70?'🔉':'🔊';
+  save();
+}
+function tone(f,t,d,v){
+  try{const ctx=getACtx();const o=ctx.createOscillator();const g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);o.type=t;o.frequency.setValueAtTime(f,ctx.currentTime);
+  const vol=v*(sfxVolume/100);
+  g.gain.setValueAtTime(vol,ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+d);
+  o.start(ctx.currentTime);o.stop(ctx.currentTime+d);}catch(e){}
+}
 function playSfxTone(sfxId,phaseName){
   if(!soundOn)return;
   const m={
@@ -758,10 +797,12 @@ function startBgm(){
   if(!bgmOn||bgmNode)return;
   try{
     const ctx=getACtx();ctx.resume();
-    bgmGain=ctx.createGain();bgmGain.gain.setValueAtTime(0.05,ctx.currentTime);bgmGain.connect(ctx.destination);
+    bgmGain=ctx.createGain();
+    bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,ctx.currentTime);
+    bgmGain.connect(ctx.destination);
     const cfg={forest:{f:[180,240,320,430],t:'sine'},rain:{f:[250,500,750,1000],t:'sawtooth'},ocean:{f:[60,90,120,150],t:'sine'},white:{f:[300,700,1100,1500],t:'sawtooth'},zen:{f:[136,272,204,340],t:'sine'}};
     const c=cfg[curBgm]||cfg.forest;
-    bgmNode=c.f.map((f,i)=>{const o=ctx.createOscillator();const g=ctx.createGain();o.type=c.t;o.frequency.setValueAtTime(f,ctx.currentTime);o.detune.setValueAtTime((i%2?3:-3)*(i+1),ctx.currentTime);g.gain.setValueAtTime(0.015,ctx.currentTime);o.connect(g);g.connect(bgmGain);o.start();return o;});
+    bgmNode=c.f.map((f,i)=>{const o=ctx.createOscillator();const g=ctx.createGain();o.type=c.t;o.frequency.setValueAtTime(f,ctx.currentTime);o.detune.setValueAtValue((i%2?3:-3)*(i+1),ctx.currentTime);g.gain.setValueAtTime(0.015,ctx.currentTime);o.connect(g);g.connect(bgmGain);o.start();return o;});
   }catch(e){}
 }
 function stopBgm(){if(bgmNode){bgmNode.forEach(o=>{try{o.stop();}catch(e){}});bgmNode=null;}if(bgmGain){try{bgmGain.disconnect();}catch(e){}bgmGain=null;}}
@@ -1139,11 +1180,15 @@ document.getElementById('remainDisplay').textContent=fmt(parseInt(document.getEl
 /* 효과음 UI 초기화 */
 setSound(soundOn);
 renderSfxChips();
+document.getElementById('sfxVol').value=sfxVolume;
+document.getElementById('sfxVolVal').textContent=sfxVolume;
 /* 배경음 UI 초기화 */
 document.getElementById('bgmOn').className=bgmOn?'on':'off';
 document.getElementById('bgmOff').className=bgmOn?'off':'on';
 document.getElementById('bgmSection').style.display=bgmOn?'block':'none';
 renderBgmChips();
+document.getElementById('bgmVol').value=bgmVolume;
+document.getElementById('bgmVolVal').textContent=bgmVolume;
 
 /* 새로고침 시 마지막 페이지 복원 */
 if(curPage&&curPage!=='train'){showPage(curPage,null);}
