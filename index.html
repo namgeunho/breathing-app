@@ -579,7 +579,7 @@ let soundOn=true,audioCtx=null,prevPI=-1,settingsOpen=false;
 let bgmOn=false,bgmNode=null,bgmGain=null;
 let curSfx='basic',curBgm='forest';
 let screenOff=false,lastResult=null;
-let curMode='manual',selPI=0;
+let curMode='manual',selPI=-1;
 let userName='사용자',userPhoto=null,curTheme='white';
 let curPage='train';
 let deferredInstall=null;
@@ -762,9 +762,8 @@ function renderSBody(){
         <div class="pcn">${eh(p.name)}</div>
         <div class="pcs">${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}</div>
       </div>`).join('');
+    // 기본: 편집창 닫힌 상태로 시작
     body.innerHTML=`<div class="pg">${g}</div><div id="pep"></div>`;
-    // 이전에 선택한 프리셋이 있으면 편집 패널도 복원
-    if(selPI>=0)renderPE();
   } else {
     const s=manSt;
     body.innerHTML=`
@@ -776,10 +775,19 @@ function renderSBody(){
 }
 
 function selPreset(i){
+  // 같은 칸 다시 누르면 닫기 (토글)
+  if(selPI===i){
+    selPI=-1;
+    document.querySelectorAll('.pc').forEach(el=>el.classList.remove('act'));
+    const pep=document.getElementById('pep');
+    if(pep)pep.innerHTML='';
+    updateSum();
+    return;
+  }
   selPI=i;
   document.querySelectorAll('.pc').forEach((el,j)=>{el.className='pc'+(j===i?' act':'');});
   updateSum();
-  renderPE(); // 선택한 프리셋 편집 패널 바로 아래 펼치기
+  renderPE();
 }
 
 function renderPE(){
@@ -822,14 +830,30 @@ function onPV(k,v){
 }
 function onMan(k,v){manSt[k]=parseInt(v);const el=document.getElementById(k+'Val');if(el)el.textContent=v+'초';updateSum();save();}
 function onDurChange(){const v=document.getElementById('duration').value;document.getElementById('durationVal').textContent=v+'분';if(!running)document.getElementById('remainDisplay').textContent=fmt(v*60);updateSum();save();}
-function getAS(){if(curMode==='program'){const p=presets[selPI];return{inhale:p.inhale,holdIn:p.holdIn,exhale:p.exhale,holdOut:p.holdOut};}return{...manSt};}
-function updateSum(){const s=getAS();const d=document.getElementById('duration').value;let p='';if(curMode==='program')p=`[${presets[selPI].name}] `;p+=`들숨${s.inhale}`;if(s.holdIn>0)p+=` / 멈춤${s.holdIn}`;p+=` / 날숨${s.exhale}`;if(s.holdOut>0)p+=` / 멈춤${s.holdOut}`;p+=` · ${d}분`;document.getElementById('cfgSummary').textContent=p;}
+function getAS(){
+  if(curMode==='program'){
+    const idx=selPI>=0?selPI:0;
+    const p=presets[idx];
+    return{inhale:p.inhale,holdIn:p.holdIn,exhale:p.exhale,holdOut:p.holdOut};
+  }
+  return{...manSt};
+}
+function updateSum(){
+  const s=getAS();const d=document.getElementById('duration').value;
+  let p='';
+  if(curMode==='program'){
+    const nm=selPI>=0?presets[selPI].name:presets[0].name;
+    p=`[${nm}] `;
+  }
+  p+=`들숨${s.inhale}`;if(s.holdIn>0)p+=` / 멈춤${s.holdIn}`;p+=` / 날숨${s.exhale}`;if(s.holdOut>0)p+=` / 멈춤${s.holdOut}`;p+=` · ${d}분`;
+  document.getElementById('cfgSummary').textContent=p;
+}
 function toggleSettings(){settingsOpen=!settingsOpen;document.getElementById('settingsPanel').className='sp'+(settingsOpen?' open':'');document.getElementById('cfgBtn').className='ib'+(settingsOpen?' acfg':'');}
 function getPL(){const s=getAS();return[{name:'들숨',dur:s.inhale,gi:0},{name:'멈춤',dur:s.holdIn,gi:1},{name:'날숨',dur:s.exhale,gi:2},{name:'멈춤',dur:s.holdOut,gi:3}].filter(x=>x.dur>0);}
 function getScale(n,p,g){if(n==='들숨')return 1+p*0.8;if(n==='날숨')return 1.8-p*0.8;if(n==='멈춤')return g===1?1.8:1.0;return 1.0;}
 function tick(ts){if(!running)return;if(!lastTs)lastTs=ts;const dt=(ts-lastTs)/1000;lastTs=ts;totalElapsed+=dt;const tSec=parseInt(document.getElementById('duration').value)*60;if(totalElapsed>=tSec){totalElapsed=tSec;finish();return;}const list=getPL();if(!list.length)return;phaseTime+=dt;const ci=phase%list.length;const cur=list[ci];const prog=Math.min(phaseTime/cur.dur,1);if(ci!==prevPI){prevPI=ci;playPS(cur.name);}const rem=Math.max(0,cur.dur-phaseTime);document.getElementById('circle').style.transform=`translate(-50%,-50%) scale(${getScale(cur.name,prog,cur.gi)})`;document.getElementById('circle').style.background=pGrads[cur.gi];document.getElementById('phaseLabel').textContent=cur.name;document.getElementById('timerLabel').textContent=Math.ceil(rem)+'초';document.getElementById('progressFill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('elapsedDisplay').textContent=fmt(totalElapsed);document.getElementById('remainDisplay').textContent=fmt(tSec-totalElapsed);if(screenOff){document.getElementById('bs-phase').textContent=cur.name;document.getElementById('bs-timer').textContent=Math.ceil(rem);document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);}if(phaseTime>=cur.dur){phaseTime=0;phase++;if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}}raf=requestAnimationFrame(tick);}
-function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
-function finish(){running=false;cancelAnimationFrame(raf);saveRec();playFS();stopBgm();document.getElementById('blackScreen').classList.remove('active');screenOff=false;document.getElementById('screenOffBtn').className='ib';releaseWakeLock();const s=getAS();const nm=curMode==='program'?presets[selPI].name:null;lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm};showCC();}
+function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
+function finish(){running=false;cancelAnimationFrame(raf);saveRec();playFS();stopBgm();document.getElementById('blackScreen').classList.remove('active');screenOff=false;document.getElementById('screenOffBtn').className='ib';releaseWakeLock();const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm};showCC();}
 function showCC(){document.getElementById('mainArea').style.display='none';document.getElementById('completeArea').style.display='block';const r=lastResult;document.getElementById('cc-date').textContent=r.date;document.getElementById('cc-time').textContent=r.time+' 완료';document.getElementById('cc-duration').textContent=r.duration+'분';document.getElementById('cc-cycles').textContent=r.cycles+'회';let pat=r.level?`[${r.level}] `:'';pat+=`들숨 ${r.inhale}초`;if(r.holdIn>0)pat+=` · 멈춤 ${r.holdIn}초`;pat+=` · 날숨 ${r.exhale}초`;if(r.holdOut>0)pat+=` · 멈춤 ${r.holdOut}초`;document.getElementById('cc-pattern').textContent=pat;}
 function startStop(){try{getACtx().resume();}catch(e){}if(running){running=false;cancelAnimationFrame(raf);lastTs=null;document.getElementById('startBtn').textContent='계속';document.getElementById('phaseLabel').textContent='일시정지';if(screenOff)document.getElementById('blackScreen').classList.remove('active');releaseWakeLock();stopBgm();}else{if(settingsOpen)toggleSettings();running=true;lastTs=null;prevPI=-1;document.getElementById('startBtn').textContent='일시정지';if(screenOff)document.getElementById('blackScreen').classList.add('active');requestWakeLock();startBgm();raf=requestAnimationFrame(tick);}}
 function resetAll(){running=false;cancelAnimationFrame(raf);releaseWakeLock();stopBgm();phase=0;phaseTime=0;totalElapsed=0;cyclesDone=0;lastTs=null;prevPI=-1;document.getElementById('blackScreen').classList.remove('active');screenOff=false;document.getElementById('screenOffBtn').className='ib';const tSec=parseInt(document.getElementById('duration').value)*60;document.getElementById('mainArea').style.display='block';document.getElementById('completeArea').style.display='none';document.getElementById('phaseLabel').textContent='준비';document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';document.getElementById('startBtn').textContent='시작';document.getElementById('cycleCount').textContent='0';document.getElementById('progressFill').style.width='0%';document.getElementById('elapsedDisplay').textContent='0:00';document.getElementById('remainDisplay').textContent=fmt(tSec);document.getElementById('circle').style.transform='translate(-50%,-50%) scale(1)';document.getElementById('circle').style.background=dGrad;}
