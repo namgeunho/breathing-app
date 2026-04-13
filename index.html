@@ -763,7 +763,8 @@ function renderSBody(){
         <div class="pcs">${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}</div>
       </div>`).join('');
     body.innerHTML=`<div class="pg">${g}</div><div id="pep"></div>`;
-    renderPE();
+    // 이전에 선택한 프리셋이 있으면 편집 패널도 복원
+    if(selPI>=0)renderPE();
   } else {
     const s=manSt;
     body.innerHTML=`
@@ -795,46 +796,6 @@ function renderPE(){
   </div>`;
 }
 
-/* 더 이상 사용하지 않는 오버레이 함수들 */
-function openPresetEdit(){}
-function closePresetEdit(){}
-function savePresetEdit(){}
-
-/* 프리셋 편집 패널 열기 */
-function openPresetEdit(i){
-  selPI=i;
-  const pr=presets[i];
-  document.getElementById('presetEditTitle').textContent=`"${pr.name}" 편집`;
-  document.getElementById('pni').value=pr.name;
-  const setSlider=(id,v)=>{const el=document.getElementById(id);if(el){el.value=v;document.getElementById(id+'Val').textContent=v+'초';}};
-  setSlider('p-inhale',pr.inhale);
-  setSlider('p-holdIn',pr.holdIn);
-  setSlider('p-exhale',pr.exhale);
-  setSlider('p-holdOut',pr.holdOut);
-  document.getElementById('presetEditOverlay').style.display='flex';
-}
-
-function closePresetEdit(){
-  document.getElementById('presetEditOverlay').style.display='none';
-}
-
-function savePresetEdit(){
-  save();
-  // 그리드 업데이트
-  document.querySelectorAll('.pc').forEach((el,j)=>{
-    el.className='pc'+(j===selPI?' act':'');
-    el.querySelector('.pcn').textContent=presets[j].name;
-    const p=presets[j];
-    el.querySelector('.pcs').textContent=`${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}`;
-  });
-  updateSum();
-  closePresetEdit();
-  // 호흡 설정창도 함께 닫기
-  settingsOpen=false;
-  document.getElementById('settingsPanel').className='sp';
-  document.getElementById('cfgBtn').className='ib';
-}
-
 /* 저장하기 버튼 → 설정창 닫기 */
 function saveSettings(){
   save();
@@ -843,7 +804,7 @@ function saveSettings(){
   document.getElementById('cfgBtn').className='ib';
 }
 
-function renderPE(){} // 더 이상 인라인 편집 없음 — openPresetEdit으로 대체function onPN(v){
+function onPN(v){
   presets[selPI].name=v;
   const cs=document.querySelectorAll('.pc');
   if(cs[selPI])cs[selPI].querySelector('.pcn').textContent=v||'이름없음';
