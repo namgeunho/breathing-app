@@ -382,6 +382,18 @@ tr:hover td{background:var(--bg);}
         <input class="form-input" id="bannerDesc" placeholder="예: 3월 이벤트 배너">
       </div>
       <div class="form-group">
+        <label class="form-label">표시 시간 (초)</label>
+        <select class="form-select" id="bannerDuration">
+          <option value="5">5초</option>
+          <option value="10" selected>10초 (기본)</option>
+          <option value="15">15초</option>
+          <option value="20">20초</option>
+          <option value="30">30초</option>
+          <option value="60">60초</option>
+        </select>
+        <div class="form-hint">다음 배너로 넘어가기까지의 대기 시간입니다. 배너가 1개면 적용되지 않습니다.</div>
+      </div>
+      <div class="form-group">
         <label class="form-label">표시 상태</label>
         <select class="form-select" id="bannerActive">
           <option value="true">표시</option>
@@ -663,6 +675,7 @@ window.openBannerModal = function() {
   document.getElementById('bannerModalTitle').textContent = '새 배너';
   document.getElementById('bannerUrl').value = '';
   document.getElementById('bannerDesc').value = '';
+  document.getElementById('bannerDuration').value = '10';
   document.getElementById('bannerActive').value = 'true';
   document.getElementById('bannerPreviewImg').style.display = 'none';
   document.getElementById('bannerUploadPlaceholder').style.display = 'block';
@@ -679,6 +692,7 @@ window.editBanner = async function(id) {
   document.getElementById('bannerModalTitle').textContent = '배너 수정';
   document.getElementById('bannerUrl').value = data.url || '';
   document.getElementById('bannerDesc').value = data.desc || '';
+  document.getElementById('bannerDuration').value = String(data.duration || 10);
   document.getElementById('bannerActive').value = String(data.active);
   if (data.imageUrl) {
     document.getElementById('bannerPreviewImg').src = data.imageUrl;
@@ -705,6 +719,7 @@ window.previewBannerImage = function(e) {
 window.saveBanner = async function() {
   const url = document.getElementById('bannerUrl').value.trim();
   const desc = document.getElementById('bannerDesc').value.trim();
+  const duration = parseInt(document.getElementById('bannerDuration').value) || 10;
   const active = document.getElementById('bannerActive').value === 'true';
   if (!bannerImageData && !bannerImageFile) { alert('배너 이미지를 선택하세요.'); return; }
   try {
@@ -717,12 +732,12 @@ window.saveBanner = async function() {
       imagePath = storageRef.fullPath;
     }
     if (editingId) {
-      const updateData = { url, desc, active, updatedAt: serverTimestamp() };
+      const updateData = { url, desc, duration, active, updatedAt: serverTimestamp() };
       if (bannerImageFile) { updateData.imageUrl = imageUrl; updateData.imagePath = imagePath; }
       await updateDoc(doc(db,'banners',editingId), updateData);
       showAlert('배너가 수정됐습니다!');
     } else {
-      await addDoc(collection(db,'banners'), { imageUrl, imagePath, url, desc, active, createdAt: serverTimestamp() });
+      await addDoc(collection(db,'banners'), { imageUrl, imagePath, url, desc, duration, active, createdAt: serverTimestamp() });
       showAlert('배너가 등록됐습니다!');
     }
     closeModal('bannerModal');
