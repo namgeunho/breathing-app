@@ -885,18 +885,22 @@ window.saveColumn = async function() {
   const category = document.getElementById('columnCategory').value.trim();
   if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
   try {
-    let thumbUrl = colThumbData || '';
+    let thumbUrl = '';
     let thumbPath = '';
-    // 새 파일 업로드
+    // 새 파일이 선택된 경우만 Storage에 업로드
     if (colThumbFile) {
       const storageRef = ref(storage, `columns/${Date.now()}_${colThumbFile.name}`);
       await uploadBytes(storageRef, colThumbFile);
       thumbUrl = await getDownloadURL(storageRef);
       thumbPath = storageRef.fullPath;
+    } else if (colThumbData && colThumbData.startsWith('http')) {
+      // 기존 URL 유지 (수정 시)
+      thumbUrl = colThumbData;
     }
     if (editingId) {
       const upd = { title, subtitle, content, category, updatedAt: serverTimestamp() };
-      if (colThumbFile) { upd.thumbUrl = thumbUrl; upd.thumbPath = thumbPath; }
+      if (thumbUrl) { upd.thumbUrl = thumbUrl; }
+      if (thumbPath) { upd.thumbPath = thumbPath; }
       await updateDoc(doc(db,'columns',editingId), upd);
       showAlert('칼럼이 수정됐습니다!');
     } else {
