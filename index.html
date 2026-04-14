@@ -844,21 +844,38 @@ let curPage='train';
 let curUser = null; // 현재 로그인 유저 (null = 비로그인)
 
 /* ── 효과음 목록 ── */
-const SFX_LIST=[
-  {id:'basic',name:'기본',desc:'맑은 벨소리'},
-  {id:'soft',name:'부드러운',desc:'소프트 톤'},
-  {id:'deep',name:'깊은',desc:'저음 톤'},
-  {id:'bell',name:'종소리',desc:'클리어 벨'},
-  {id:'whisper',name:'자연',desc:'바람 소리'}
-];
-/* ── 배경음 목록 ── */
-const BGM_LIST=[
-  {id:'forest',name:'숲속',desc:'새소리 + 바람'},
-  {id:'rain',name:'빗소리',desc:'잔잔한 비'},
-  {id:'ocean',name:'파도',desc:'해변 파도'},
-  {id:'white',name:'화이트노이즈',desc:'집중음'},
-  {id:'zen',name:'젠',desc:'고요한 명상음'}
-];
+/* ── 효과음/배경음 목록 (Firebase에서 로드) ── */
+let SFX_LIST=[];
+let BGM_LIST=[];
+
+async function loadSounds(){
+  try{
+    const snap=await db.collection('sounds').get();
+    const all=snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>d.active!==false);
+    SFX_LIST=all.filter(d=>d.type==='sfx').sort((a,b)=>(a.order||0)-(b.order||0));
+    BGM_LIST=all.filter(d=>d.type==='bgm').sort((a,b)=>(a.order||0)-(b.order||0));
+    // 기본값 보정 — 저장된 선택이 목록에 없으면 첫번째로
+    if(SFX_LIST.length&&!SFX_LIST.find(s=>s.id===curSfx)) curSfx=SFX_LIST[0].id;
+    if(BGM_LIST.length&&!BGM_LIST.find(b=>b.id===curBgm)) curBgm=BGM_LIST[0].id;
+    renderSfxChips();
+    renderBgmChips();
+  }catch(e){
+    console.log('사운드 로드 실패:',e);
+    // Firebase 로드 실패 시 기본 내장 목록 사용
+    SFX_LIST=[
+      {id:'basic',name:'기본',type:'sfx'},{id:'soft',name:'부드러운',type:'sfx'},
+      {id:'deep',name:'깊은',type:'sfx'},{id:'bell',name:'종소리',type:'sfx'},
+      {id:'whisper',name:'자연',type:'sfx'}
+    ];
+    BGM_LIST=[
+      {id:'forest',name:'숲속',type:'bgm'},{id:'rain',name:'빗소리',type:'bgm'},
+      {id:'ocean',name:'파도',type:'bgm'},{id:'white',name:'화이트노이즈',type:'bgm'},
+      {id:'zen',name:'젠',type:'bgm'}
+    ];
+    renderSfxChips();
+    renderBgmChips();
+  }
+}
 
 const defPresets=[
   {name:'초급', inhale:4, holdIn:0, exhale:4, holdOut:0, duration:3,  soundOn:true,  bgmOn:false},
@@ -1103,7 +1120,8 @@ function setSfxVol(v){
 function setBgmVol(v){
   bgmVolume=parseInt(v);
   const el=document.getElementById('bgmVolVal');if(el)el.textContent=v;
-  if(bgmGain)bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,audioCtx.currentTime);
+  if(bgmAudio) bgmAudio.volume=bgmVolume/100;
+  if(bgmGain) bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,audioCtx?audioCtx.currentTime:0);
   save();
 }
 function tone(f,t,d,v){
@@ -1116,6 +1134,17 @@ function tone(f,t,d,v){
 }
 function playSfxTone(sfxId,phaseName){
   if(!soundOn)return;
+  // Firebase Storage URL이 있으면 Audio 엘리먼트로 재생
+  const sfxItem=SFX_LIST.find(s=>s.id===sfxId);
+  if(sfxItem&&sfxItem.url){
+    try{
+      const audio=new Audio(sfxItem.url);
+      audio.volume=sfxVolume/100;
+      audio.play().catch(e=>{});
+      return;
+    }catch(e){}
+  }
+  // URL 없으면 기존 Web Audio API 오실레이터 방식
   const m={
     basic:{i:[528,'sine',0.35,0.18,660,'sine',0.25,0.1,180],e:[396,'sine',0.4,0.16,330,'sine',0.3,0.1,200],h:[440,'triangle',0.2,0.08]},
     soft: {i:[440,'sine',0.4,0.12,550,'sine',0.3,0.08,200],e:[330,'sine',0.5,0.1,264,'sine',0.35,0.07,220],h:[396,'sine',0.25,0.07]},
@@ -1134,8 +1163,22 @@ function playFS(){if(!soundOn)return;[0,150,300,500].forEach((d,i)=>{setTimeout(
 function setSound(on){soundOn=on;document.getElementById('soundOn').className=on?'on':'off';document.getElementById('soundOff').className=on?'off':'on';const sec=document.getElementById('sfxSection');if(sec)sec.style.display=on?'block':'none';if(on)try{getACtx().resume();}catch(e){}save();}
 
 /* ── 배경음 ── */
+let bgmAudio=null; // URL 방식 배경음용 Audio 엘리먼트
+
 function startBgm(){
-  if(!bgmOn||bgmNode)return;
+  if(!bgmOn||bgmNode||bgmAudio)return;
+  const bgmItem=BGM_LIST.find(b=>b.id===curBgm);
+  // Firebase Storage URL이 있으면 Audio 방식으로 재생
+  if(bgmItem&&bgmItem.url){
+    try{
+      bgmAudio=new Audio(bgmItem.url);
+      bgmAudio.loop=true;
+      bgmAudio.volume=bgmVolume/100;
+      bgmAudio.play().catch(e=>console.log('bgm audio err',e));
+      return;
+    }catch(e){console.log('bgm url err',e);}
+  }
+  // URL 없으면 기존 Web Audio API 오실레이터 방식
   try{
     const ctx=getACtx();ctx.resume();
     bgmGain=ctx.createGain();
@@ -1153,8 +1196,22 @@ function startBgm(){
     });
   }catch(e){console.log('bgm err',e);}
 }
-function stopBgm(){if(bgmNode){bgmNode.forEach(o=>{try{o.stop();}catch(e){}});bgmNode=null;}if(bgmGain){try{bgmGain.disconnect();}catch(e){}bgmGain=null;}}
+function stopBgm(){
+  // Audio 방식 정지
+  if(bgmAudio){try{bgmAudio.pause();bgmAudio.src='';}catch(e){}bgmAudio=null;}
+  // 오실레이터 방식 정지
+  if(bgmNode){bgmNode.forEach(o=>{try{o.stop();}catch(e){}});bgmNode=null;}
+  if(bgmGain){try{bgmGain.disconnect();}catch(e){}bgmGain=null;}
+}
 function setBgm(on){bgmOn=on;document.getElementById('bgmOn').className=on?'on':'off';document.getElementById('bgmOff').className=on?'off':'on';const sec=document.getElementById('bgmSection');if(sec)sec.style.display=on?'block':'none';if(on&&running)startBgm();else stopBgm();save();}
+function setBgmVol(v){
+  bgmVolume=parseInt(v);
+  const el=document.getElementById('bgmVolVal');if(el)el.textContent=v;
+  // 재생 중인 배경음 볼륨 실시간 반영
+  if(bgmAudio) bgmAudio.volume=bgmVolume/100;
+  if(bgmGain) bgmGain.gain.setValueAtTime(bgmVolume/100*0.1,audioCtx.currentTime);
+  save();
+}
 
 /* 효과음 선택 시 미리듣기 */
 function selSfx(id){
@@ -2041,7 +2098,7 @@ if(curPage&&curPage!=='train'){
 }
 
 /* Firebase 데이터 비동기 로드 */
-Promise.all([loadBanner(),loadNotices(),loadColumns(),loadGuide()]).then(()=>{
+Promise.all([loadBanner(),loadNotices(),loadColumns(),loadGuide(),loadSounds()]).then(()=>{
   const ub=document.getElementById('userBar');
   if(ub.style.display!=='none') renderUserBar();
 
