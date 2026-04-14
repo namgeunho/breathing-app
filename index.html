@@ -572,16 +572,18 @@ const firebaseConfig = {
   projectId: "breathing-app-f51cb",
   storageBucket: "breathing-app-f51cb.firebasestorage.app",
   messagingSenderId: "967554724404",
-  appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061",
-  measurementId: "G-XXXXXXXXXX" // Firebase 콘솔에서 확인 후 교체
+  appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const analytics = firebase.analytics();
+
+/* ── Analytics (선택적 - measurementId 설정 후 활성화) ── */
+let analytics = null;
+try{ analytics = firebase.analytics(); }catch(e){ console.log('Analytics 비활성화:', e.message); }
 
 /* ── Analytics 이벤트 로깅 ── */
 function logEvent(name, params){
-  try{ analytics.logEvent(name, params||{}); }catch(e){}
+  try{ if(analytics) analytics.logEvent(name, params||{}); }catch(e){}
 }
 
 /* ── Firebase 데이터 로드 ── */
@@ -714,8 +716,8 @@ async function loadColumns() {
     if(btn)btn.classList.add('act');
     renderColList();
   } catch(e){
-    console.log('칼럼 로드 실패:',e);
-    spinner.textContent='불러오기 실패. 네트워크를 확인해주세요.';
+    console.error('칼럼 로드 실패:', e);
+    if(spinner) spinner.textContent='불러오기 실패 ('+e.code+'): 네트워크 및 Firestore 규칙을 확인해주세요.';
   }
 }
 async function showColDetail(i) {
