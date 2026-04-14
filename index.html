@@ -1519,10 +1519,16 @@ async function inviteFriend(){
 /* ── Google 로그인 / 로그아웃 ── */
 async function signInGoogle(){
   try{
-    // redirect 방식 (GitHub Pages COOP 정책 호환)
-    await auth.signInWithRedirect(googleProvider);
+    // popup 우선 시도, 실패 시 redirect fallback
+    await auth.signInWithPopup(googleProvider);
+    closeAuthModal();
   }catch(e){
-    showToast('로그인 실패: '+e.message);
+    if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment'){
+      // popup이 차단된 경우 redirect 방식으로 전환
+      await auth.signInWithRedirect(googleProvider);
+    } else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){
+      showToast('로그인 실패: '+e.message);
+    }
   }
 }
 async function signOut(){
