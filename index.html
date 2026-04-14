@@ -341,7 +341,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
   <div class="app-title-bar" onclick="goHome()" style="cursor:pointer;">
     <div class="app-title">BRETHIN</div>
     <div class="app-title-line"></div>
-    <div class="app-title-sub">들숨과 날숨 사이, 나를 만나는 시간</div>
+    <div class="app-title-sub">들숨과 날숨 사이, 나를 만나는 브레스인</div>
   </div>
   <div class="tabs">
     <button class="tab active" onclick="showPage('train',this)">훈련</button>
@@ -773,7 +773,7 @@ function toggleBmBtn(i){
   showToast(bm?'북마크에 추가됐어요!':'북마크가 해제됐어요');
 }
 async function shareCol(title,url){
-  const text=`${title}\n들숨과 날숨 사이, 나를 만나는 시간\nBRETHIN 🌿 — ${url}`;
+  const text=`${title}\n들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿 — ${url}`;
   try{if(navigator.share)await navigator.share({title,text,url});else{await navigator.clipboard.writeText(text);showToast('링크가 복사됐어요!');}}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
 }
 function closeColDetail(){
@@ -1456,7 +1456,7 @@ async function shareResult(){
   const card=document.getElementById('completeCard');
   const appUrl=window.location.href.split('?')[0]; // 현재 앱 URL
   const r=lastResult;
-  const shareText=`들숨과 날숨 사이, 나를 만나는 시간\nBRETHIN 🌿 — ${appUrl}`;
+  const shareText=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿 — ${appUrl}`;
   try{
     const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
     const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
@@ -1495,13 +1495,21 @@ function showPage(id,el){
   if(id==='calendar'){renderCal();updateCalSt();}
   if(id==='config'){document.getElementById('configMain').style.display='block';document.getElementById('configSub').style.display='none';renderConfigMain();}
 }
-function renderCal(){const now=new Date();if(calYear===undefined){calYear=now.getFullYear();calMonth=now.getMonth();}document.getElementById('calTitle').textContent=calYear+'년 '+mNames[calMonth];const grid=document.getElementById('calGrid');grid.innerHTML='';dNames.forEach(d=>{const el=document.createElement('div');el.className='dn';el.textContent=d;grid.appendChild(el);});const fd=new Date(calYear,calMonth,1).getDay();const dim=new Date(calYear,calMonth+1,0).getDate();const tk=today();for(let i=0;i<fd;i++){const el=document.createElement('div');el.className='cc empty';grid.appendChild(el);}for(let d=1;d<=dim;d++){const key=dk(calYear,calMonth,d);const el=document.createElement('div');el.className='cc';if(key===tk)el.classList.add('today');if(key===selDate)el.classList.add('sel');const num=document.createElement('div');num.className='cn';num.textContent=d;el.appendChild(num);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();if(hasR||hasM){const dr=document.createElement('div');dr.className='dr';if(hasR){const dot=document.createElement('div');dot.className='dot dg';dr.appendChild(dot);}if(hasM){const dot=document.createElement('div');dot.className='dot da';dr.appendChild(dot);}el.appendChild(dr);}el.addEventListener('click',()=>selD(key));grid.appendChild(el);}}
-function selD(key){selDate=key;renderCal();document.getElementById('detailTitle').textContent=fl(key);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();document.getElementById('xBtn').style.display=(hasR||hasM)?'flex':'none';renderDB(key);}
+// memos가 string 또는 {text,preMood,postMood} 객체 모두 처리
+function hasMemo(key){
+  const m=memos[key];
+  if(!m) return false;
+  if(typeof m==='string') return m.trim().length>0;
+  return !!(m.text||m.preMood||m.postMood);
+}
+
+function renderCal(){const now=new Date();if(calYear===undefined){calYear=now.getFullYear();calMonth=now.getMonth();}document.getElementById('calTitle').textContent=calYear+'년 '+mNames[calMonth];const grid=document.getElementById('calGrid');grid.innerHTML='';dNames.forEach(d=>{const el=document.createElement('div');el.className='dn';el.textContent=d;grid.appendChild(el);});const fd=new Date(calYear,calMonth,1).getDay();const dim=new Date(calYear,calMonth+1,0).getDate();const tk=today();for(let i=0;i<fd;i++){const el=document.createElement('div');el.className='cc empty';grid.appendChild(el);}for(let d=1;d<=dim;d++){const key=dk(calYear,calMonth,d);const el=document.createElement('div');el.className='cc';if(key===tk)el.classList.add('today');if(key===selDate)el.classList.add('sel');const num=document.createElement('div');num.className='cn';num.textContent=d;el.appendChild(num);const hasR=records[key]&&records[key].length>0;const hasM=hasMemo(key);if(hasR||hasM){const dr=document.createElement('div');dr.className='dr';if(hasR){const dot=document.createElement('div');dot.className='dot dg';dr.appendChild(dot);}if(hasM){const dot=document.createElement('div');dot.className='dot da';dr.appendChild(dot);}el.appendChild(dr);}el.addEventListener('click',()=>selD(key));grid.appendChild(el);}}
+function selD(key){selDate=key;renderCal();document.getElementById('detailTitle').textContent=fl(key);const hasR=records[key]&&records[key].length>0;document.getElementById('xBtn').style.display=(hasR||hasMemo(key))?'flex':'none';renderDB(key);}
 function goHome(){showPage('train',null);}
 
 async function inviteFriend(){
   const appUrl=window.location.href.split('?')[0];
-  const text=`들숨과 날숨 사이, 나를 만나는 시간\n\n호흡 훈련 앱 BRETHIN을 같이 해봐요 🌿\n👉 ${appUrl}`;
+  const text=`들숨과 날숨 사이, 나를 만나는 브레스인\n\n호흡 훈련 앱 BRETHIN을 같이 해봐요 🌿\n👉 ${appUrl}`;
   try{
     if(navigator.share) await navigator.share({title:'BRETHIN - 호흡 훈련',text,url:appUrl});
     else{ await navigator.clipboard.writeText(text); showToast('링크가 복사됐어요!'); }
@@ -1511,10 +1519,10 @@ async function inviteFriend(){
 /* ── Google 로그인 / 로그아웃 ── */
 async function signInGoogle(){
   try{
-    await auth.signInWithPopup(googleProvider);
-    closeAuthModal();
+    // redirect 방식 (GitHub Pages COOP 정책 호환)
+    await auth.signInWithRedirect(googleProvider);
   }catch(e){
-    if(e.code!=='auth/popup-closed-by-user') showToast('로그인 실패: '+e.message);
+    showToast('로그인 실패: '+e.message);
   }
 }
 async function signOut(){
@@ -1632,8 +1640,25 @@ function renderGraph(){
   document.getElementById('streakDays').textContent=avgMin;
   document.getElementById('streakDays').nextElementSibling.textContent='일평균(분)';
   document.getElementById('graphCanvas').innerHTML=`
-    <div class="graph-wrap"><div class="graph-bar-wrap">${barsHtml}</div></div>
+    <div class="graph-wrap" id="graphWrap"><div class="graph-bar-wrap">${barsHtml}</div></div>
     <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px;">막대 높이 = 해당일 총 훈련 시간(분)</div>`;
+
+  // 오늘이 이달이면 오늘 막대를 화면 중앙으로 스크롤
+  const now=new Date();
+  if(graphYear===now.getFullYear()&&graphMonth===now.getMonth()){
+    setTimeout(()=>{
+      const wrap=document.getElementById('graphWrap');
+      if(!wrap) return;
+      const cols=wrap.querySelectorAll('.graph-bar-col');
+      const todayIdx=now.getDate()-1;
+      const col=cols[todayIdx];
+      if(!col) return;
+      const colLeft=col.offsetLeft;
+      const colW=col.offsetWidth;
+      const wrapW=wrap.offsetWidth;
+      wrap.scrollLeft=colLeft-(wrapW/2)+(colW/2);
+    },50);
+  }
 }
 
 const EMOTIONS=['아주나쁨','나쁨','보통','좋음','아주좋음'];
@@ -1694,7 +1719,7 @@ async function shareRecord(key){
   const appUrl=window.location.href.split('?')[0];
   const lines=[`📅 ${fl(key)}`,`⏱️ 총 ${Math.round(total)}분 훈련 · ${recs.length}회차`];
   if(memo)lines.push(`💬 ${memo}`);
-  lines.push(`\n들숨과 날숨 사이, 나를 만나는 시간\nBRETHIN 🌿 — ${appUrl}`);
+  lines.push(`\n들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿 — ${appUrl}`);
   const text=lines.join('\n');
   try{if(navigator.share)await navigator.share({title:'BRETHIN 훈련 기록',text,url:appUrl});else{await navigator.clipboard.writeText(text);showToast('기록이 복사됐어요!');}}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
 }
@@ -1816,6 +1841,11 @@ Promise.all([loadBanner(),loadNotices(),loadColumns(),loadGuide()]).then(()=>{
 }).catch(e=>console.log('Firebase 로드 오류:',e));
 
 /* ── Auth 상태 감지 (초기화 완료 후 등록) ── */
+// redirect 로그인 결과 처리
+auth.getRedirectResult().then(result=>{
+  if(result&&result.user) closeAuthModal();
+}).catch(e=>{ if(e.code) console.log('redirect 결과:',e.code); });
+
 auth.onAuthStateChanged(user=>{
   curUser=user;
   if(user){
