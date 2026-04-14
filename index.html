@@ -347,6 +347,9 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .col-bm-btn{width:36px;height:36px;border-radius:8px;border:0.5px solid var(--bd);background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;}
 .col-bm-btn:hover{background:var(--bg2);}
 .col-bm-btn.bookmarked{color:var(--warning);border-color:var(--warning-bd);background:var(--warning-bg);}
+/* 선택된 프리셋 파란배경 */
+.pc.sel-pc{background:var(--info-bg);border-color:var(--info-bd);}
+.pc.sel-pc .pcn{color:var(--info);}
 /* ── 친구 초대 버튼 ── */
 .invite-btn{width:100%;margin-top:1rem;padding:13px;font-size:14px;font-weight:500;border-radius:12px;border:1.5px solid var(--info-bd);background:var(--info-bg);color:var(--info);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
 .invite-btn:hover{opacity:0.85;}
@@ -822,7 +825,7 @@ let bgmOn=false,bgmNode=null,bgmGain=null;
 let curSfx='basic',curBgm='forest';
 let sfxVolume=60,bgmVolume=40; // 0~100
 let screenOff=false,lastResult=null;
-let curMode='manual',selPI=-1;
+let curMode='program',selPI=0;
 // 설정 임시 복사본 (저장 전까지 실제 데이터 보호)
 let tempPresets=[],tempManSt={},tempSelPI=-1;
 let userName='사용자',userPhoto=null,curTheme='white';
@@ -847,11 +850,15 @@ const BGM_LIST=[
 ];
 
 const defPresets=[
-  {name:'기본',inhale:4,holdIn:0,exhale:4,holdOut:0},{name:'초급',inhale:3,holdIn:0,exhale:3,holdOut:0},
-  {name:'중급',inhale:6,holdIn:0,exhale:6,holdOut:0},{name:'고급',inhale:8,holdIn:4,exhale:8,holdOut:0},
-  {name:'박스',inhale:4,holdIn:4,exhale:4,holdOut:4},{name:'4-7-8',inhale:4,holdIn:7,exhale:8,holdOut:0},
-  {name:'편안',inhale:5,holdIn:0,exhale:7,holdOut:0},{name:'활력',inhale:6,holdIn:2,exhale:4,holdOut:0},
-  {name:'커스텀',inhale:4,holdIn:0,exhale:4,holdOut:0}
+  {name:'초급', inhale:4, holdIn:0, exhale:4, holdOut:0, duration:3,  soundOn:true,  bgmOn:false},
+  {name:'중급', inhale:5, holdIn:2, exhale:6, holdOut:0, duration:5,  soundOn:true,  bgmOn:false},
+  {name:'고급', inhale:6, holdIn:4, exhale:8, holdOut:2, duration:10, soundOn:true,  bgmOn:false},
+  {name:'스트레스', inhale:4, holdIn:4, exhale:4, holdOut:4, duration:5,  soundOn:true,  bgmOn:true},
+  {name:'활력', inhale:6, holdIn:2, exhale:4, holdOut:0, duration:5,  soundOn:true,  bgmOn:false},
+  {name:'수면', inhale:4, holdIn:7, exhale:8, holdOut:0, duration:10, soundOn:false, bgmOn:true},
+  {name:'커스텀', inhale:0, holdIn:0, exhale:0, holdOut:0, duration:5,  soundOn:true,  bgmOn:false},
+  {name:'커스텀', inhale:0, holdIn:0, exhale:0, holdOut:0, duration:5,  soundOn:true,  bgmOn:false},
+  {name:'커스텀', inhale:0, holdIn:0, exhale:0, holdOut:0, duration:5,  soundOn:true,  bgmOn:false}
 ];
 let presets=defPresets.map(p=>({...p}));
 const manSt={inhale:4,holdIn:4,exhale:4,holdOut:0};
@@ -864,7 +871,34 @@ const LS='breath5_';
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;});
 
 function save(){try{localStorage.setItem(LS+'pp',JSON.stringify(presets));localStorage.setItem(LS+'mode',curMode);localStorage.setItem(LS+'pi',selPI);localStorage.setItem(LS+'dur',document.getElementById('duration').value);localStorage.setItem(LS+'rec',JSON.stringify(records));localStorage.setItem(LS+'memo',JSON.stringify(memos));localStorage.setItem(LS+'name',userName);localStorage.setItem(LS+'ms',JSON.stringify(manSt));if(userPhoto)localStorage.setItem(LS+'photo',userPhoto);else localStorage.removeItem(LS+'photo');localStorage.setItem(LS+'theme',curTheme);localStorage.setItem(LS+'sfx',curSfx);localStorage.setItem(LS+'bgmOn',bgmOn?'1':'0');localStorage.setItem(LS+'bgm',curBgm);localStorage.setItem(LS+'page',curPage);localStorage.setItem(LS+'sfxVol',sfxVolume);localStorage.setItem(LS+'bgmVol',bgmVolume);}catch(e){}}
-function load(){try{const pp=localStorage.getItem(LS+'pp');if(pp)presets=JSON.parse(pp);const m=localStorage.getItem(LS+'mode');if(m)curMode=m;const pi=localStorage.getItem(LS+'pi');if(pi)selPI=parseInt(pi);const d=localStorage.getItem(LS+'dur');if(d){document.getElementById('duration').value=d;document.getElementById('durationVal').textContent=d+'분';}const r=localStorage.getItem(LS+'rec');if(r)records=JSON.parse(r);const mo=localStorage.getItem(LS+'memo');if(mo)memos=JSON.parse(mo);const n=localStorage.getItem(LS+'name');if(n)userName=n;const ms=localStorage.getItem(LS+'ms');if(ms)Object.assign(manSt,JSON.parse(ms));const ph=localStorage.getItem(LS+'photo');if(ph)userPhoto=ph;const th=localStorage.getItem(LS+'theme');if(th)curTheme=th;const sfx=localStorage.getItem(LS+'sfx');if(sfx)curSfx=sfx;const bOn=localStorage.getItem(LS+'bgmOn');if(bOn)bgmOn=bOn==='1';const bgm=localStorage.getItem(LS+'bgm');if(bgm)curBgm=bgm;const pg=localStorage.getItem(LS+'page');if(pg)curPage=pg;const sv=localStorage.getItem(LS+'sfxVol');if(sv)sfxVolume=parseInt(sv);const bv=localStorage.getItem(LS+'bgmVol');if(bv)bgmVolume=parseInt(bv);}catch(e){}}
+function load(){try{
+  // 프리셋 버전 체크 — 이름이 바뀐 경우 기본값으로 초기화
+  const pp=localStorage.getItem(LS+'pp');
+  if(pp){
+    const saved=JSON.parse(pp);
+    // 저장된 프리셋 이름이 새 기본값과 다르면 초기화
+    const newNames=defPresets.map(p=>p.name).join(',');
+    const savedNames=saved.map(p=>p.name).join(',');
+    if(savedNames===newNames) presets=saved;
+    // 이름이 다르면 defPresets 유지 (초기화)
+  }
+  const m=localStorage.getItem(LS+'mode');if(m)curMode=m;
+  const pi=localStorage.getItem(LS+'pi');if(pi!==null)selPI=parseInt(pi);
+  if(selPI<0)selPI=0; // 최소 0 보장
+  const d=localStorage.getItem(LS+'dur');if(d){document.getElementById('duration').value=d;document.getElementById('durationVal').textContent=d+'분';}
+  const r=localStorage.getItem(LS+'rec');if(r)records=JSON.parse(r);
+  const mo=localStorage.getItem(LS+'memo');if(mo)memos=JSON.parse(mo);
+  const n=localStorage.getItem(LS+'name');if(n)userName=n;
+  const ms=localStorage.getItem(LS+'ms');if(ms)Object.assign(manSt,JSON.parse(ms));
+  const ph=localStorage.getItem(LS+'photo');if(ph)userPhoto=ph;
+  const th=localStorage.getItem(LS+'theme');if(th)curTheme=th;
+  const sfx=localStorage.getItem(LS+'sfx');if(sfx)curSfx=sfx;
+  const bOn=localStorage.getItem(LS+'bgmOn');if(bOn)bgmOn=bOn==='1';
+  const bgm=localStorage.getItem(LS+'bgm');if(bgm)curBgm=bgm;
+  const pg=localStorage.getItem(LS+'page');if(pg)curPage=pg;
+  const sv=localStorage.getItem(LS+'sfxVol');if(sv)sfxVolume=parseInt(sv);
+  const bv=localStorage.getItem(LS+'bgmVol');if(bv)bgmVolume=parseInt(bv);
+}catch(e){}}
 
 function fmt(s){const m=Math.floor(s/60),ss=Math.floor(s%60);return m+':'+(ss<10?'0':'')+ss;}
 function today(){const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
@@ -1077,11 +1111,16 @@ function renderSBody(){
   const body=document.getElementById('settingsBody');
   if(curMode==='program'){
     const g=tempPresets.map((p,i)=>`
-      <div class="pc${i===tempSelPI?' act':''}" onclick="selPreset(${i})">
-        <div class="pcn">${eh(p.name)}</div>
+      <div class="pc${i===tempSelPI?' act':''}" onclick="selPreset(${i})" style="${i===selPI&&tempSelPI<0?'background:var(--info-bg);border-color:var(--info-bd);':''}">
+        <div class="pcn" style="${i===selPI&&tempSelPI<0?'color:var(--info);':''}">${eh(p.name)}</div>
         <div class="pcs">${p.inhale}·${p.holdIn}·${p.exhale}·${p.holdOut}</div>
       </div>`).join('');
     body.innerHTML=`<div class="pg">${g}</div><div id="pep"></div>`;
+    // 현재 선택된 프리셋 버튼 파란 배경 유지
+    if(tempSelPI<0){
+      const btns=body.querySelectorAll('.pc');
+      if(btns[selPI])btns[selPI].className='pc sel-pc';
+    }
   } else {
     const s=tempManSt;
     body.innerHTML=`
@@ -1096,16 +1135,13 @@ function selPreset(i){
   // 같은 칸 다시 누르면 닫기 (토글)
   if(tempSelPI===i){
     tempSelPI=-1;
-    document.querySelectorAll('.pc').forEach(el=>el.classList.remove('act'));
-    const pep=document.getElementById('pep');
-    if(pep)pep.innerHTML='';
+    renderSBody();
     return;
   }
-  // 다른 칸 누르면: 원본값으로 리셋 후 편집창 열기
+  // 다른 칸: 원본값으로 리셋 후 편집창 열기
   tempSelPI=i;
-  // 해당 프리셋만 원본에서 새로 복사 (이전에 임시 수정한 값 버림)
   tempPresets[i]={...presets[i]};
-  document.querySelectorAll('.pc').forEach((el,j)=>{el.className='pc'+(j===i?' act':'');});
+  renderSBody();
   renderPE();
 }
 
@@ -1114,13 +1150,17 @@ function renderPE(){
   if(!p)return;
   const pr=tempPresets[tempSelPI];
   if(!pr)return;
+  const isCustom=pr.name==='커스텀'||pr.inhale===0;
   p.innerHTML=`<div class="pe">
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500;">${eh(pr.name)} 편집</div>
     <input class="pni" id="pni" value="${eh(pr.name)}" maxlength="8" placeholder="이름" oninput="onPN(this.value)">
-    <div class="row"><span class="lbl">들숨</span><input type="range" id="p-inhale" min="1" max="60" value="${pr.inhale}" step="1" oninput="onPV('inhale',this.value)"><span class="val" id="p-inhaleVal">${pr.inhale}초</span></div>
+    <div class="row"><span class="lbl">들숨</span><input type="range" id="p-inhale" min="${isCustom?0:1}" max="60" value="${pr.inhale}" step="1" oninput="onPV('inhale',this.value)"><span class="val" id="p-inhaleVal">${pr.inhale}초</span></div>
     <div class="row"><span class="lbl">멈춤(들숨)</span><input type="range" id="p-holdIn" min="0" max="60" value="${pr.holdIn}" step="1" oninput="onPV('holdIn',this.value)"><span class="val" id="p-holdInVal">${pr.holdIn}초</span></div>
-    <div class="row"><span class="lbl">날숨</span><input type="range" id="p-exhale" min="1" max="60" value="${pr.exhale}" step="1" oninput="onPV('exhale',this.value)"><span class="val" id="p-exhaleVal">${pr.exhale}초</span></div>
-    <div class="row" style="margin-bottom:0;"><span class="lbl">멈춤(날숨)</span><input type="range" id="p-holdOut" min="0" max="60" value="${pr.holdOut}" step="1" oninput="onPV('holdOut',this.value)"><span class="val" id="p-holdOutVal">${pr.holdOut}초</span></div>
+    <div class="row"><span class="lbl">날숨</span><input type="range" id="p-exhale" min="${isCustom?0:1}" max="60" value="${pr.exhale}" step="1" oninput="onPV('exhale',this.value)"><span class="val" id="p-exhaleVal">${pr.exhale}초</span></div>
+    <div class="row"><span class="lbl">멈춤(날숨)</span><input type="range" id="p-holdOut" min="0" max="60" value="${pr.holdOut}" step="1" oninput="onPV('holdOut',this.value)"><span class="val" id="p-holdOutVal">${pr.holdOut}초</span></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+      <button class="bp bsm" style="padding:8px 22px;" onclick="savePreset()">저장하기</button>
+    </div>
   </div>`;
 }
 
@@ -1176,21 +1216,27 @@ function toggleSettings(){
   // 버튼 다시 눌러도 닫히지 않음 (저장/취소로만 닫힘)
 }
 
+function savePreset(){
+  // 게이지 안 저장버튼 — 해당 프리셋만 저장 후 편집창 닫기
+  if(tempSelPI<0)return;
+  presets[tempSelPI]={...tempPresets[tempSelPI]};
+  selPI=tempSelPI;
+  tempSelPI=-1;
+  save();
+  updateSum();
+  renderSBody(); // 편집창 닫힘 + 선택 버튼 파란배경 반영
+  showToast('저장됐어요!');
+}
+
 function saveSettings(){
-  // 현재 편집 중인 프리셋만 실제 데이터에 반영
-  if(curMode==='program' && tempSelPI>=0){
-    presets[tempSelPI]={...tempPresets[tempSelPI]};
-    selPI=tempSelPI;
-  } else if(curMode==='manual'){
+  if(curMode==='manual'){
     Object.assign(manSt,tempManSt);
   }
   save();
   updateSum();
-  // 설정창 닫기
   settingsOpen=false;
   document.getElementById('settingsPanel').className='sp';
   document.getElementById('cfgBtn').className='ib';
-  // temp 초기화
   tempPresets=[];tempManSt={};tempSelPI=-1;
 }
 
