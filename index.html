@@ -589,14 +589,14 @@ let _banners = [];
 
 async function loadBanner() {
   try {
-    const snap = await db.collection('banners').where('active','==',true).get();
+    const snap = await db.collection('banners').get();
     if (snap.empty) return;
     const now = Date.now();
     _banners = snap.docs
       .map(d => d.data())
       .filter(d => {
         if (!d.imageUrl) return false;
-        // 만료일 체크: expireAt이 있으면 현재 시각과 비교
+        if (d.active === false) return false; // 숨김 제외
         if (d.expireAt) {
           const exp = d.expireAt.toDate ? d.expireAt.toDate().getTime() : new Date(d.expireAt).getTime();
           if (exp < now) return false;
@@ -604,8 +604,8 @@ async function loadBanner() {
         return true;
       })
       .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0))
-      .slice(0, 3); // 최대 3개
-    renderBanners();
+      .slice(0, 3);
+    if (_banners.length) renderBanners();
   } catch(e) { console.log('배너 로드 실패:', e.message); }
 }
 
@@ -705,13 +705,18 @@ function renderColList(){
 async function loadColumns() {
   const spinner=document.getElementById('colSpinner');
   try {
-    const snap=await db.collection('columns').orderBy('createdAt','desc').get();
-    _columns=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const snap=await db.collection('columns').get();
+    _columns=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     spinner.style.display='none';
     const btn=document.getElementById('colBtnAll');
     if(btn)btn.classList.add('act');
     renderColList();
-  } catch(e){ spinner.textContent='불러오기 실패. 네트워크를 확인해주세요.';}
+  } catch(e){
+    console.log('칼럼 로드 실패:',e);
+    spinner.textContent='불러오기 실패. 네트워크를 확인해주세요.';
+  }
 }
 async function showColDetail(i) {
   const c=_columns[i];
@@ -1351,7 +1356,10 @@ function showPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   if(el)el.classList.add('active');
   else{document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active');});}
-  document.getElementById('userBar').style.display=(id==='train'||id==='calendar')?'flex':'none';
+  // 훈련/기록만 유저바 표시
+  const ub=document.getElementById('userBar');
+  if(id==='train'||id==='calendar'){ub.style.display='flex';renderUserBar();}
+  else{ub.style.display='none';}
   curPage=id;save();
   logEvent('page_view',{page:id});
   if(id==='calendar'){renderCal();updateCalSt();}
@@ -1533,7 +1541,13 @@ load();
 applyTheme(curTheme);
 document.getElementById('modeProgram').className='mb'+(curMode==='program'?' active':'');
 document.getElementById('modeManual').className='mb'+(curMode==='manual'?' active':'');
-renderSBody();updateSum();renderUserBar();
+renderSBody();updateSum();
+
+// 초기 유저바 표시 (훈련/기록 탭일 때만)
+const _initPage = curPage||'train';
+const _ub = document.getElementById('userBar');
+if(_initPage==='train'||_initPage==='calendar'){ _ub.style.display='flex'; renderUserBar(); }
+else{ _ub.style.display='none'; }
 document.getElementById('circle').style.background=dGrad;
 document.getElementById('remainDisplay').textContent=fmt(parseInt(document.getElementById('duration').value)*60);
 
