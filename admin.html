@@ -439,6 +439,18 @@ tr:hover td{background:var(--bg);}
     </div>
     <div class="modal-body">
       <div class="form-group">
+        <label class="form-label">대표 사진</label>
+        <div class="img-upload-area" id="colThumbArea" onclick="document.getElementById('colThumbFile').click()">
+          <img id="colThumbPreview" class="img-preview" style="display:none;">
+          <div id="colThumbPlaceholder">
+            <div class="img-upload-icon">🖼️</div>
+            <div class="img-upload-text">클릭하여 대표 사진 선택</div>
+            <div class="img-upload-hint">JPG, PNG (최대 2MB) — 앱 목록에 썸네일로 표시됩니다</div>
+          </div>
+        </div>
+        <input type="file" id="colThumbFile" accept="image/*" style="display:none;" onchange="previewColThumb(event)">
+      </div>
+      <div class="form-group">
         <label class="form-label">제목 *</label>
         <input class="form-input" id="columnTitle" placeholder="칼럼 제목">
       </div>
@@ -812,18 +824,39 @@ async function loadColumns() {
   } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
 }
 
+let colThumbFile = null;
+let colThumbData = null;
+
+window.previewColThumb = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  colThumbFile = file;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    colThumbData = ev.target.result;
+    document.getElementById('colThumbPreview').src = colThumbData;
+    document.getElementById('colThumbPreview').style.display = 'block';
+    document.getElementById('colThumbPlaceholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+};
+
 window.openColumnModal = function() {
   editingId = null;
+  colThumbFile = null; colThumbData = null;
   document.getElementById('columnModalTitle').textContent = '새 칼럼';
   document.getElementById('columnTitle').value = '';
   document.getElementById('columnSubtitle').value = '';
   document.getElementById('columnContent').value = '';
   document.getElementById('columnCategory').value = '';
+  document.getElementById('colThumbPreview').style.display = 'none';
+  document.getElementById('colThumbPlaceholder').style.display = 'block';
   document.getElementById('columnModal').classList.add('open');
 };
 
 window.editColumn = async function(id) {
   editingId = id;
+  colThumbFile = null; colThumbData = null;
   const snap = await getDocs(collection(db,'columns'));
   const d = snap.docs.find(x=>x.id===id);
   if (!d) return;
@@ -833,6 +866,15 @@ window.editColumn = async function(id) {
   document.getElementById('columnSubtitle').value = data.subtitle || '';
   document.getElementById('columnContent').value = data.content || '';
   document.getElementById('columnCategory').value = data.category || '';
+  if (data.thumbUrl) {
+    colThumbData = data.thumbUrl;
+    document.getElementById('colThumbPreview').src = data.thumbUrl;
+    document.getElementById('colThumbPreview').style.display = 'block';
+    document.getElementById('colThumbPlaceholder').style.display = 'none';
+  } else {
+    document.getElementById('colThumbPreview').style.display = 'none';
+    document.getElementById('colThumbPlaceholder').style.display = 'block';
+  }
   document.getElementById('columnModal').classList.add('open');
 };
 
@@ -843,11 +885,22 @@ window.saveColumn = async function() {
   const category = document.getElementById('columnCategory').value.trim();
   if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
   try {
+    let thumbUrl = colThumbData || '';
+    let thumbPath = '';
+    // 새 파일 업로드
+    if (colThumbFile) {
+      const storageRef = ref(storage, `columns/${Date.now()}_${colThumbFile.name}`);
+      await uploadBytes(storageRef, colThumbFile);
+      thumbUrl = await getDownloadURL(storageRef);
+      thumbPath = storageRef.fullPath;
+    }
     if (editingId) {
-      await updateDoc(doc(db,'columns',editingId), { title, subtitle, content, category, updatedAt: serverTimestamp() });
+      const upd = { title, subtitle, content, category, updatedAt: serverTimestamp() };
+      if (colThumbFile) { upd.thumbUrl = thumbUrl; upd.thumbPath = thumbPath; }
+      await updateDoc(doc(db,'columns',editingId), upd);
       showAlert('칼럼이 수정됐습니다!');
     } else {
-      await addDoc(collection(db,'columns'), { title, subtitle, content, category, createdAt: serverTimestamp() });
+      await addDoc(collection(db,'columns'), { title, subtitle, content, category, thumbUrl, thumbPath, createdAt: serverTimestamp() });
       showAlert('칼럼이 등록됐습니다!');
     }
     closeModal('columnModal');
