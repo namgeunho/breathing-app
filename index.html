@@ -284,15 +284,65 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 /* ── 프리셋 편집 인라인 ── */
 .pe{background:var(--bg3);border-radius:8px;padding:1rem;margin-top:8px;}
 /* 공지사항 클릭 카드 */
-.notice-card{cursor:pointer;}
+.notice-card{cursor:pointer;background:var(--bg);border:0.5px solid var(--bd);border-radius:12px;padding:1.25rem;margin-bottom:10px;}
 .notice-card:hover{border-color:var(--info-bd);}
 .notice-card-preview{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
 .notice-card-preview .car{font-size:18px;color:var(--text2);flex-shrink:0;margin-top:2px;}
+.notice-pin{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;margin-bottom:8px;background:var(--info-bg);color:var(--info);}
+.notice-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.notice-body{font-size:14px;color:var(--text2);line-height:1.7;white-space:pre-wrap;word-break:break-all;}
+.notice-date{font-size:11px;color:var(--text3);margin-top:6px;}
+/* ── 칼럼 툴바 ── */
+.col-toolbar{display:flex;align-items:center;margin-bottom:12px;}
+.col-toolbar-btns{display:flex;gap:6px;margin-left:auto;}
+.col-tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;font-size:12px;font-weight:500;border-radius:20px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+.col-tb-btn:hover{background:var(--bg2);}
+.col-tb-btn.act{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
+.col-search-wrap{display:flex;align-items:center;gap:8px;flex:1;}
+.col-search-input{flex:1;padding:8px 12px;font-size:13px;font-family:inherit;background:var(--bg2);border:0.5px solid var(--bd2);border-radius:8px;color:var(--text);outline:none;}
+.col-search-input:focus{border-color:var(--info-bd);}
+.col-search-close{padding:6px 10px;font-size:14px;background:transparent;border:none;color:var(--text2);cursor:pointer;}
+/* ── 칼럼 카드 (썸네일형) ── */
+.col-card{display:flex;gap:12px;background:var(--bg);border:0.5px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer;}
+.col-card:hover{border-color:var(--info-bd);}
+.col-thumb{width:90px;height:90px;border-radius:8px;background:var(--bg3);flex-shrink:0;object-fit:cover;}
+.col-thumb-empty{width:90px;height:90px;border-radius:8px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:11px;}
+.col-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.col-cat{font-size:11px;color:var(--info);font-weight:500;}
+.col-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;}
+.col-excerpt{font-size:12px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.col-meta{display:flex;align-items:center;gap:8px;margin-top:2px;}
+.col-date{font-size:11px;color:var(--text3);}
+.col-views{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:3px;}
+/* ── 칼럼 본문 액션 ── */
+.col-actions{display:flex;gap:8px;align-items:center;padding:12px 0;border-top:0.5px solid var(--bd);margin-top:1.5rem;flex-wrap:wrap;}
+.col-action-btn{display:flex;align-items:center;gap:5px;padding:7px 14px;font-size:13px;border-radius:8px;border:0.5px solid var(--bd);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+.col-action-btn:hover{background:var(--bg2);}
+.col-action-btn.bookmarked{color:var(--warning);border-color:var(--warning-bd);background:var(--warning-bg);}
+/* ── 캘린더/그래프 토글 ── */
+.cal-toggle{display:flex;gap:8px;margin-bottom:1rem;}
+.ct-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;font-size:13px;font-weight:500;border-radius:8px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+.ct-btn.active{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
+/* ── 그래프 ── */
+.graph-wrap{overflow-x:auto;padding-bottom:8px;}
+.graph-bar-wrap{display:flex;align-items:flex-end;gap:3px;height:160px;padding:0 2px;margin-bottom:4px;min-width:100%;}
+.graph-bar-col{display:flex;flex-direction:column;align-items:center;min-width:26px;flex:1;}
+.graph-bar{width:100%;background:var(--bg3);border-radius:4px 4px 0 0;min-height:2px;transition:height 0.3s ease;}
+.graph-bar.has-data{background:var(--info);}
+.graph-label{font-size:9px;color:var(--text3);margin-top:4px;white-space:nowrap;}
+.graph-val{font-size:9px;color:var(--info);margin-bottom:2px;font-weight:500;min-height:12px;}
+/* ── 감정 상태 ── */
+.emotion-row{margin-bottom:12px;}
+.emotion-lbl{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.emotion-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.emo-btn{padding:5px 10px;font-size:11px;border-radius:20px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
+.emo-btn:hover{background:var(--bg2);}
+.emo-btn.sel-emo{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
 </style>
 </head>
 <body data-theme="white">
 <div class="wrap">
-  <div class="app-title-bar">
+  <div class="app-title-bar" onclick="goHome()" style="cursor:pointer;">
     <div class="app-title">BRETHIN</div>
     <div class="app-title-line"></div>
     <div class="app-title-sub">들숨과 날숨 사이, 나를 만나는 시간</div>
@@ -402,26 +452,69 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
       <div class="st2"><div class="sn" id="totalMinutes">0</div><div class="sl2">총 훈련(분)</div></div>
       <div class="st2"><div class="sn" id="streakDays">0</div><div class="sl2">연속 달성일</div></div>
     </div>
-    <div class="ch">
-      <div class="ct" id="calTitle"></div>
-      <div style="display:flex;gap:6px;">
-        <button style="padding:6px 14px;font-size:15px;" onclick="changeMonth(-1)">&#8249;</button>
-        <button style="padding:6px 14px;font-size:15px;" onclick="changeMonth(1)">&#8250;</button>
+    <!-- 캘린더/그래프 토글 -->
+    <div class="cal-toggle">
+      <button class="ct-btn active" id="calViewBtn" onclick="setCalView('calendar')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="6" y1="2" x2="6" y2="6"/><line x1="10" y1="2" x2="10" y2="6"/></svg>
+        캘린더
+      </button>
+      <button class="ct-btn" id="graphViewBtn" onclick="setCalView('graph')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="9" width="3" height="5"/><rect x="6.5" y="5" width="3" height="9"/><rect x="11" y="2" width="3" height="12"/></svg>
+        그래프
+      </button>
+    </div>
+    <!-- 캘린더 뷰 -->
+    <div id="calendarView">
+      <div class="ch">
+        <div class="ct" id="calTitle"></div>
+        <div style="display:flex;gap:6px;">
+          <button style="padding:6px 14px;font-size:15px;" onclick="changeMonth(-1)">&#8249;</button>
+          <button style="padding:6px 14px;font-size:15px;" onclick="changeMonth(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="cg" id="calGrid"></div>
+      <div class="dp">
+        <div class="dph">
+          <div class="dpt" id="detailTitle">날짜를 선택해 주세요</div>
+          <button class="xb" id="xBtn" style="display:none;" onclick="askDeleteDay()">&#x2715;</button>
+        </div>
+        <div id="detailBody"><div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div></div>
       </div>
     </div>
-    <div class="cg" id="calGrid"></div>
-    <div class="dp">
-      <div class="dph">
-        <div class="dpt" id="detailTitle">날짜를 선택해 주세요</div>
-        <button class="xb" id="xBtn" style="display:none;" onclick="askDeleteDay()">&#x2715;</button>
+    <!-- 그래프 뷰 -->
+    <div id="graphView" style="display:none;">
+      <div class="ch">
+        <div class="ct" id="graphTitle"></div>
+        <div style="display:flex;gap:6px;">
+          <button style="padding:6px 14px;font-size:15px;" onclick="changeGraphMonth(-1)">&#8249;</button>
+          <button style="padding:6px 14px;font-size:15px;" onclick="changeGraphMonth(1)">&#8250;</button>
+        </div>
       </div>
-      <div id="detailBody"><div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div></div>
+      <div id="graphCanvas" style="margin-bottom:1rem;"></div>
     </div>
   </div>
 
   <!-- 칼럼 -->
   <div id="page-column" class="page pp">
     <div id="colListView">
+      <!-- 검색/북마크 바 -->
+      <div class="col-toolbar">
+        <div class="col-search-wrap" id="colSearchWrap" style="display:none;">
+          <input class="col-search-input" id="colSearchInput" placeholder="제목, 내용 검색..." oninput="filterColumns()">
+          <button class="col-search-close" onclick="closeSearch()">✕</button>
+        </div>
+        <div class="col-toolbar-btns" id="colToolbarBtns">
+          <button class="col-tb-btn${colFilter==='all'?'':''}" id="colBtnAll" onclick="setColFilter('all')">전체</button>
+          <button class="col-tb-btn" id="colBtnBookmark" onclick="setColFilter('bookmark')">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
+            북마크
+          </button>
+          <button class="col-tb-btn col-tb-search" onclick="openSearch()">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+            검색
+          </button>
+        </div>
+      </div>
       <div class="spin" id="colSpinner">불러오는 중...</div>
       <div id="colList"></div>
     </div>
@@ -542,44 +635,122 @@ async function loadGuide() {
 }
 
 let _columns = [];
-async function loadColumns() {
-  const spinner = document.getElementById('colSpinner');
-  const list = document.getElementById('colList');
-  try {
-    const snap = await db.collection('columns').orderBy('createdAt','desc').get();
-    _columns = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    spinner.style.display = 'none';
-    if (_columns.length === 0) {
-      list.innerHTML = '<div class="nb"><div style="font-size:28px;margin-bottom:10px;">✍️</div><div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">칼럼</div><div style="font-size:13px;color:var(--text2);">등록된 칼럼이 없습니다</div></div>';
-      return;
-    }
-    list.innerHTML = _columns.map((c, i) => `
-      <div class="col-card" onclick="showColDetail(${i})">
-        ${c.category ? `<div class="col-cat">${eh(c.category)}</div>` : ''}
-        <div class="col-title">${eh(c.title)}</div>
-        ${c.subtitle ? `<div class="col-sub">${eh(c.subtitle)}</div>` : ''}
-        <div class="col-date">${fmtDate(c.createdAt)}</div>
-      </div>`).join('');
-  } catch(e) {
-    spinner.textContent = '불러오기 실패. 네트워크를 확인해주세요.';
-    console.log('칼럼 로드 실패:', e);
-  }
-}
+let _bookmarks = JSON.parse(localStorage.getItem('breath5_bookmarks')||'[]');
+let colFilter = 'all';
+let colSearchQuery = '';
 
-function showColDetail(i) {
-  const c = _columns[i];
-  document.getElementById('colDetailContent').innerHTML = `
-    ${c.category ? `<div class="col-cat" style="margin-bottom:8px;">${eh(c.category)}</div>` : ''}
-    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">${eh(c.title)}</div>
-    ${c.subtitle ? `<div style="font-size:14px;color:var(--text2);margin-bottom:12px;">${eh(c.subtitle)}</div>` : ''}
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem;">${fmtDate(c.createdAt)}</div>
-    <div class="col-body" style="line-height:1.8;">${renderContent(c.content)}</div>`;
-  document.getElementById('colListView').style.display = 'none';
-  document.getElementById('colDetailView').style.display = 'block';
+function saveBookmarks(){localStorage.setItem('breath5_bookmarks',JSON.stringify(_bookmarks));}
+function isBookmarked(id){return _bookmarks.includes(id);}
+function toggleBookmark(id){
+  if(isBookmarked(id))_bookmarks=_bookmarks.filter(b=>b!==id);
+  else _bookmarks.push(id);
+  saveBookmarks();
 }
-function closeColDetail() {
-  document.getElementById('colListView').style.display = 'block';
-  document.getElementById('colDetailView').style.display = 'none';
+function setColFilter(f){
+  colFilter=f;
+  document.querySelectorAll('.col-tb-btn').forEach(b=>b.classList.remove('act'));
+  const btn=document.getElementById(f==='all'?'colBtnAll':'colBtnBookmark');
+  if(btn)btn.classList.add('act');
+  renderColList();
+}
+function openSearch(){
+  document.getElementById('colSearchWrap').style.display='flex';
+  document.getElementById('colToolbarBtns').style.display='none';
+  setTimeout(()=>document.getElementById('colSearchInput').focus(),50);
+}
+function closeSearch(){
+  colSearchQuery='';
+  document.getElementById('colSearchWrap').style.display='none';
+  document.getElementById('colToolbarBtns').style.display='flex';
+  document.getElementById('colSearchInput').value='';
+  renderColList();
+}
+function filterColumns(){
+  colSearchQuery=document.getElementById('colSearchInput').value.trim().toLowerCase();
+  renderColList();
+}
+function renderColList(){
+  const list=document.getElementById('colList');
+  let cols=_columns;
+  if(colFilter==='bookmark')cols=cols.filter(c=>isBookmarked(c.id));
+  if(colSearchQuery)cols=cols.filter(c=>(c.title||'').toLowerCase().includes(colSearchQuery)||(c.content||'').toLowerCase().includes(colSearchQuery));
+  if(!cols.length){
+    list.innerHTML=`<div class="nb"><div style="font-size:28px;margin-bottom:10px;">✍️</div><div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">${colFilter==='bookmark'?'북마크된 칼럼이 없습니다':'등록된 칼럼이 없습니다'}</div></div>`;
+    return;
+  }
+  list.innerHTML=cols.map(c=>{
+    const idx=_columns.indexOf(c);
+    const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="">`:`<div class="col-thumb-empty">사진없음</div>`;
+    const excerpt=(c.content||'').replace(/\[img:[^\]]+\]/g,'').replace(/https?:\/\/\S+/g,'').trim().substring(0,120);
+    const bm=isBookmarked(c.id);
+    return `<div class="col-card" onclick="showColDetail(${idx})">
+      ${thumb}
+      <div class="col-info">
+        ${c.category?`<div class="col-cat">${eh(c.category)}</div>`:''}
+        <div class="col-title">${eh(c.title)}</div>
+        <div class="col-excerpt">${eh(excerpt)}</div>
+        <div class="col-meta">
+          <span class="col-date">${fmtDate(c.createdAt)}</span>
+          <span class="col-views"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>${c.views||0}</span>
+          ${bm?`<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" stroke-width="1.5" style="color:var(--warning);"><path d="M4 2h8a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function loadColumns() {
+  const spinner=document.getElementById('colSpinner');
+  try {
+    const snap=await db.collection('columns').orderBy('createdAt','desc').get();
+    _columns=snap.docs.map(d=>({id:d.id,...d.data()}));
+    spinner.style.display='none';
+    const btn=document.getElementById('colBtnAll');
+    if(btn)btn.classList.add('act');
+    renderColList();
+  } catch(e){ spinner.textContent='불러오기 실패. 네트워크를 확인해주세요.';}
+}
+async function showColDetail(i) {
+  const c=_columns[i];
+  try{await db.collection('columns').doc(c.id).update({views:(c.views||0)+1});c.views=(c.views||0)+1;}catch(e){}
+  const appUrl=window.location.href.split('?')[0];
+  const bm=isBookmarked(c.id);
+  document.getElementById('colDetailContent').innerHTML=`
+    ${c.category?`<div class="col-cat" style="margin-bottom:8px;">${eh(c.category)}</div>`:''}
+    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px;">${eh(c.title)}</div>
+    ${c.subtitle?`<div style="font-size:14px;color:var(--text2);margin-bottom:12px;">${eh(c.subtitle)}</div>`:''}
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text3);margin-bottom:1.5rem;">
+      <span>${fmtDate(c.createdAt)}</span>
+      <span style="display:flex;align-items:center;gap:3px;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>${c.views||0}</span>
+    </div>
+    <div class="col-body" style="line-height:1.8;">${renderContent(c.content)}</div>
+    <div class="col-actions">
+      <button class="col-action-btn${bm?' bookmarked':''}" id="bmBtn" onclick="toggleBmBtn(${i})">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="${bm?'currentColor':'none'}" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
+        ${bm?'북마크됨':'북마크'}
+      </button>
+      <button class="col-action-btn" onclick="shareCol('${eh(c.title)}','${appUrl}')">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
+        공유하기
+      </button>
+    </div>`;
+  document.getElementById('colListView').style.display='none';
+  document.getElementById('colDetailView').style.display='block';
+}
+function toggleBmBtn(i){
+  const c=_columns[i];toggleBookmark(c.id);
+  const bm=isBookmarked(c.id);
+  const btn=document.getElementById('bmBtn');
+  if(btn){btn.className='col-action-btn'+(bm?' bookmarked':'');btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 16 16" fill="${bm?'currentColor':'none'}" stroke="currentColor" stroke-width="1.5"><path d="M4 2h8a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>${bm?'북마크됨':'북마크'}`;}
+  showToast(bm?'북마크에 추가됐어요!':'북마크가 해제됐어요');
+}
+async function shareCol(title,url){
+  const text=`${title}\n들숨과 날숨 사이, 나를 만나는 시간\nBRETHIN 🌿 — ${url}`;
+  try{if(navigator.share)await navigator.share({title,text,url});else{await navigator.clipboard.writeText(text);showToast('링크가 복사됐어요!');}}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
+}
+function closeColDetail(){
+  document.getElementById('colListView').style.display='block';
+  document.getElementById('colDetailView').style.display='none';
+  renderColList();
 }
 
 function fmtDate(ts) {
@@ -1180,13 +1351,157 @@ function showPage(id,el){
 }
 function renderCal(){const now=new Date();if(calYear===undefined){calYear=now.getFullYear();calMonth=now.getMonth();}document.getElementById('calTitle').textContent=calYear+'년 '+mNames[calMonth];const grid=document.getElementById('calGrid');grid.innerHTML='';dNames.forEach(d=>{const el=document.createElement('div');el.className='dn';el.textContent=d;grid.appendChild(el);});const fd=new Date(calYear,calMonth,1).getDay();const dim=new Date(calYear,calMonth+1,0).getDate();const tk=today();for(let i=0;i<fd;i++){const el=document.createElement('div');el.className='cc empty';grid.appendChild(el);}for(let d=1;d<=dim;d++){const key=dk(calYear,calMonth,d);const el=document.createElement('div');el.className='cc';if(key===tk)el.classList.add('today');if(key===selDate)el.classList.add('sel');const num=document.createElement('div');num.className='cn';num.textContent=d;el.appendChild(num);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();if(hasR||hasM){const dr=document.createElement('div');dr.className='dr';if(hasR){const dot=document.createElement('div');dot.className='dot dg';dr.appendChild(dot);}if(hasM){const dot=document.createElement('div');dot.className='dot da';dr.appendChild(dot);}el.appendChild(dr);}el.addEventListener('click',()=>selD(key));grid.appendChild(el);}}
 function selD(key){selDate=key;renderCal();document.getElementById('detailTitle').textContent=fl(key);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();document.getElementById('xBtn').style.display=(hasR||hasM)?'flex':'none';renderDB(key);}
-function renderDB(key){const body=document.getElementById('detailBody');const recs=records[key]||[];const memo=memos[key]||'';let html='';if(recs.length>0){html+='<div class="sl3">훈련 기록</div>';recs.forEach((r,i)=>{const lv=r.level?`<span class="bg bga" style="font-size:11px;padding:2px 6px;margin-left:4px;">${r.level}</span>`:'';html+=`<div class="ti"><div class="tl2"><div class="tn">${i+1}회차 · ${r.time}${lv}</div><div class="ts">들숨${r.inhale}/멈춤${r.holdIn}/날숨${r.exhale}/멈춤${r.holdOut}</div></div><div class="bgs"><span class="bg bbl">${r.duration}분</span><span class="bg bgn">${r.cycles}사이클</span></div></div>`;});}else{html+='<div class="em">훈련 기록이 없어요</div>';}html+='<div class="cdiv"></div><div class="sl3">메모</div>';if(memo){html+=`<div class="mb2">${eh(memo)}</div><div style="display:flex;gap:8px;justify-content:flex-end;"><button class="bsm" onclick="editMemo('${key}')">수정</button><button class="bsm bdng" onclick="delMemo('${key}')">삭제</button></div>`;}else{html+=`<textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="bsm bp" onclick="saveMemo('${key}')">저장</button></div>`;}body.innerHTML=html;}
-function askDeleteDay(){if(!selDate)return;document.getElementById('detailBody').innerHTML=`<div class="cfmb"><div class="cfmm"><strong>${fl(selDate)}</strong>의<br>훈련 기록을 삭제하시겠습니까?</div><div class="cfmbs"><button class="bdng" onclick="confirmDel()">네</button><button onclick="selD('${selDate}')">아니오</button></div></div>`;}
-function confirmDel(){delete records[selDate];delete memos[selDate];selDate=null;save();renderCal();updateCalSt();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';}
-function editMemo(key){const memo=memos[key]||'';document.getElementById('detailBody').innerHTML=`<textarea class="mi" id="memoInput">${eh(memo)}</textarea><div style="display:flex;gap:8px;justify-content:flex-end;"><button class="bsm" onclick="renderDB('${key}')">취소</button><button class="bsm bp" onclick="saveMemo('${key}')">저장</button></div>`;}
-function saveMemo(key){const i=document.getElementById('memoInput');if(!i)return;const v=i.value.trim();if(v)memos[key]=v;else delete memos[key];save();const hasR=records[key]&&records[key].length>0;document.getElementById('xBtn').style.display=(hasR||v)?'flex':'none';renderCal();renderDB(key);}
+function goHome(){showPage('train',null);}
+
+let calViewMode='calendar';
+let graphYear,graphMonth;
+
+function setCalView(mode){
+  calViewMode=mode;
+  document.getElementById('calViewBtn').classList.toggle('active',mode==='calendar');
+  document.getElementById('graphViewBtn').classList.toggle('active',mode==='graph');
+  document.getElementById('calendarView').style.display=mode==='calendar'?'block':'none';
+  document.getElementById('graphView').style.display=mode==='graph'?'block':'none';
+  if(mode==='graph')renderGraph();
+}
+
+function changeGraphMonth(dir){
+  if(graphMonth===undefined){graphYear=new Date().getFullYear();graphMonth=new Date().getMonth();}
+  graphMonth+=dir;
+  if(graphMonth<0){graphMonth=11;graphYear--;}
+  if(graphMonth>11){graphMonth=0;graphYear++;}
+  renderGraph();
+}
+
+function renderGraph(){
+  if(graphYear===undefined){graphYear=new Date().getFullYear();graphMonth=new Date().getMonth();}
+  document.getElementById('graphTitle').textContent=graphYear+'년 '+mNames[graphMonth];
+  const dim=new Date(graphYear,graphMonth+1,0).getDate();
+  // 일별 총 훈련시간 계산
+  const data=[];let maxVal=0;
+  for(let d=1;d<=dim;d++){
+    const key=dk(graphYear,graphMonth,d);
+    const recs=records[key]||[];
+    const total=recs.reduce((s,r)=>s+r.duration,0);
+    data.push({d,total,key});
+    if(total>maxVal)maxVal=total;
+  }
+  const barH=140;
+  const barsHtml=data.map(({d,total,key})=>{
+    const h=maxVal>0?Math.round((total/maxVal)*barH):0;
+    const isToday=key===today();
+    return `<div class="graph-bar-col">
+      <div class="graph-val">${total>0?total:''}</div>
+      <div class="graph-bar${total>0?' has-data':''}" style="height:${h||2}px;${isToday?'opacity:1;':'opacity:0.7;'}"></div>
+      <div class="graph-label" style="${isToday?'color:var(--info);font-weight:600;':''}">${d}</div>
+    </div>`;
+  }).join('');
+  // 월 통계
+  const totalDays=data.filter(x=>x.total>0).length;
+  const totalMin=data.reduce((s,x)=>s+x.total,0);
+  const avgMin=totalDays>0?Math.round(totalMin/totalDays*10)/10:0;
+  document.getElementById('graphCanvas').innerHTML=`
+    <div style="display:flex;gap:12px;margin-bottom:1rem;">
+      <div class="st2" style="flex:1;"><div class="sn">${totalDays}</div><div class="sl2">이달 훈련일</div></div>
+      <div class="st2" style="flex:1;"><div class="sn">${Math.round(totalMin)}</div><div class="sl2">총 훈련(분)</div></div>
+      <div class="st2" style="flex:1;"><div class="sn">${avgMin}</div><div class="sl2">일평균(분)</div></div>
+    </div>
+    <div class="graph-wrap"><div class="graph-bar-wrap">${barsHtml}</div></div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px;">막대 높이 = 해당일 총 훈련 시간(분)</div>`;
+}
+
+const EMOTIONS=['아주나쁨','나쁨','보통','좋음','아주좋음'];
+
+function renderDB(key){
+  const body=document.getElementById('detailBody');
+  const recs=records[key]||[];
+  const memoData=memos[key]||{};
+  const memo=typeof memoData==='string'?memoData:(memoData.text||'');
+  const preMood=typeof memoData==='object'?memoData.preMood||'':'';
+  const postMood=typeof memoData==='object'?memoData.postMood||'':'';
+  let html='';
+  if(recs.length>0){
+    html+='<div class="sl3">훈련 기록</div>';
+    recs.forEach((r,i)=>{
+      const lv=r.level?`<span class="bg bga" style="font-size:11px;padding:2px 6px;margin-left:4px;">${r.level}</span>`:'';
+      html+=`<div class="ti"><div class="tl2"><div class="tn">${i+1}회차 · ${r.time}${lv}</div><div class="ts">들숨${r.inhale}/멈춤${r.holdIn}/날숨${r.exhale}/멈춤${r.holdOut}</div></div><div class="bgs"><span class="bg bbl">${r.duration}분</span><span class="bg bgn">${r.cycles}사이클</span></div></div>`;
+    });
+  } else { html+='<div class="em">훈련 기록이 없어요</div>'; }
+  html+='<div class="cdiv"></div>';
+  if(memo||preMood||postMood){
+    // 저장된 메모 보기
+    html+=`<div class="sl3">감정 · 메모</div>`;
+    if(preMood)html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:4px;">훈련 전: <strong>${preMood}</strong></div>`;
+    if(postMood)html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">훈련 후: <strong>${postMood}</strong></div>`;
+    if(memo)html+=`<div class="mb2">${eh(memo)}</div>`;
+    html+=`<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
+      <button class="bsm" onclick="editMemo('${key}')">수정</button>
+      <button class="bsm bdng" onclick="delMemo('${key}')">삭제</button>
+    </div>`;
+  } else {
+    // 메모 입력 폼
+    html+=`<div class="sl3">감정 · 메모</div>
+    <div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
+    <div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
+    <textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea>
+    <div style="display:flex;justify-content:flex-end;"><button class="bsm bp" onclick="saveMemo('${key}')">저장</button></div>`;
+  }
+  body.innerHTML=html;
+}
+
+function selEmo(btn,type){
+  const group=btn.closest('.emotion-btns');
+  group.querySelectorAll('.emo-btn').forEach(b=>b.classList.remove('sel-emo'));
+  btn.classList.add('sel-emo');
+  btn.dataset.type=type;
+}
+
+async function shareRecord(key){
+  const recs=records[key]||[];
+  const memoData=memos[key]||{};
+  const memo=typeof memoData==='string'?memoData:(memoData.text||'');
+  const total=recs.reduce((s,r)=>s+r.duration,0);
+  const appUrl=window.location.href.split('?')[0];
+  const lines=[`📅 ${fl(key)}`,`⏱️ 총 ${Math.round(total)}분 훈련 · ${recs.length}회차`];
+  if(memo)lines.push(`💬 ${memo}`);
+  lines.push(`\n들숨과 날숨 사이, 나를 만나는 시간\nBRETHIN 🌿 — ${appUrl}`);
+  const text=lines.join('\n');
+  try{if(navigator.share)await navigator.share({title:'BRETHIN 훈련 기록',text,url:appUrl});else{await navigator.clipboard.writeText(text);showToast('기록이 복사됐어요!');}}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
+}
+function saveMemo(key){
+  const i=document.getElementById('memoInput');if(!i)return;
+  const v=i.value.trim();
+  const preBtn=document.querySelector('.emotion-btns .emo-btn.sel-emo[data-type="pre"]');
+  const postBtn=document.querySelector('.emotion-btns .emo-btn.sel-emo[data-type="post"]');
+  const preMood=preBtn?preBtn.textContent:'';
+  const postMood=postBtn?postBtn.textContent:'';
+  if(v||preMood||postMood) memos[key]={text:v,preMood,postMood};
+  else delete memos[key];
+  save();
+  const hasR=records[key]&&records[key].length>0;
+  const hasM=memos[key];
+  document.getElementById('xBtn').style.display=(hasR||hasM)?'flex':'none';
+  renderCal();renderDB(key);
+}
+function editMemo(key){
+  const memoData=memos[key]||{};
+  const memo=typeof memoData==='string'?memoData:(memoData.text||'');
+  const preMood=typeof memoData==='object'?memoData.preMood||'':'';
+  const postMood=typeof memoData==='object'?memoData.postMood||'':'';
+  let html=`<div class="sl3">감정 · 메모</div>
+    <div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn${preMood===e?' sel-emo':''}" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
+    <div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn${postMood===e?' sel-emo':''}" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
+    <textarea class="mi" id="memoInput">${eh(memo)}</textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="bsm" onclick="renderDB('${key}')">취소</button>
+      <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
+    </div>`;
+  document.getElementById('detailBody').innerHTML=html;
+}
 function delMemo(key){delete memos[key];save();renderCal();renderDB(key);}
-function changeMonth(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}selDate=null;renderCal();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';}
+function askDeleteDay(){if(!selDate)return;document.getElementById('detailBody').innerHTML=`<div class="cfmb"><div class="cfmm"><strong>${fl(selDate)}</strong>의<br>훈련 기록을 삭제하시겠습니까?</div><div class="cfmbs"><button class="bdng" onclick="confirmDel()">네</button><button onclick="selD('${selDate}')">아니오</button></div></div>`;}
+function confirmDel(){delete records[selDate];delete memos[selDate];selDate=null;save();renderCal();updateCalSt();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';}{calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}selDate=null;renderCal();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';}
 function updateCalSt(){const keys=Object.keys(records);document.getElementById('totalDays').textContent=keys.length;let total=0;keys.forEach(k=>records[k].forEach(r=>total+=r.duration));document.getElementById('totalMinutes').textContent=Math.round(total);document.getElementById('streakDays').textContent=calcStreak();}
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
