@@ -338,6 +338,10 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .emo-btn{padding:5px 10px;font-size:11px;border-radius:20px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;}
 .emo-btn:hover{background:var(--bg2);}
 .emo-btn.sel-emo{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
+/* ── 친구 초대 버튼 ── */
+.invite-btn{width:100%;margin-top:1rem;padding:13px;font-size:14px;font-weight:500;border-radius:12px;border:1.5px solid var(--info-bd);background:var(--info-bg);color:var(--info);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
+.invite-btn:hover{opacity:0.85;}
+.invite-btn:active{transform:scale(0.98);}
 </style>
 </head>
 <body data-theme="white">
@@ -868,7 +872,11 @@ function renderConfigMain(){const s=calcStreak();const lv=calcLv(s);const ini=us
     <div class="ci2" onclick="showSub('profile')"><div class="cil"><div class="cic" style="background:var(--success-bg);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg></div><div><div class="clb">사용자 정보</div><div class="csb">${eh(userName)}</div></div></div><div class="car">›</div></div>
     <div class="ci2" onclick="showSub('grade')"><div class="cil"><div class="cic" style="background:var(--warning-bg);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--warning)" stroke-width="1.5"><polygon points="8,2 10,6 14,6.5 11,9.5 11.5,14 8,12 4.5,14 5,9.5 2,6.5 6,6"/></svg></div><div><div class="clb">등급</div><div class="csb">${lv.name} · 연속 ${s}일</div></div></div><div class="car">›</div></div>
     <div class="ci2" onclick="showSub('notice')"><div class="cil"><div class="cic" style="background:var(--danger-bg);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--danger)" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="5" y1="6" x2="11" y2="6"/><line x1="5" y1="9" x2="9" y2="9"/></svg></div><div><div class="clb">공지사항</div><div class="csb">${_notices.length?_notices.length+'개의 공지':'최신 공지를 확인하세요'}</div></div></div><div class="car">›</div></div>
-  </div>`;}
+  </div>
+  <button class="invite-btn" onclick="inviteFriend()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="3"/><path d="M1 14c0-3 2.2-5 5-5"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    친구에게 BRETHIN 추천하기
+  </button>`;}
 
 function showSub(menu){
   document.getElementById('configMain').style.display='none';
@@ -1343,7 +1351,7 @@ function showPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   if(el)el.classList.add('active');
   else{document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active');});}
-  document.getElementById('userBar').style.display=(id==='config')?'none':'flex';
+  document.getElementById('userBar').style.display=(id==='train'||id==='calendar')?'flex':'none';
   curPage=id;save();
   logEvent('page_view',{page:id});
   if(id==='calendar'){renderCal();updateCalSt();}
@@ -1352,6 +1360,15 @@ function showPage(id,el){
 function renderCal(){const now=new Date();if(calYear===undefined){calYear=now.getFullYear();calMonth=now.getMonth();}document.getElementById('calTitle').textContent=calYear+'년 '+mNames[calMonth];const grid=document.getElementById('calGrid');grid.innerHTML='';dNames.forEach(d=>{const el=document.createElement('div');el.className='dn';el.textContent=d;grid.appendChild(el);});const fd=new Date(calYear,calMonth,1).getDay();const dim=new Date(calYear,calMonth+1,0).getDate();const tk=today();for(let i=0;i<fd;i++){const el=document.createElement('div');el.className='cc empty';grid.appendChild(el);}for(let d=1;d<=dim;d++){const key=dk(calYear,calMonth,d);const el=document.createElement('div');el.className='cc';if(key===tk)el.classList.add('today');if(key===selDate)el.classList.add('sel');const num=document.createElement('div');num.className='cn';num.textContent=d;el.appendChild(num);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();if(hasR||hasM){const dr=document.createElement('div');dr.className='dr';if(hasR){const dot=document.createElement('div');dot.className='dot dg';dr.appendChild(dot);}if(hasM){const dot=document.createElement('div');dot.className='dot da';dr.appendChild(dot);}el.appendChild(dr);}el.addEventListener('click',()=>selD(key));grid.appendChild(el);}}
 function selD(key){selDate=key;renderCal();document.getElementById('detailTitle').textContent=fl(key);const hasR=records[key]&&records[key].length>0;const hasM=memos[key]&&memos[key].trim();document.getElementById('xBtn').style.display=(hasR||hasM)?'flex':'none';renderDB(key);}
 function goHome(){showPage('train',null);}
+
+async function inviteFriend(){
+  const appUrl=window.location.href.split('?')[0];
+  const text=`들숨과 날숨 사이, 나를 만나는 시간\n\n호흡 훈련 앱 BRETHIN을 같이 해봐요 🌿\n👉 ${appUrl}`;
+  try{
+    if(navigator.share) await navigator.share({title:'BRETHIN - 호흡 훈련',text,url:appUrl});
+    else{ await navigator.clipboard.writeText(text); showToast('링크가 복사됐어요!'); }
+  }catch(e){ if(e.name!=='AbortError') showToast('공유를 취소했어요'); }
+}
 
 let calViewMode='calendar';
 let graphYear,graphMonth;
