@@ -754,7 +754,7 @@ async function showColDetail(i) {
     ${thumbHtml}
     <div class="col-body" style="line-height:1.8;">${renderContent(c.content)}</div>
     <div style="display:flex;justify-content:flex-end;padding-top:1rem;border-top:0.5px solid var(--bd);margin-top:1.5rem;">
-      <button class="col-action-btn" onclick="shareCol('${eh(c.title)}','${appUrl}')">
+      <button class="col-action-btn" onclick="shareCol('${eh(c.title)}','${appUrl}?col=${c.id}')">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
         공유하기
       </button>
@@ -1849,6 +1849,18 @@ if(curPage&&curPage!=='train'){
 Promise.all([loadBanner(),loadNotices(),loadColumns(),loadGuide()]).then(()=>{
   const ub=document.getElementById('userBar');
   if(ub.style.display!=='none') renderUserBar();
+
+  // 딥링크 처리: ?col=칼럼ID 로 접근 시 해당 칼럼 바로 열기
+  const params=new URLSearchParams(window.location.search);
+  const colId=params.get('col');
+  if(colId){
+    const idx=_columns.findIndex(c=>c.id===colId);
+    if(idx>=0){
+      // 칼럼 탭으로 이동 후 해당 칼럼 열기
+      showPage('column',null);
+      setTimeout(()=>showColDetail(idx),100);
+    }
+  }
 }).catch(e=>console.log('Firebase 로드 오류:',e));
 
 /* ── Auth 상태 감지 (초기화 완료 후 등록) ── */
