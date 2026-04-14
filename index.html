@@ -1032,6 +1032,7 @@ function showSub(menu){
       </div>
     </div>`;
   }
+}
 function selTheme(t){applyTheme(t);save();document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('act-t'));const el=document.getElementById(t==='white'?'tw':'tb');if(el)el.classList.add('act-t');renderConfigMain();}
 function closeSub(){document.getElementById('configMain').style.display='block';document.getElementById('configSub').style.display='none';renderConfigMain();}
 function triggerPhoto(){document.getElementById('photoFileInput').click();}
@@ -1572,23 +1573,6 @@ async function saveUserData(){
 }
 
 /* ── Auth 상태 감지 ── */
-auth.onAuthStateChanged(user=>{
-  curUser=user;
-  if(user){
-    // 로그인 됨
-    if(!userName||userName==='사용자') userName=user.displayName||'사용자';
-    if(!userPhoto&&user.photoURL) userPhoto=user.photoURL;
-    syncUserData();
-  }
-  // 유저바 갱신
-  const ub=document.getElementById('userBar');
-  if(curPage==='train'||curPage==='calendar'){
-    ub.style.display='flex';
-    renderUserBar();
-  }
-  if(curPage==='config') renderConfigMain();
-});
-
 let calViewMode='calendar';
 let graphYear,graphMonth;
 
@@ -1819,20 +1803,44 @@ document.getElementById('bgmVol').value=bgmVolume;
 document.getElementById('bgmVolVal').textContent=bgmVolume;
 
 /* 새로고침 시 마지막 페이지 복원 */
-if(curPage&&curPage!=='train'){showPage(curPage,null);}
+if(curPage&&curPage!=='train'){
+  // 기록 탭이었을 경우 비로그인이면 훈련으로 대체 (로그인 후 처리)
+  if(curPage==='calendar') {/* auth 상태 확인 후 처리 */}
+  else showPage(curPage,null);
+}
 
 /* Firebase 데이터 비동기 로드 */
 Promise.all([loadBanner(),loadNotices(),loadColumns(),loadGuide()]).then(()=>{
-  renderUserBar();
+  const ub=document.getElementById('userBar');
+  if(ub.style.display!=='none') renderUserBar();
 }).catch(e=>console.log('Firebase 로드 오류:',e));
 
-/* ── Analytics: 앱 실행 이벤트 ── */
-logEvent('app_open');
-
-/* ── Analytics: PWA 설치 이벤트 ── */
-window.addEventListener('appinstalled', ()=>{
-  logEvent('pwa_installed');
+/* ── Auth 상태 감지 (초기화 완료 후 등록) ── */
+auth.onAuthStateChanged(user=>{
+  curUser=user;
+  if(user){
+    if(!userName||userName==='사용자') userName=user.displayName||'사용자';
+    if(!userPhoto&&user.photoURL) userPhoto=user.photoURL;
+    syncUserData();
+    // 로그인 됐으므로 기록 탭이었다면 이동
+    if(curPage==='calendar'){
+      showPage('calendar',null);
+    }
+  }
+  // DOM 안전하게 접근
+  try{
+    const ub=document.getElementById('userBar');
+    if(ub&&(curPage==='train'||curPage==='calendar')){
+      ub.style.display='flex';
+      renderUserBar();
+    }
+    if(curPage==='config') renderConfigMain();
+  }catch(e){}
 });
+
+/* ── Analytics ── */
+logEvent('app_open');
+window.addEventListener('appinstalled',()=>{ logEvent('pwa_installed'); });
 </script>
 </body>
 </html>
