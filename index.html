@@ -984,8 +984,9 @@ function showSub(menu){
         <div class="pur"><div class="pud">사진을 탭하거나 버튼으로 변경하세요</div>
         <div class="pub"><button class="pbtn" onclick="triggerPhoto()">사진 변경</button>${userPhoto?`<button class="pbtn pdel" onclick="deletePhoto()">삭제</button>`:''}</div></div>
       </div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:4px;">이름</div>
-      <input class="ni" id="nameInput" value="${eh(userName)}" maxlength="20">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px;">닉네임</div>
+      <input class="ni" id="nameInput" value="${eh(userName)}" maxlength="20" placeholder="닉네임을 입력하세요">
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">로그인 전후 동일하게 유지됩니다.</div>
       <div style="display:flex;justify-content:flex-end;margin-top:12px;">
         <button class="bp bsm" onclick="saveName()">저장</button>
       </div>
@@ -1671,17 +1672,25 @@ async function syncUserData(){
   try{
     const snap=await ref.get();
     if(snap.exists){
-      // 서버 데이터 우선 적용
       const d=snap.data();
       if(d.records) records=d.records;
       if(d.memos) memos=d.memos;
-      if(d.userName) userName=d.userName;
       if(d.presets) presets=d.presets;
+      // 닉네임: 로컬에 이미 사용자 지정 이름이 있으면 우선, 없으면 서버 값
+      if(!userName||userName==='사용자'){
+        userName=d.userName||curUser.displayName||'사용자';
+      }
+      // 프로필 사진: 로컬에 지정한 사진 있으면 우선, 없으면 서버 저장값, 없으면 Google 프로필
+      if(!userPhoto){
+        userPhoto=d.userPhoto||null;
+        if(!userPhoto&&curUser.photoURL) userPhoto=curUser.photoURL;
+      }
       save();
     } else {
       // 최초 로그인 — 로컬 데이터 서버에 저장
       await ref.set({
         records, memos, userName,
+        userPhoto: userPhoto||'',
         presets: presets.map(p=>({...p})),
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -1697,6 +1706,7 @@ async function saveUserData(){
   try{
     await db.collection('users').doc(curUser.uid).set({
       records, memos, userName,
+      userPhoto: userPhoto&&!userPhoto.startsWith('http')?'':userPhoto||'',
       presets: presets.map(p=>({...p})),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
@@ -1990,13 +2000,11 @@ auth.getRedirectResult().then(result=>{
 auth.onAuthStateChanged(user=>{
   curUser=user;
   if(user){
+    // 로컬에 이미 지정한 이름·사진 있으면 유지, 없을 때만 Google 정보 사용
     if(!userName||userName==='사용자') userName=user.displayName||'사용자';
     if(!userPhoto&&user.photoURL) userPhoto=user.photoURL;
     syncUserData();
-    // 로그인 됐으므로 기록 탭이었다면 이동
-    if(curPage==='calendar'){
-      showPage('calendar',null);
-    }
+    if(curPage==='calendar') showPage('calendar',null);
   }
   // DOM 안전하게 접근
   try{
