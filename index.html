@@ -330,6 +330,12 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 /* ── 설정 로그인 카드 ── */
 .auth-config-card{background:var(--bg2);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;}
 .auth-config-card p{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+/* ── 인앱 브라우저 안내 배너 ── */
+.inapp-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:400;background:#FEE500;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.inapp-banner-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px;}
+.inapp-banner-text{flex:1;font-size:12px;color:#1a1a1a;line-height:1.5;font-weight:500;}
+.inapp-banner-btn{flex-shrink:0;background:#1a1a1a;color:#FEE500;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.inapp-banner-close{flex-shrink:0;background:none;border:none;font-size:18px;color:#1a1a1a;cursor:pointer;padding:0 2px;line-height:1;}
 /* ── 친구 초대 버튼 ── */
 .invite-btn{width:100%;margin-top:1rem;padding:13px;font-size:14px;font-weight:500;border-radius:12px;border:1.5px solid var(--info-bd);background:var(--info-bg);color:var(--info);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;}
 .invite-btn:hover{opacity:0.85;}
@@ -337,6 +343,16 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 </style>
 </head>
 <body data-theme="white">
+<!-- 인앱 브라우저 안내 배너 -->
+<div class="inapp-banner" id="inappBanner">
+  <div class="inapp-banner-inner">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="#1a1a1a"/></svg>
+    <div class="inapp-banner-text">카카오톡 브라우저에서는 일부 기능이 제한됩니다.<br>크롬으로 열면 더 잘 작동해요!</div>
+    <button class="inapp-banner-btn" onclick="openInChrome()">크롬으로 열기</button>
+    <button class="inapp-banner-close" onclick="closeInappBanner()">✕</button>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="app-title-bar" onclick="goHome()" style="cursor:pointer;">
     <div class="app-title">BRETHIN</div>
@@ -1541,6 +1557,57 @@ function hasMemo(key){
 function renderCal(){const now=new Date();if(calYear===undefined){calYear=now.getFullYear();calMonth=now.getMonth();}document.getElementById('calTitle').textContent=calYear+'년 '+mNames[calMonth];const grid=document.getElementById('calGrid');grid.innerHTML='';dNames.forEach(d=>{const el=document.createElement('div');el.className='dn';el.textContent=d;grid.appendChild(el);});const fd=new Date(calYear,calMonth,1).getDay();const dim=new Date(calYear,calMonth+1,0).getDate();const tk=today();for(let i=0;i<fd;i++){const el=document.createElement('div');el.className='cc empty';grid.appendChild(el);}for(let d=1;d<=dim;d++){const key=dk(calYear,calMonth,d);const el=document.createElement('div');el.className='cc';if(key===tk)el.classList.add('today');if(key===selDate)el.classList.add('sel');const num=document.createElement('div');num.className='cn';num.textContent=d;el.appendChild(num);const hasR=records[key]&&records[key].length>0;const hasM=hasMemo(key);if(hasR||hasM){const dr=document.createElement('div');dr.className='dr';if(hasR){const dot=document.createElement('div');dot.className='dot dg';dr.appendChild(dot);}if(hasM){const dot=document.createElement('div');dot.className='dot da';dr.appendChild(dot);}el.appendChild(dr);}el.addEventListener('click',()=>selD(key));grid.appendChild(el);}}
 function selD(key){selDate=key;renderCal();document.getElementById('detailTitle').textContent=fl(key);const hasR=records[key]&&records[key].length>0;document.getElementById('xBtn').style.display=(hasR||hasMemo(key))?'flex':'none';renderDB(key);}
 function goHome(){showPage('train',null);}
+
+/* ── 인앱 브라우저 감지 및 크롬 유도 ── */
+(function(){
+  const ua=navigator.userAgent.toLowerCase();
+  // 카카오톡, 네이버, 인스타, 페이스북 인앱 브라우저 감지
+  const isInApp=/kakaotalk|kakaostory|naver|instagram|fbios|fb_iab|fban|line|wechat|micromessenger/.test(ua);
+  if(!isInApp) return;
+  const banner=document.getElementById('inappBanner');
+  if(banner){
+    banner.style.display='block';
+    // 배너 높이만큼 wrap에 padding-top 추가
+    setTimeout(()=>{
+      const h=banner.offsetHeight;
+      const wrap=document.querySelector('.wrap');
+      if(wrap) wrap.style.paddingTop=`calc(env(safe-area-inset-top,0px) + ${h}px)`;
+    },50);
+  }
+})();
+
+function openInChrome(){
+  const url=window.location.href;
+  const ua=navigator.userAgent.toLowerCase();
+  if(/android/.test(ua)){
+    // 안드로이드: intent 스킴으로 크롬 강제 실행
+    const intentUrl='intent://'+url.replace(/^https?:\/\//,'')+'#Intent;scheme=https;package=com.android.chrome;end';
+    window.location.href=intentUrl;
+  } else if(/iphone|ipad|ipod/.test(ua)){
+    // iOS: 크롬 URL 스킴으로 열기 시도
+    const chromeUrl=url.replace(/^https?/,'googlechrome');
+    const iframe=document.createElement('iframe');
+    iframe.style.display='none';
+    iframe.src=chromeUrl;
+    document.body.appendChild(iframe);
+    setTimeout(()=>{
+      document.body.removeChild(iframe);
+      // 크롬이 설치 안 돼 있으면 Safari로 fallback
+      window.location.href=url;
+    },1500);
+  } else {
+    window.open(url,'_blank');
+  }
+}
+
+function closeInappBanner(){
+  const banner=document.getElementById('inappBanner');
+  if(banner){
+    banner.style.display='none';
+    const wrap=document.querySelector('.wrap');
+    if(wrap) wrap.style.paddingTop='';
+  }
+}
 
 /* ── 데이터 초기화 ── */
 function confirmResetData(){
