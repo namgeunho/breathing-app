@@ -127,7 +127,7 @@ function renderColList(){
   }
   list.innerHTML=cols.map(c=>{
     const idx=_columns.indexOf(c);
-    const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="">`:`<div class="col-thumb-empty">사진없음</div>`;
+    const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="" onerror="this.outerHTML='<div class=\'col-thumb-empty\'><span class=\'col-thumb-brand\'>BRETHIN</span></div>'">`:`<div class="col-thumb-empty"><span class="col-thumb-brand">BRETHIN</span></div>`;
     const excerpt=(c.content||'').replace(/\[img:[^\]]+\]/g,'').replace(/https?:\/\/\S+/g,'').trim().substring(0,120);
     const bm=isBookmarked(c.id);
     return `<div class="col-card" onclick="showColDetail(${idx})">

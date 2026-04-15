@@ -288,6 +288,35 @@ function renderGraph(){
     <div class="graph-wrap" id="graphWrap"><div class="graph-bar-wrap">${barsHtml}</div></div>
     <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px;">막대 높이 = 해당일 총 훈련 시간(분)</div>`;
 
+  // 그래프 하단 — 선택일 상세 (기본: 오늘)
+  if(!document.getElementById('graphDayPanel')){
+    const panel = document.createElement('div');
+    panel.id = 'graphDayPanel';
+    panel.className = 'graph-day-panel';
+    document.getElementById('graphCanvas').after(panel);
+  }
+  renderGraphDayPanel(today());
+
+  // 막대 클릭 → 해당일 상세
+  setTimeout(()=>{
+    document.querySelectorAll('.graph-bar-col').forEach(col=>{
+      col.style.cursor='pointer';
+      col.addEventListener('click', function(){
+        document.querySelectorAll('.graph-bar-col').forEach(c=>c.classList.remove('graph-bar-sel'));
+        this.classList.add('graph-bar-sel');
+        const d = this.querySelector('.graph-label').textContent;
+        const key = dk(graphYear, graphMonth, parseInt(d));
+        renderGraphDayPanel(key);
+      });
+    });
+    // 오늘 막대 선택 표시
+    const now = new Date();
+    if(graphYear===now.getFullYear()&&graphMonth===now.getMonth()){
+      const cols = document.querySelectorAll('.graph-bar-col');
+      if(cols[now.getDate()-1]) cols[now.getDate()-1].classList.add('graph-bar-sel');
+    }
+  },60);
+
   // 오늘이 이달이면 오늘 막대를 화면 중앙으로 스크롤
   const now=new Date();
   if(graphYear===now.getFullYear()&&graphMonth===now.getMonth()){
@@ -307,6 +336,63 @@ function renderGraph(){
 }
 
 const EMOTIONS=['아주나쁨','나쁨','보통','좋음','아주좋음'];
+
+function renderGraphDayPanel(key){
+  const panel = document.getElementById('graphDayPanel');
+  if(!panel) return;
+  const recs = records[key]||[];
+  const memoData = memos[key]||{};
+  const memo = typeof memoData==='string'?memoData:(memoData.text||'');
+  const preMood = typeof memoData==='object'?memoData.preMood||'':'';
+  const postMood = typeof memoData==='object'?memoData.postMood||'':'';
+  const dateLabel = fl(key);
+  const isToday = key===today();
+
+  let html = `<div class="gdp-header">
+    <span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span>
+  </div>`;
+
+  // 훈련 기록
+  if(recs.length>0){
+    const total = recs.reduce((s,r)=>s+r.duration,0);
+    html += `<div class="gdp-section-label">훈련 기록</div>`;
+    recs.forEach((r,i)=>{
+      const lv = r.level?`<span class="bg bga" style="font-size:10px;padding:1px 5px;margin-left:4px;">${r.level}</span>`:'';
+      html += `<div class="gdp-rec">
+        <div class="gdp-rec-left">
+          <span class="gdp-rec-num">${i+1}회차</span>${lv}
+          <span class="gdp-rec-pattern">들숨${r.inhale}·날숨${r.exhale}</span>
+        </div>
+        <div class="gdp-rec-right">
+          <span class="bg bbl" style="font-size:11px;">${r.duration}분</span>
+          <span class="bg bgn" style="font-size:11px;">${r.cycles}회</span>
+        </div>
+      </div>`;
+    });
+    html += `<div class="gdp-total">총 ${Math.round(total)}분 훈련</div>`;
+  } else {
+    html += `<div class="gdp-empty">훈련 기록이 없어요</div>`;
+  }
+
+  // 감정·메모
+  if(preMood||postMood||memo){
+    html += `<div class="gdp-divider"></div><div class="gdp-section-label">감정 · 메모</div>`;
+    if(preMood||postMood){
+      html += `<div class="gdp-mood">`;
+      if(preMood) html += `<span class="gdp-mood-item">훈련 전 <strong>${preMood}</strong></span>`;
+      if(preMood&&postMood) html += `<span class="gdp-mood-arrow">→</span>`;
+      if(postMood) html += `<span class="gdp-mood-item">훈련 후 <strong>${postMood}</strong></span>`;
+      html += `</div>`;
+    }
+    if(memo) html += `<div class="gdp-memo">${eh(memo)}</div>`;
+  } else if(recs.length===0){
+    // 기록도 메모도 없는 날
+    html = `<div class="gdp-header"><span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span></div>
+      <div class="gdp-empty">이 날의 기록이 없어요</div>`;
+  }
+
+  panel.innerHTML = html;
+}
 
 function renderDB(key){
   const body=document.getElementById('detailBody');
