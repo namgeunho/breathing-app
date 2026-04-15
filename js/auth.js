@@ -207,6 +207,7 @@ async function syncUserData(){
       });
     }
     renderUserBar();
+    renderTree(); // 로그인 후 나무 표시로 전환
     if(curPage==='calendar'){renderCal();updateCalSt();}
     if(curPage==='config') renderConfigMain();
   }catch(e){ console.log('유저 데이터 동기화 실패:',e); }

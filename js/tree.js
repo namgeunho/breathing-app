@@ -376,26 +376,69 @@ function setTreeBg(stageId, health){
 
 /* ── 나무 렌더링 ── */
 function renderTree(){
+  const loggedInEl = document.getElementById('treeLoggedIn');
+  const guestEl    = document.getElementById('treeGuest');
+  if(!loggedInEl || !guestEl) return;
+
+  if(!curUser){
+    // ── 비로그인: 판타지 타이틀 카드 ──
+    loggedInEl.style.display = 'none';
+    guestEl.style.display    = 'block';
+    setTreeBg(1, 'seed');
+    // 별 생성 (한 번만)
+    const starsEl = document.getElementById('treeStars');
+    if(starsEl && !starsEl.dataset.init){
+      starsEl.dataset.init = '1';
+      for(let i=0;i<40;i++){
+        const s = document.createElement('div');
+        const sz = Math.random()*1.8+0.6;
+        const delay = Math.random()*4;
+        const dur   = Math.random()*3+2;
+        s.style.cssText = `
+          position:absolute;border-radius:50%;
+          width:${sz}px;height:${sz}px;
+          left:${Math.random()*100}%;top:${Math.random()*100}%;
+          background:rgba(255,248,220,${Math.random()*.7+.2});
+          animation:treeTwinkle ${dur}s ease-in-out infinite ${delay}s;
+        `;
+        starsEl.appendChild(s);
+      }
+      // twinkle keyframes 주입
+      if(!document.getElementById('treeStarKF')){
+        const kf = document.createElement('style');
+        kf.id = 'treeStarKF';
+        kf.textContent = '@keyframes treeTwinkle{0%,100%{opacity:.1;}50%{opacity:1;}}';
+        document.head.appendChild(kf);
+      }
+    }
+    return;
+  }
+
+  // ── 로그인: 나무 표시 ──
+  loggedInEl.style.display = 'block';
+  guestEl.style.display    = 'none';
+
   const svgArea = document.getElementById('treeSvgArea');
-  const nameEl = document.getElementById('treeName');
+  const nameEl  = document.getElementById('treeName');
   const labelEl = document.getElementById('treeTPLabel');
-  const fillEl = document.getElementById('treeTPFill');
-  const iconEl = document.getElementById('treeHealthIcon');
+  const fillEl  = document.getElementById('treeTPFill');
+  const iconEl  = document.getElementById('treeHealthIcon');
   if(!svgArea) return;
 
-  const st = TREE_STAGES[treeData.stage-1];
-  const h = getTreeHealth();
+  const st     = TREE_STAGES[treeData.stage-1];
+  const h      = getTreeHealth();
   const nextTP = TREE_STAGES[treeData.stage] ? TREE_STAGES[treeData.stage].tpReq : treeData.tp;
   const prevTP = st.tpReq;
-  const pct = treeData.stage===7 ? 100 : Math.min(100, Math.round(((treeData.tp-prevTP)/(nextTP-prevTP))*100));
+  const pct    = treeData.stage===7 ? 100 : Math.min(100, Math.round(((treeData.tp-prevTP)/(nextTP-prevTP))*100));
 
   svgArea.innerHTML = getTreeSVG(treeData.stage);
   setTreeBg(treeData.stage, h);
 
   if(nameEl){ nameEl.textContent = st.name; nameEl.style.color = st.color; }
   if(labelEl){
-    if(treeData.stage===7) labelEl.textContent = `${treeData.tp.toLocaleString()} TP · 전설`;
-    else labelEl.textContent = `${treeData.tp.toLocaleString()} / ${nextTP.toLocaleString()} TP`;
+    labelEl.textContent = treeData.stage===7
+      ? `${treeData.tp.toLocaleString()} TP · 전설`
+      : `${treeData.tp.toLocaleString()} / ${nextTP.toLocaleString()} TP`;
   }
   if(fillEl){ fillEl.style.width = pct+'%'; fillEl.style.background = st.color; }
 
@@ -405,8 +448,13 @@ function renderTree(){
 
 /* ── 나무 탭 인터랙션 ── */
 function onTreeTap(){
+  // 비로그인: 로그인 모달
+  if(!curUser){
+    openAuthModal('로그인하면 숨나무가 자라기 시작해요 🌱\n훈련할수록 씨앗에서 전설의 나무까지 키울 수 있어요.');
+    return;
+  }
+
   const st = TREE_STAGES[treeData.stage-1];
-  const h = getTreeHealth();
   const streak = calcStreak();
   const born = treeData.bornAt;
   const age = born ? Math.floor((new Date()-new Date(born))/86400000) : 0;
@@ -417,7 +465,7 @@ function onTreeTap(){
   if(age>0) info += `\n나무 나이 ${age}일`;
   showToast(info);
 
-  // 잔잔한 흔들림 효과
+  // 흔들림 효과
   const svgArea = document.getElementById('treeSvgArea');
   if(svgArea){
     svgArea.style.transition='transform 0.15s';

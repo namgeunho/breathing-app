@@ -101,14 +101,31 @@
 
     <!-- 숨나무 -->
     <div class="tree-wrap" id="treeWrap" onclick="onTreeTap()">
-      <div class="tree-stage-area" id="treeSvgArea"></div>
-      <div class="tree-info-bar">
-        <div class="tree-name" id="treeName" style="color:#c8a030;">숨씨앗</div>
-        <div class="tree-tp-bar-wrap">
-          <div class="tree-tp-label" id="treeTPLabel">0 / 50 TP</div>
-          <div class="tree-tp-bar"><div class="tree-tp-fill" id="treeTPFill" style="width:0%;background:#c8a030;"></div></div>
+      <!-- 로그인 상태: 나무 표시 -->
+      <div id="treeLoggedIn" style="display:none;">
+        <div class="tree-stage-area" id="treeSvgArea"></div>
+        <div class="tree-info-bar">
+          <div class="tree-name" id="treeName">숨씨앗</div>
+          <div class="tree-tp-bar-wrap">
+            <div class="tree-tp-label" id="treeTPLabel">0 / 50 TP</div>
+            <div class="tree-tp-bar"><div class="tree-tp-fill" id="treeTPFill" style="width:0%"></div></div>
+          </div>
+          <div class="tree-health-icon" id="treeHealthIcon">🌱</div>
         </div>
-        <div class="tree-tp-val" id="treeHealthIcon">🌱</div>
+      </div>
+      <!-- 비로그인 상태: 판타지 타이틀 카드 -->
+      <div id="treeGuest">
+        <div class="tree-guest-stars" id="treeStars"></div>
+        <div class="tree-guest-card">
+          <div class="tree-guest-eyebrow">BRETHIN · THE LEGEND OF BREATH TREE</div>
+          <div class="tree-guest-title-ko">숨나무의</div>
+          <div class="tree-guest-title-sub">전설</div>
+          <div class="tree-guest-desc">당신이 숨을 쉴 때마다, 보이지 않는 세계에서<br>나무 하나가 자란다.</div>
+          <div class="tree-guest-cta">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h8M10 5l3 3-3 3"/><path d="M10 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6"/></svg>
+            로그인하고 나무 키우기
+          </div>
+        </div>
       </div>
     </div>
 

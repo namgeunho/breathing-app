@@ -11,7 +11,6 @@ auth.getRedirectResult().then(result=>{
 auth.onAuthStateChanged(user=>{
   curUser=user;
   if(user){
-    // 로컬에 이미 지정한 이름·사진 있으면 유지, 없을 때만 Google 정보 사용
     if(!userName||userName==='사용자') userName=user.displayName||'사용자';
     if(!userPhoto&&user.photoURL) userPhoto=user.photoURL;
     syncUserData();
@@ -25,6 +24,8 @@ auth.onAuthStateChanged(user=>{
       renderUserBar();
     }
     if(curPage==='config') renderConfigMain();
+    // 로그인/로그아웃 모두 나무 상태 갱신
+    renderTree();
   }catch(e){}
 });
 
