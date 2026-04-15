@@ -49,16 +49,6 @@
 
   <!-- 훈련 -->
   <div id="page-train" class="page active pp">
-    <div class="tb">
-      <div class="tbl" id="cfgSummary"></div>
-      <div class="tbr">
-        <button class="ib" id="cfgBtn" onclick="toggleSettings()">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
-          호흡 설정
-        </button>
-        <button class="ib" id="screenOffBtn" onclick="toggleScreenOff()">화면 끄기</button>
-      </div>
-    </div>
     <div class="sp" id="settingsPanel">
       <div class="mt">
         <button class="mb" id="modeProgram" onclick="setMode('program')">프로그램 모드</button>
@@ -98,7 +88,6 @@
       </div>
     </div>
 
-
     <!-- 숨나무 -->
     <div class="tree-wrap" id="treeWrap" onclick="onTreeTap()">
       <!-- 로그인 상태: 나무 표시 -->
@@ -129,6 +118,18 @@
       </div>
     </div>
 
+    <!-- 숨나무 하단: 프로그램 정보 + 버튼 -->
+    <div class="tb tb-undertree">
+      <div class="tbl" id="cfgSummary"></div>
+      <div class="tbr">
+        <button class="ib" id="cfgBtn" onclick="toggleSettings()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+          호흡 설정
+        </button>
+        <button class="ib" id="screenOffBtn" onclick="toggleScreenOff()">화면 끄기</button>
+      </div>
+    </div>
+
     <div id="mainArea">
       <div class="cw">
         <div class="co"><div class="cbg"></div><div class="ci" id="circle"></div></div>
@@ -141,9 +142,9 @@
         <div class="st2"><div class="sn" id="remainDisplay">5:00</div><div class="sl2">남은 시간</div></div>
         <div class="st2"><div class="sn" id="cycleCount">0</div><div class="sl2">완료 횟수</div></div>
       </div>
-      <div class="br">
-        <button class="bp" id="startBtn" onclick="startStop()">시작</button>
-        <button onclick="resetAll()">초기화</button>
+      <div class="br br-fullwidth">
+        <button class="bp br-start" id="startBtn" onclick="startStop()">시작</button>
+        <button class="br-reset" onclick="resetAll()">초기화</button>
       </div>
     </div>
     <div id="completeArea" style="display:none;">

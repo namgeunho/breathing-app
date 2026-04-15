@@ -160,9 +160,9 @@ function showPage(id,el){
   document.getElementById('page-'+id).classList.add('active');
   if(el)el.classList.add('active');
   else{document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active');});}
-  // 훈련/기록만 유저바 표시
+  // 기록 탭만 유저바 표시, 훈련 탭에서는 숨김
   const ub=document.getElementById('userBar');
-  if(id==='train'||id==='calendar'){ub.style.display='flex';renderUserBar();}
+  if(id==='calendar'){ub.style.display='flex';renderUserBar();}
   else{ub.style.display='none';}
   curPage=id;save();
   logEvent('page_view',{page:id});

@@ -19,9 +19,11 @@ auth.onAuthStateChanged(user=>{
   // DOM 안전하게 접근
   try{
     const ub=document.getElementById('userBar');
-    if(ub&&(curPage==='train'||curPage==='calendar')){
+    if(ub&&curPage==='calendar'){
       ub.style.display='flex';
       renderUserBar();
+    } else if(ub){
+      ub.style.display='none';
     }
     if(curPage==='config') renderConfigMain();
     // 로그인/로그아웃 모두 나무 상태 갱신
