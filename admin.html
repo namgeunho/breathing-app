@@ -550,12 +550,13 @@ tr:hover td{background:var(--bg);}
 </div>
 
 <!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyAuKsnJixQbgwYudA6tpJyNO9IXmxHwg-0",
   authDomain: "breathing-app-f51cb.firebaseapp.com",
@@ -564,23 +565,27 @@ const firebaseConfig = {
   messagingSenderId: "967554724404",
   appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061"
 };
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+firebase.initializeApp(firebaseConfig);
+const auth   = firebase.auth();
+const db     = firebase.firestore();
+const storage= firebase.storage();
 
 /* ── 전역 상태 ── */
 let currentUser = null;
-let editingId = null;
-let bannerImageData = null; // base64 or URL
+let editingId   = null;
+let bannerImageData = null;
 let bannerImageFile = null;
+let colThumbFile = null;
+let colThumbData = null;
+let soundEditingId = null;
+let soundFile = null;
+let _guideDocId = null;
 
 /* ── 유틸 ── */
 function fmtDate(ts) {
   if (!ts) return '-';
   const d = ts.toDate ? ts.toDate() : new Date(ts);
-  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+  return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
 }
 function showAlert(msg, type='success') {
   const el = document.getElementById('globalAlert');
@@ -589,10 +594,14 @@ function showAlert(msg, type='success') {
   msgEl.textContent = msg;
   setTimeout(() => { el.className = `alert alert-${type}`; }, 3000);
 }
-function eh(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function eh(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  editingId = null; bannerImageData = null; bannerImageFile = null;
+}
 
 /* ── 인증 ── */
-onAuthStateChanged(auth, user => {
+auth.onAuthStateChanged(user => {
   if (user) {
     currentUser = user;
     document.getElementById('loginScreen').style.display = 'none';
@@ -607,566 +616,442 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-window.doLogin = async function() {
+function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
-  const pw = document.getElementById('loginPassword').value;
-  const err = document.getElementById('loginErr');
-  const btn = document.querySelector('#loginScreen .btn-primary');
+  const pw    = document.getElementById('loginPassword').value;
+  const err   = document.getElementById('loginErr');
+  const btn   = document.querySelector('#loginScreen .btn-primary');
   if (!email || !pw) { err.textContent='이메일과 비밀번호를 입력하세요.'; err.classList.add('show'); return; }
-  btn.textContent = '로그인 중...'; btn.disabled = true;
-  try {
-    await signInWithEmailAndPassword(auth, email, pw);
-    err.classList.remove('show');
-  } catch(e) {
-    console.error('로그인 오류:', e.code, e.message);
-    const msgs = {
-      'auth/user-not-found': '등록되지 않은 이메일입니다.',
-      'auth/wrong-password': '비밀번호가 올바르지 않습니다.',
-      'auth/invalid-email': '이메일 형식이 올바르지 않습니다.',
-      'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않습니다.',
-      'auth/too-many-requests': '로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.',
-      'auth/network-request-failed': '네트워크 오류가 발생했습니다.',
-    };
-    err.textContent = msgs[e.code] || `오류: ${e.code}`;
-    err.classList.add('show');
-  } finally {
-    btn.textContent = '로그인'; btn.disabled = false;
-  }
-};
+  btn.textContent='로그인 중...'; btn.disabled=true;
+  auth.signInWithEmailAndPassword(email, pw)
+    .then(() => { err.classList.remove('show'); })
+    .catch(e => {
+      console.error('로그인 오류:', e.code, e.message);
+      const msgs = {
+        'auth/user-not-found':'등록되지 않은 이메일입니다.',
+        'auth/wrong-password':'비밀번호가 올바르지 않습니다.',
+        'auth/invalid-email':'이메일 형식이 올바르지 않습니다.',
+        'auth/invalid-credential':'이메일 또는 비밀번호가 올바르지 않습니다.',
+        'auth/too-many-requests':'로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.',
+        'auth/network-request-failed':'네트워크 오류가 발생했습니다.',
+      };
+      err.textContent = msgs[e.code] || '오류: '+e.code;
+      err.classList.add('show');
+    })
+    .finally(() => { btn.textContent='로그인'; btn.disabled=false; });
+}
 
-window.doLogout = async function() {
-  await signOut(auth);
-};
+function doLogout() { auth.signOut(); }
 
-window.changePassword = async function() {
+function changePassword() {
   const np = document.getElementById('newPassword').value;
   const nc = document.getElementById('newPasswordConfirm').value;
   const err = document.getElementById('pwErr');
   err.classList.remove('show');
-  if (np.length < 6) { err.textContent = '비밀번호는 6자 이상이어야 합니다.'; err.classList.add('show'); return; }
-  if (np !== nc) { err.textContent = '비밀번호가 일치하지 않습니다.'; err.classList.add('show'); return; }
-  try {
-    await updatePassword(currentUser, np);
-    document.getElementById('newPassword').value = '';
-    document.getElementById('newPasswordConfirm').value = '';
-    showAlert('비밀번호가 변경됐습니다!');
-  } catch(e) {
-    err.textContent = '변경 실패. 다시 로그인 후 시도해주세요.'; err.classList.add('show');
-  }
-};
+  if (np.length < 6) { err.textContent='비밀번호는 6자 이상이어야 합니다.'; err.classList.add('show'); return; }
+  if (np !== nc) { err.textContent='비밀번호가 일치하지 않습니다.'; err.classList.add('show'); return; }
+  currentUser.updatePassword(np)
+    .then(() => { document.getElementById('newPassword').value=''; document.getElementById('newPasswordConfirm').value=''; showAlert('비밀번호가 변경됐습니다!'); })
+    .catch(() => { err.textContent='변경 실패. 다시 로그인 후 시도해주세요.'; err.classList.add('show'); });
+}
 
 /* ── 페이지 이동 ── */
 const pageTitles = { dashboard:'대시보드', notices:'공지사항', banners:'배너 관리', columns:'칼럼 관리', sounds:'사운드 관리', guide:'이용가이드', settings:'계정 설정' };
-window.showPage = function(id, el) {
+function showPage(id, el) {
   document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id+'Page').classList.add('active');
   if (el) el.classList.add('active');
   document.getElementById('mainTitle').textContent = pageTitles[id] || id;
-  if (id === 'dashboard') loadDashboard();
-  if (id === 'notices') loadNotices();
-  if (id === 'banners') loadBanners();
-  if (id === 'columns') loadColumns();
-  if (id === 'sounds') loadSoundsAdmin();
-  if (id === 'guide') loadGuideAdmin();
-};
-
-/* ── 모달 ── */
-window.closeModal = function(id) {
-  document.getElementById(id).classList.remove('open');
-  editingId = null;
-  bannerImageData = null;
-  bannerImageFile = null;
-};
+  if (id==='dashboard') loadDashboard();
+  if (id==='notices')   loadNotices();
+  if (id==='banners')   loadBanners();
+  if (id==='columns')   loadColumns();
+  if (id==='sounds')    loadSoundsAdmin();
+  if (id==='guide')     loadGuideAdmin();
+}
 
 /* ── 대시보드 ── */
-async function loadDashboard() {
-  try {
-    const [notices, banners, columns] = await Promise.all([
-      getDocs(collection(db,'notices')),
-      getDocs(collection(db,'banners')),
-      getDocs(collection(db,'columns'))
-    ]);
+function loadDashboard() {
+  Promise.all([
+    db.collection('notices').get(),
+    db.collection('banners').get(),
+    db.collection('columns').get()
+  ]).then(([notices, banners, columns]) => {
     document.getElementById('statNotices').textContent = notices.size;
-    document.getElementById('statBanners').textContent = [...banners.docs].filter(d=>d.data().active).length;
+    document.getElementById('statBanners').textContent = banners.docs.filter(d=>d.data().active).length;
     document.getElementById('statColumns').textContent = columns.size;
-
-    // 최근 공지
     const rn = document.getElementById('recentNotices');
-    const noticeList = notices.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0)).slice(0,3);
-    rn.innerHTML = noticeList.length ? noticeList.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--bg3);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${fmtDate(d.data().createdAt)}</div></div>${d.data().pinned?'<span class="badge badge-blue">중요</span>':''}</div>`).join('') : '<div class="empty-state"><div class="empty-text">공지사항이 없습니다</div></div>';
-
-    // 최근 칼럼
+    const nList = notices.docs.sort((a,b)=>(b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0)).slice(0,3);
+    rn.innerHTML = nList.length ? nList.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--bg3);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${fmtDate(d.data().createdAt)}</div></div>${d.data().pinned?'<span class="badge badge-blue">중요</span>':''}</div>`).join('') : '<div class="empty-state"><div class="empty-text">공지사항이 없습니다</div></div>';
     const rc = document.getElementById('recentColumns');
-    const colList = columns.docs.sort((a,b) => (b.data().createdAt?.seconds||0) - (a.data().createdAt?.seconds||0)).slice(0,3);
-    rc.innerHTML = colList.length ? colList.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--bg3);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:14px;font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${d.data().category||''} · ${fmtDate(d.data().createdAt)}</div></div></div>`).join('') : '<div class="empty-state"><div class="empty-text">칼럼이 없습니다</div></div>';
-  } catch(e) { console.error(e); }
+    const cList = columns.docs.sort((a,b)=>(b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0)).slice(0,3);
+    rc.innerHTML = cList.length ? cList.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--bg3);"><div style="font-size:14px;font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${d.data().category||''} · ${fmtDate(d.data().createdAt)}</div></div>`).join('') : '<div class="empty-state"><div class="empty-text">칼럼이 없습니다</div></div>';
+  }).catch(e => console.error(e));
 }
 
 /* ── 공지사항 ── */
-async function loadNotices() {
+function loadNotices() {
   const wrap = document.getElementById('noticeTableWrap');
   wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
-  try {
-    const snap = await getDocs(query(collection(db,'notices'), orderBy('createdAt','desc')));
+  db.collection('notices').orderBy('createdAt','desc').get().then(snap => {
     if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-text">등록된 공지사항이 없습니다</div></div>'; return; }
-    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>구분</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`
-      <tr>
-        <td style="font-weight:500;max-width:300px;">${eh(d.data().title)}</td>
-        <td>${d.data().pinned ? '<span class="badge badge-blue">중요</span>' : '<span class="badge badge-gray">일반</span>'}</td>
-        <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
-        <td><div style="display:flex;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="editNotice('${d.id}','${eh(d.data().title)}',\`${d.data().content.replace(/`/g,"'")}\`,'${d.data().pinned}')">수정</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteNotice('${d.id}')">삭제</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>구분</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`<tr>
+      <td style="font-weight:500;max-width:300px;">${eh(d.data().title)}</td>
+      <td>${d.data().pinned?'<span class="badge badge-blue">중요</span>':'<span class="badge badge-gray">일반</span>'}</td>
+      <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="editNotice('${d.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteNotice('${d.id}')">삭제</button>
+      </div></td></tr>`).join('')}</tbody></table>`;
+  }).catch(() => { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; });
 }
 
-window.openNoticeModal = function() {
+function openNoticeModal() {
   editingId = null;
   document.getElementById('noticeModalTitle').textContent = '새 공지사항';
   document.getElementById('noticeTitle').value = '';
   document.getElementById('noticeContent').value = '';
   document.getElementById('noticePinned').value = 'false';
   document.getElementById('noticeModal').classList.add('open');
-};
+}
 
-window.editNotice = function(id, title, content, pinned) {
+function editNotice(id) {
   editingId = id;
-  document.getElementById('noticeModalTitle').textContent = '공지사항 수정';
-  document.getElementById('noticeTitle').value = title;
-  document.getElementById('noticeContent').value = content;
-  document.getElementById('noticePinned').value = pinned;
-  document.getElementById('noticeModal').classList.add('open');
-};
+  db.collection('notices').doc(id).get().then(d => {
+    if (!d.exists) return;
+    document.getElementById('noticeModalTitle').textContent = '공지사항 수정';
+    document.getElementById('noticeTitle').value = d.data().title||'';
+    document.getElementById('noticeContent').value = d.data().content||'';
+    document.getElementById('noticePinned').value = String(d.data().pinned||false);
+    document.getElementById('noticeModal').classList.add('open');
+  });
+}
 
-window.saveNotice = async function() {
+function saveNotice() {
   const title = document.getElementById('noticeTitle').value.trim();
   const content = document.getElementById('noticeContent').value.trim();
   const pinned = document.getElementById('noticePinned').value === 'true';
-  if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
-  try {
-    if (editingId) {
-      await updateDoc(doc(db,'notices',editingId), { title, content, pinned, updatedAt: serverTimestamp() });
-      showAlert('공지사항이 수정됐습니다!');
-    } else {
-      await addDoc(collection(db,'notices'), { title, content, pinned, createdAt: serverTimestamp() });
-      showAlert('공지사항이 등록됐습니다!');
-    }
-    closeModal('noticeModal');
-    loadNotices();
-    loadDashboard();
-  } catch(e) { alert('저장 실패: ' + e.message); }
-};
+  if (!title||!content) { alert('제목과 내용을 입력하세요.'); return; }
+  const data = { title, content, pinned };
+  const p = editingId
+    ? db.collection('notices').doc(editingId).update({...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp()})
+    : db.collection('notices').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  p.then(() => { showAlert(editingId?'수정됐습니다!':'등록됐습니다!'); closeModal('noticeModal'); loadNotices(); loadDashboard(); })
+   .catch(e => alert('저장 실패: '+e.message));
+}
 
-window.deleteNotice = async function(id) {
+function deleteNotice(id) {
   if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
-  await deleteDoc(doc(db,'notices',id));
-  showAlert('삭제됐습니다.', 'success');
-  loadNotices();
-  loadDashboard();
-};
+  db.collection('notices').doc(id).delete().then(() => { showAlert('삭제됐습니다.'); loadNotices(); loadDashboard(); });
+}
 
 /* ── 배너 ── */
-async function loadBanners() {
+function loadBanners() {
   const wrap = document.getElementById('bannerListWrap');
   wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
-  try {
-    const snap = await getDocs(query(collection(db,'banners'), orderBy('createdAt','desc')));
+  db.collection('banners').orderBy('createdAt','desc').get().then(snap => {
     if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🖼️</div><div class="empty-text">등록된 배너가 없습니다</div></div>'; return; }
     wrap.innerHTML = snap.docs.map(d => {
-      const data = d.data();
+      const v = d.data();
       return `<div style="display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--bg3);">
-        <img src="${data.imageUrl}" style="width:120px;height:50px;object-fit:cover;border-radius:6px;border:1px solid var(--bd);flex-shrink:0;" onerror="this.style.display='none'">
+        <img src="${eh(v.imageUrl)}" style="width:120px;height:50px;object-fit:cover;border-radius:6px;border:1px solid var(--bd);flex-shrink:0;" onerror="this.style.display='none'">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:500;margin-bottom:3px;">${eh(data.desc||'배너')}</div>
-          <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">${data.url ? `<a href="${eh(data.url)}" target="_blank">${eh(data.url)}</a>` : 'URL 없음'}</div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:3px;">${eh(v.desc||'배너')}</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">${v.url?`<a href="${eh(v.url)}" target="_blank">${eh(v.url)}</a>`:'URL 없음'}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <span class="${data.active ? 'badge badge-green' : 'badge badge-gray'}">${data.active ? '표시중' : '숨김'}</span>
-            ${data.expireAt ? `<span class="badge badge-gray">~${data.expireAt.toDate ? data.expireAt.toDate().toLocaleDateString('ko-KR') : ''} 중단</span>` : ''}
+            <span class="${v.active?'badge badge-green':'badge badge-gray'}">${v.active?'표시중':'숨김'}</span>
+            ${v.expireAt?`<span class="badge badge-gray">~${v.expireAt.toDate?v.expireAt.toDate().toLocaleDateString('ko-KR'):''} 중단</span>`:''}
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;">
           <button class="btn btn-outline btn-sm" onclick="editBanner('${d.id}')">수정</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteBanner('${d.id}','${data.imagePath||''}')">삭제</button>
-        </div>
-      </div>`;
+          <button class="btn btn-danger btn-sm" onclick="deleteBanner('${d.id}','${eh(v.imagePath||'')}')">삭제</button>
+        </div></div>`;
     }).join('');
-  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+  }).catch(() => { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; });
 }
 
-window.openBannerModal = function() {
-  editingId = null;
-  bannerImageData = null;
-  bannerImageFile = null;
-  document.getElementById('bannerModalTitle').textContent = '새 배너';
-  document.getElementById('bannerUrl').value = '';
-  document.getElementById('bannerDesc').value = '';
-  document.getElementById('bannerExpire').value = '0';
-  document.getElementById('bannerActive').value = 'true';
-  document.getElementById('bannerPreviewImg').style.display = 'none';
-  document.getElementById('bannerUploadPlaceholder').style.display = 'block';
+function openBannerModal() {
+  editingId=null; bannerImageData=null; bannerImageFile=null;
+  document.getElementById('bannerModalTitle').textContent='새 배너';
+  document.getElementById('bannerUrl').value='';
+  document.getElementById('bannerDesc').value='';
+  document.getElementById('bannerExpire').value='0';
+  document.getElementById('bannerActive').value='true';
+  document.getElementById('bannerPreviewImg').style.display='none';
+  document.getElementById('bannerUploadPlaceholder').style.display='block';
   document.getElementById('bannerModal').classList.add('open');
-};
+}
 
-window.editBanner = async function(id) {
-  editingId = id;
-  const snap = await getDocs(collection(db,'banners'));
-  const d = snap.docs.find(x=>x.id===id);
-  if (!d) return;
-  const data = d.data();
-  bannerImageData = data.imageUrl;
-  document.getElementById('bannerModalTitle').textContent = '배너 수정';
-  document.getElementById('bannerUrl').value = data.url || '';
-  document.getElementById('bannerDesc').value = data.desc || '';
-  // expireAt → 남은 일수로 역산해서 선택 (없으면 0)
-  document.getElementById('bannerExpire').value = '0';
-  document.getElementById('bannerActive').value = String(data.active);
-  if (data.imageUrl) {
-    document.getElementById('bannerPreviewImg').src = data.imageUrl;
-    document.getElementById('bannerPreviewImg').style.display = 'block';
-    document.getElementById('bannerUploadPlaceholder').style.display = 'none';
-  }
-  document.getElementById('bannerModal').classList.add('open');
-};
-
-window.previewBannerImage = function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  bannerImageFile = file;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    bannerImageData = ev.target.result;
-    document.getElementById('bannerPreviewImg').src = bannerImageData;
-    document.getElementById('bannerPreviewImg').style.display = 'block';
-    document.getElementById('bannerUploadPlaceholder').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-};
-
-window.saveBanner = async function() {
-  const url = document.getElementById('bannerUrl').value.trim();
-  const desc = document.getElementById('bannerDesc').value.trim();
-  const expireDays = parseInt(document.getElementById('bannerExpire').value) || 0;
-  const active = document.getElementById('bannerActive').value === 'true';
-  if (!bannerImageData && !bannerImageFile) { alert('배너 이미지를 선택하세요.'); return; }
-
-  // 만료일 계산
-  let expireAt = null;
-  if (expireDays > 0) {
-    const d = new Date();
-    d.setDate(d.getDate() + expireDays);
-    d.setHours(23, 59, 59, 0);
-    expireAt = d;
-  }
-
-  try {
-    let imageUrl = bannerImageData;
-    let imagePath = '';
-    if (bannerImageFile) {
-      const storageRef = ref(storage, `banners/${Date.now()}_${bannerImageFile.name}`);
-      await uploadBytes(storageRef, bannerImageFile);
-      imageUrl = await getDownloadURL(storageRef);
-      imagePath = storageRef.fullPath;
+function editBanner(id) {
+  editingId=id; bannerImageFile=null;
+  db.collection('banners').doc(id).get().then(d => {
+    if (!d.exists) return;
+    const v=d.data(); bannerImageData=v.imageUrl;
+    document.getElementById('bannerModalTitle').textContent='배너 수정';
+    document.getElementById('bannerUrl').value=v.url||'';
+    document.getElementById('bannerDesc').value=v.desc||'';
+    document.getElementById('bannerExpire').value='0';
+    document.getElementById('bannerActive').value=String(v.active!==false);
+    if (v.imageUrl) {
+      document.getElementById('bannerPreviewImg').src=v.imageUrl;
+      document.getElementById('bannerPreviewImg').style.display='block';
+      document.getElementById('bannerUploadPlaceholder').style.display='none';
     }
+    document.getElementById('bannerModal').classList.add('open');
+  });
+}
+
+function previewBannerImage(e) {
+  const file=e.target.files[0]; if(!file) return;
+  bannerImageFile=file;
+  const r=new FileReader(); r.onload=ev=>{
+    bannerImageData=ev.target.result;
+    document.getElementById('bannerPreviewImg').src=bannerImageData;
+    document.getElementById('bannerPreviewImg').style.display='block';
+    document.getElementById('bannerUploadPlaceholder').style.display='none';
+  }; r.readAsDataURL(file);
+}
+
+function saveBanner() {
+  const url=document.getElementById('bannerUrl').value.trim();
+  const desc=document.getElementById('bannerDesc').value.trim();
+  const expireDays=parseInt(document.getElementById('bannerExpire').value)||0;
+  const active=document.getElementById('bannerActive').value==='true';
+  if (!bannerImageData&&!bannerImageFile) { alert('배너 이미지를 선택하세요.'); return; }
+  let expireAt=null;
+  if (expireDays>0) { const d=new Date(); d.setDate(d.getDate()+expireDays); d.setHours(23,59,59,0); expireAt=d; }
+  const doSave = (imageUrl, imagePath) => {
     if (editingId) {
-      const updateData = { url, desc, active, expireAt, updatedAt: serverTimestamp() };
-      if (bannerImageFile) { updateData.imageUrl = imageUrl; updateData.imagePath = imagePath; }
-      await updateDoc(doc(db,'banners',editingId), updateData);
-      showAlert('배너가 수정됐습니다!');
+      const upd={url,desc,active,expireAt,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+      if (bannerImageFile){upd.imageUrl=imageUrl;upd.imagePath=imagePath;}
+      return db.collection('banners').doc(editingId).update(upd);
     } else {
-      await addDoc(collection(db,'banners'), { imageUrl, imagePath, url, desc, active, expireAt, createdAt: serverTimestamp() });
-      showAlert('배너가 등록됐습니다!');
+      return db.collection('banners').add({imageUrl,imagePath,url,desc,active,expireAt,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     }
-    closeModal('bannerModal');
-    loadBanners();
-    loadDashboard();
-  } catch(e) { alert('저장 실패: ' + e.message); }
-};
+  };
+  const finish = () => { showAlert(editingId?'배너가 수정됐습니다!':'배너가 등록됐습니다!'); closeModal('bannerModal'); loadBanners(); loadDashboard(); };
+  if (bannerImageFile) {
+    const sRef=storage.ref(`banners/${Date.now()}_${bannerImageFile.name}`);
+    sRef.put(bannerImageFile).then(()=>sRef.getDownloadURL()).then(dlUrl=>doSave(dlUrl,sRef.fullPath)).then(finish).catch(e=>alert('저장 실패: '+e.message));
+  } else {
+    doSave(bannerImageData,'').then(finish).catch(e=>alert('저장 실패: '+e.message));
+  }
+}
 
-window.deleteBanner = async function(id, imagePath) {
+function deleteBanner(id, imagePath) {
   if (!confirm('이 배너를 삭제하시겠습니까?')) return;
-  await deleteDoc(doc(db,'banners',id));
-  if (imagePath) { try { await deleteObject(ref(storage, imagePath)); } catch(e) {} }
-  showAlert('삭제됐습니다.');
-  loadBanners();
-  loadDashboard();
-};
+  db.collection('banners').doc(id).delete().then(()=>{
+    if (imagePath) { try { storage.ref(imagePath).delete(); } catch(e){} }
+    showAlert('삭제됐습니다.'); loadBanners(); loadDashboard();
+  });
+}
 
 /* ── 칼럼 ── */
-async function loadColumns() {
-  const wrap = document.getElementById('columnTableWrap');
-  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
-  try {
-    const snap = await getDocs(query(collection(db,'columns'), orderBy('createdAt','desc')));
-    if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">등록된 칼럼이 없습니다</div></div>'; return; }
-    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`
-      <tr>
-        <td style="max-width:280px;"><div style="font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(d.data().subtitle||'')}</div></td>
-        <td><span class="badge badge-gray">${eh(d.data().category||'일반')}</span></td>
-        <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
-        <td><div style="display:flex;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
-        </div></td>
-      </tr>`).join('')}</tbody></table>`;
-  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+function loadColumns() {
+  const wrap=document.getElementById('columnTableWrap');
+  wrap.innerHTML='<div class="loading">불러오는 중...</div>';
+  db.collection('columns').orderBy('createdAt','desc').get().then(snap=>{
+    if (snap.empty){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">등록된 칼럼이 없습니다</div></div>';return;}
+    wrap.innerHTML=`<table><thead><tr><th>제목</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`<tr>
+      <td style="max-width:280px;"><div style="font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(d.data().subtitle||'')}</div></td>
+      <td><span class="badge badge-gray">${eh(d.data().category||'일반')}</span></td>
+      <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
+      </div></td></tr>`).join('')}</tbody></table>`;
+  }).catch(()=>{wrap.innerHTML='<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>';});
 }
 
-let colThumbFile = null;
-let colThumbData = null;
+function previewColThumb(e) {
+  const file=e.target.files[0];if(!file)return;
+  colThumbFile=file;
+  const r=new FileReader();r.onload=ev=>{
+    colThumbData=ev.target.result;
+    document.getElementById('colThumbPreview').src=colThumbData;
+    document.getElementById('colThumbPreview').style.display='block';
+    document.getElementById('colThumbPlaceholder').style.display='none';
+  };r.readAsDataURL(file);
+}
 
-window.previewColThumb = function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  colThumbFile = file;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    colThumbData = ev.target.result;
-    document.getElementById('colThumbPreview').src = colThumbData;
-    document.getElementById('colThumbPreview').style.display = 'block';
-    document.getElementById('colThumbPlaceholder').style.display = 'none';
+function openColumnModal() {
+  editingId=null;colThumbFile=null;colThumbData=null;
+  document.getElementById('columnModalTitle').textContent='새 칼럼';
+  ['columnTitle','columnSubtitle','columnContent','columnCategory'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('colThumbPreview').style.display='none';
+  document.getElementById('colThumbPlaceholder').style.display='block';
+  document.getElementById('columnModal').classList.add('open');
+}
+
+function editColumn(id) {
+  editingId=id;colThumbFile=null;colThumbData=null;
+  db.collection('columns').doc(id).get().then(d=>{
+    if(!d.exists)return;
+    const v=d.data();
+    document.getElementById('columnModalTitle').textContent='칼럼 수정';
+    document.getElementById('columnTitle').value=v.title||'';
+    document.getElementById('columnSubtitle').value=v.subtitle||'';
+    document.getElementById('columnContent').value=v.content||'';
+    document.getElementById('columnCategory').value=v.category||'';
+    if(v.thumbUrl){colThumbData=v.thumbUrl;document.getElementById('colThumbPreview').src=v.thumbUrl;document.getElementById('colThumbPreview').style.display='block';document.getElementById('colThumbPlaceholder').style.display='none';}
+    else{document.getElementById('colThumbPreview').style.display='none';document.getElementById('colThumbPlaceholder').style.display='block';}
+    document.getElementById('columnModal').classList.add('open');
+  });
+}
+
+function saveColumn() {
+  const title=document.getElementById('columnTitle').value.trim();
+  const subtitle=document.getElementById('columnSubtitle').value.trim();
+  const content=document.getElementById('columnContent').value.trim();
+  const category=document.getElementById('columnCategory').value.trim();
+  if(!title||!content){alert('제목과 내용을 입력하세요.');return;}
+  const doSave=(thumbUrl,thumbPath)=>{
+    if(editingId){
+      const upd={title,subtitle,content,category,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+      if(thumbUrl)upd.thumbUrl=thumbUrl;if(thumbPath)upd.thumbPath=thumbPath;
+      return db.collection('columns').doc(editingId).update(upd);
+    } else {
+      return db.collection('columns').add({title,subtitle,content,category,thumbUrl:thumbUrl||'',thumbPath:thumbPath||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+    }
   };
-  reader.readAsDataURL(file);
-};
-
-window.openColumnModal = function() {
-  editingId = null;
-  colThumbFile = null; colThumbData = null;
-  document.getElementById('columnModalTitle').textContent = '새 칼럼';
-  document.getElementById('columnTitle').value = '';
-  document.getElementById('columnSubtitle').value = '';
-  document.getElementById('columnContent').value = '';
-  document.getElementById('columnCategory').value = '';
-  document.getElementById('colThumbPreview').style.display = 'none';
-  document.getElementById('colThumbPlaceholder').style.display = 'block';
-  document.getElementById('columnModal').classList.add('open');
-};
-
-window.editColumn = async function(id) {
-  editingId = id;
-  colThumbFile = null; colThumbData = null;
-  const snap = await getDocs(collection(db,'columns'));
-  const d = snap.docs.find(x=>x.id===id);
-  if (!d) return;
-  const data = d.data();
-  document.getElementById('columnModalTitle').textContent = '칼럼 수정';
-  document.getElementById('columnTitle').value = data.title || '';
-  document.getElementById('columnSubtitle').value = data.subtitle || '';
-  document.getElementById('columnContent').value = data.content || '';
-  document.getElementById('columnCategory').value = data.category || '';
-  if (data.thumbUrl) {
-    colThumbData = data.thumbUrl;
-    document.getElementById('colThumbPreview').src = data.thumbUrl;
-    document.getElementById('colThumbPreview').style.display = 'block';
-    document.getElementById('colThumbPlaceholder').style.display = 'none';
+  const finish=()=>{showAlert(editingId?'칼럼이 수정됐습니다!':'칼럼이 등록됐습니다!');closeModal('columnModal');loadColumns();loadDashboard();};
+  if(colThumbFile){
+    const sRef=storage.ref(`columns/${Date.now()}_${colThumbFile.name}`);
+    sRef.put(colThumbFile).then(()=>sRef.getDownloadURL()).then(dlUrl=>doSave(dlUrl,sRef.fullPath)).then(finish).catch(e=>alert('저장 실패: '+e.message));
   } else {
-    document.getElementById('colThumbPreview').style.display = 'none';
-    document.getElementById('colThumbPlaceholder').style.display = 'block';
+    doSave(colThumbData&&colThumbData.startsWith('http')?colThumbData:'','').then(finish).catch(e=>alert('저장 실패: '+e.message));
   }
-  document.getElementById('columnModal').classList.add('open');
-};
-
-window.saveColumn = async function() {
-  const title = document.getElementById('columnTitle').value.trim();
-  const subtitle = document.getElementById('columnSubtitle').value.trim();
-  const content = document.getElementById('columnContent').value.trim();
-  const category = document.getElementById('columnCategory').value.trim();
-  if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
-  try {
-    let thumbUrl = '';
-    let thumbPath = '';
-    // 새 파일이 선택된 경우만 Storage에 업로드
-    if (colThumbFile) {
-      const storageRef = ref(storage, `columns/${Date.now()}_${colThumbFile.name}`);
-      await uploadBytes(storageRef, colThumbFile);
-      thumbUrl = await getDownloadURL(storageRef);
-      thumbPath = storageRef.fullPath;
-    } else if (colThumbData && colThumbData.startsWith('http')) {
-      // 기존 URL 유지 (수정 시)
-      thumbUrl = colThumbData;
-    }
-    if (editingId) {
-      const upd = { title, subtitle, content, category, updatedAt: serverTimestamp() };
-      if (thumbUrl) { upd.thumbUrl = thumbUrl; }
-      if (thumbPath) { upd.thumbPath = thumbPath; }
-      await updateDoc(doc(db,'columns',editingId), upd);
-      showAlert('칼럼이 수정됐습니다!');
-    } else {
-      await addDoc(collection(db,'columns'), { title, subtitle, content, category, thumbUrl, thumbPath, createdAt: serverTimestamp() });
-      showAlert('칼럼이 등록됐습니다!');
-    }
-    closeModal('columnModal');
-    loadColumns();
-    loadDashboard();
-  } catch(e) { alert('저장 실패: ' + e.message); }
-};
-
-window.deleteColumn = async function(id) {
-  if (!confirm('이 칼럼을 삭제하시겠습니까?')) return;
-  await deleteDoc(doc(db,'columns',id));
-  showAlert('삭제됐습니다.');
-  loadColumns();
-  loadDashboard();
-};
-
-/* ── 이용가이드 ── */
-let _guideDocId = null;
-
-async function loadGuideAdmin() {
-  const el = document.getElementById('guideContent');
-  if (!el) return;
-  try {
-    const snap = await getDocs(collection(db,'guide'));
-    if (!snap.empty) {
-      _guideDocId = snap.docs[0].id;
-      el.value = snap.docs[0].data().content || '';
-    } else {
-      _guideDocId = null;
-      el.value = '';
-    }
-  } catch(e) { console.error(e); }
 }
 
-window.saveGuide = async function() {
-  const content = document.getElementById('guideContent').value.trim();
-  if (!content) { alert('내용을 입력하세요.'); return; }
-  try {
-    if (_guideDocId) {
-      await updateDoc(doc(db,'guide',_guideDocId), { content, updatedAt: serverTimestamp() });
-    } else {
-      const ref = await addDoc(collection(db,'guide'), { content, createdAt: serverTimestamp() });
-      _guideDocId = ref.id;
-    }
-    showAlert('이용가이드가 저장됐습니다!');
-  } catch(e) { alert('저장 실패: ' + e.message); }
-};
+function deleteColumn(id) {
+  if(!confirm('이 칼럼을 삭제하시겠습니까?'))return;
+  db.collection('columns').doc(id).delete().then(()=>{showAlert('삭제됐습니다.');loadColumns();loadDashboard();});
+}
 
 /* ── 사운드 관리 ── */
-let soundEditingId = null;
-let soundFile = null;
-
-async function loadSoundsAdmin() {
-  try {
-    const snap = await getDocs(collection(db,'sounds'));
-    const all = snap.docs.map(d=>({id:d.id,...d.data()}));
-    const sfxList = all.filter(d=>d.type==='sfx').sort((a,b)=>(a.order||0)-(b.order||0));
-    const bgmList = all.filter(d=>d.type==='bgm').sort((a,b)=>(a.order||0)-(b.order||0));
-    renderSoundList('sfxListWrap', sfxList);
-    renderSoundList('bgmListWrap', bgmList);
-  } catch(e) { console.error(e); }
+function loadSoundsAdmin() {
+  db.collection('sounds').get().then(snap=>{
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const sfx=all.filter(d=>d.type==='sfx').sort((a,b)=>(a.order||0)-(b.order||0));
+    const bgm=all.filter(d=>d.type==='bgm').sort((a,b)=>(a.order||0)-(b.order||0));
+    renderSoundList('sfxListWrap',sfx);
+    renderSoundList('bgmListWrap',bgm);
+  }).catch(e=>console.error(e));
 }
 
-function renderSoundList(wrapperId, list) {
-  const wrap = document.getElementById(wrapperId);
-  if (!list.length) { wrap.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px 0;">등록된 항목이 없습니다.</div>'; return; }
-  wrap.innerHTML = `<table class="table"><thead><tr><th>이름</th><th>설명</th><th>순서</th><th>상태</th><th>미리듣기</th><th>관리</th></tr></thead><tbody>
+function renderSoundList(wrapperId,list) {
+  const wrap=document.getElementById(wrapperId);
+  if(!list.length){wrap.innerHTML='<div style="color:var(--text2);font-size:13px;padding:8px 0;">등록된 항목이 없습니다.</div>';return;}
+  wrap.innerHTML=`<table><thead><tr><th>이름</th><th>설명</th><th>순서</th><th>상태</th><th>미리듣기</th><th>관리</th></tr></thead><tbody>
     ${list.map(s=>`<tr>
       <td style="font-weight:500;">${eh(s.name)}</td>
       <td style="color:var(--text2);font-size:12px;">${eh(s.desc||'')}</td>
       <td style="text-align:center;">${s.order||0}</td>
       <td><span class="badge ${s.active!==false?'badge-green':'badge-gray'}">${s.active!==false?'활성':'비활성'}</span></td>
-      <td>${s.url?`<audio controls style="height:28px;max-width:140px;" src="${s.url}"></audio>`:'<span style="color:var(--text3);font-size:12px;">없음</span>'}</td>
+      <td>${s.url?`<audio controls style="height:28px;max-width:140px;" src="${eh(s.url)}"></audio>`:'<span style="color:var(--text3);font-size:12px;">없음</span>'}</td>
       <td style="white-space:nowrap;">
         <button class="btn btn-outline btn-sm" onclick="editSound('${s.id}')" style="margin-right:4px;">수정</button>
-        <button class="btn btn-sm" style="color:var(--danger);border-color:var(--danger);" onclick="deleteSound('${s.id}','${eh(s.name)}')">삭제</button>
-      </td>
-    </tr>`).join('')}
+        <button class="btn btn-sm" style="color:var(--danger);border:1px solid var(--danger);" onclick="deleteSound('${s.id}','${eh(s.name)}')">삭제</button>
+      </td></tr>`).join('')}
   </tbody></table>`;
 }
 
-function eh(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-window.onSoundFileSelect = function(e) {
-  soundFile = e.target.files[0];
-  if (!soundFile) return;
+function onSoundFileSelect(e) {
+  soundFile=e.target.files[0];if(!soundFile)return;
   document.getElementById('soundFilePlaceholder').style.display='none';
-  const sel = document.getElementById('soundFileSelected');
+  const sel=document.getElementById('soundFileSelected');
   sel.style.display='block';
   sel.textContent=`✅ ${soundFile.name} (${(soundFile.size/1024/1024).toFixed(2)}MB)`;
-};
+}
 
-window.openSoundModal = function() {
-  soundEditingId = null; soundFile = null;
-  document.getElementById('soundModalTitle').textContent = '새 사운드 등록';
-  document.getElementById('soundType').value = 'sfx';
-  document.getElementById('soundName').value = '';
-  document.getElementById('soundDesc').value = '';
-  document.getElementById('soundOrder').value = '0';
-  document.getElementById('soundActive').value = 'true';
+function openSoundModal() {
+  soundEditingId=null;soundFile=null;
+  document.getElementById('soundModalTitle').textContent='새 사운드 등록';
+  document.getElementById('soundType').value='sfx';
+  document.getElementById('soundName').value='';
+  document.getElementById('soundDesc').value='';
+  document.getElementById('soundOrder').value='0';
+  document.getElementById('soundActive').value='true';
   document.getElementById('soundFilePlaceholder').style.display='block';
   document.getElementById('soundFileSelected').style.display='none';
   document.getElementById('soundCurrentUrl').style.display='none';
   document.getElementById('soundModal').classList.add('open');
-};
+}
 
-window.editSound = async function(id) {
-  soundEditingId = id; soundFile = null;
-  const snap = await getDocs(collection(db,'sounds'));
-  const d = snap.docs.find(x=>x.id===id);
-  if (!d) return;
-  const data = d.data();
-  document.getElementById('soundModalTitle').textContent = '사운드 수정';
-  document.getElementById('soundType').value = data.type||'sfx';
-  document.getElementById('soundName').value = data.name||'';
-  document.getElementById('soundDesc').value = data.desc||'';
-  document.getElementById('soundOrder').value = data.order||0;
-  document.getElementById('soundActive').value = String(data.active!==false);
-  document.getElementById('soundFilePlaceholder').style.display='block';
-  document.getElementById('soundFileSelected').style.display='none';
-  const urlEl = document.getElementById('soundCurrentUrl');
-  if (data.url) {
-    urlEl.style.display='block';
-    urlEl.innerHTML=`현재 파일: <audio controls style="height:24px;vertical-align:middle;" src="${data.url}"></audio>`;
-  } else { urlEl.style.display='none'; }
-  document.getElementById('soundModal').classList.add('open');
-};
+function editSound(id) {
+  soundEditingId=id;soundFile=null;
+  db.collection('sounds').doc(id).get().then(d=>{
+    if(!d.exists)return;
+    const v=d.data();
+    document.getElementById('soundModalTitle').textContent='사운드 수정';
+    document.getElementById('soundType').value=v.type||'sfx';
+    document.getElementById('soundName').value=v.name||'';
+    document.getElementById('soundDesc').value=v.desc||'';
+    document.getElementById('soundOrder').value=v.order||0;
+    document.getElementById('soundActive').value=String(v.active!==false);
+    document.getElementById('soundFilePlaceholder').style.display='block';
+    document.getElementById('soundFileSelected').style.display='none';
+    const urlEl=document.getElementById('soundCurrentUrl');
+    if(v.url){urlEl.style.display='block';urlEl.innerHTML=`현재 파일: <audio controls style="height:24px;vertical-align:middle;" src="${eh(v.url)}"></audio>`;}
+    else{urlEl.style.display='none';}
+    document.getElementById('soundModal').classList.add('open');
+  });
+}
 
-window.saveSound = async function() {
-  const name = document.getElementById('soundName').value.trim();
-  const type = document.getElementById('soundType').value;
-  const desc = document.getElementById('soundDesc').value.trim();
-  const order = parseInt(document.getElementById('soundOrder').value)||0;
-  const active = document.getElementById('soundActive').value === 'true';
-  if (!name) { alert('이름을 입력하세요.'); return; }
-  if (!soundEditingId && !soundFile) { alert('오디오 파일을 선택하세요.'); return; }
-  try {
-    let url = '';
-    let filePath = '';
-    if (soundFile) {
-      const storageRef = ref(storage, `sounds/${type}/${Date.now()}_${soundFile.name}`);
-      await uploadBytes(storageRef, soundFile);
-      url = await getDownloadURL(storageRef);
-      filePath = storageRef.fullPath;
-    }
-    if (soundEditingId) {
-      const upd = { name, type, desc, order, active, updatedAt: serverTimestamp() };
-      if (soundFile) { upd.url = url; upd.filePath = filePath; }
-      await updateDoc(doc(db,'sounds',soundEditingId), upd);
-      showAlert('수정됐습니다!');
+function saveSound() {
+  const name=document.getElementById('soundName').value.trim();
+  const type=document.getElementById('soundType').value;
+  const desc=document.getElementById('soundDesc').value.trim();
+  const order=parseInt(document.getElementById('soundOrder').value)||0;
+  const active=document.getElementById('soundActive').value==='true';
+  if(!name){alert('이름을 입력하세요.');return;}
+  if(!soundEditingId&&!soundFile){alert('오디오 파일을 선택하세요.');return;}
+  const doSave=(url,filePath)=>{
+    if(soundEditingId){
+      const upd={name,type,desc,order,active,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+      if(soundFile){upd.url=url;upd.filePath=filePath;}
+      return db.collection('sounds').doc(soundEditingId).update(upd);
     } else {
-      await addDoc(collection(db,'sounds'), { name, type, desc, order, active, url, filePath, createdAt: serverTimestamp() });
-      showAlert('등록됐습니다!');
+      return db.collection('sounds').add({name,type,desc,order,active,url,filePath,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     }
-    closeModal('soundModal');
-    loadSoundsAdmin();
-  } catch(e) { alert('저장 실패: ' + e.message); }
-};
+  };
+  const finish=()=>{showAlert(soundEditingId?'수정됐습니다!':'등록됐습니다!');closeModal('soundModal');loadSoundsAdmin();};
+  if(soundFile){
+    const sRef=storage.ref(`sounds/${type}/${Date.now()}_${soundFile.name}`);
+    sRef.put(soundFile).then(()=>sRef.getDownloadURL()).then(dlUrl=>doSave(dlUrl,sRef.fullPath)).then(finish).catch(e=>alert('저장 실패: '+e.message));
+  } else {
+    doSave('','').then(finish).catch(e=>alert('저장 실패: '+e.message));
+  }
+}
 
-window.deleteSound = async function(id, name) {
-  if (!confirm(`"${name}"을 삭제하시겠습니까?`)) return;
-  try {
-    const snap = await getDocs(collection(db,'sounds'));
-    const d = snap.docs.find(x=>x.id===id);
-    if (d?.data()?.filePath) {
-      try { await deleteObject(ref(storage, d.data().filePath)); } catch(e) {}
-    }
-    await deleteDoc(doc(db,'sounds',id));
-    showAlert('삭제됐습니다.');
-    loadSoundsAdmin();
-  } catch(e) { alert('삭제 실패: ' + e.message); }
-};
+function deleteSound(id,name) {
+  if(!confirm(`"${name}"을 삭제하시겠습니까?`))return;
+  db.collection('sounds').doc(id).get().then(d=>{
+    const filePath=d.data()?.filePath;
+    return db.collection('sounds').doc(id).delete().then(()=>{
+      if(filePath){try{storage.ref(filePath).delete();}catch(e){}}
+    });
+  }).then(()=>{showAlert('삭제됐습니다.');loadSoundsAdmin();}).catch(e=>alert('삭제 실패: '+e.message));
+}
+
+/* ── 이용가이드 ── */
+function loadGuideAdmin() {
+  db.collection('guide').limit(1).get().then(snap=>{
+    if(!snap.empty){_guideDocId=snap.docs[0].id;document.getElementById('guideContent').value=snap.docs[0].data().content||'';}
+    else{_guideDocId=null;document.getElementById('guideContent').value='';}
+  }).catch(e=>console.error(e));
+}
+
+function saveGuide() {
+  const content=document.getElementById('guideContent').value.trim();
+  if(!content){alert('내용을 입력하세요.');return;}
+  const p=_guideDocId
+    ?db.collection('guide').doc(_guideDocId).update({content,updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
+    :db.collection('guide').add({content,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(r=>{_guideDocId=r.id;});
+  p.then(()=>showAlert('이용가이드가 저장됐습니다!')).catch(e=>alert('저장 실패: '+e.message));
+}
 </script>
 </body>
 </html>
