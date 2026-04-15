@@ -1,0 +1,90 @@
+/* ── tree.css — 숨나무 스타일
+── */
+/* ── 숨나무 ── */
+.tree-wrap{
+  background:var(--tree-sky,linear-gradient(180deg,#0a0612 0%,#0d1008 100%));
+  border-radius:14px;margin-bottom:14px;
+  position:relative;overflow:hidden;
+  cursor:pointer;
+  transition:background 1.2s ease;
+  border:1px solid var(--bd);
+}
+.tree-stage-area{
+  display:flex;justify-content:center;align-items:flex-end;
+  padding:16px 16px 0;
+  min-height:160px;
+  position:relative;z-index:2;
+}
+.tree-info-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 12px;position:relative;z-index:2;
+}
+.tree-name{
+  font-size:13px;font-weight:600;
+  text-shadow:0 0 8px currentColor;
+}
+.tree-tp-bar-wrap{flex:1;margin:0 12px;}
+.tree-tp-label{font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:4px;font-family:'JetBrains Mono',monospace;}
+.tree-tp-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.tree-tp-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(.4,0,.2,1);}
+.tree-tp-val{font-size:11px;color:rgba(255,255,255,0.5);white-space:nowrap;font-family:'JetBrains Mono',monospace;}
+
+/* 나무 탭 메시지 */
+.tree-msg{
+  position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px;padding:8px 16px;
+  font-size:12px;color:rgba(255,255,255,0.85);
+  white-space:nowrap;z-index:10;
+  pointer-events:none;
+  animation:msgFadeIn 0.4s ease,msgFadeOut 0.4s ease 2.8s forwards;
+}
+@keyframes msgFadeIn{from{opacity:0;transform:translateX(-50%) translateY(6px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+@keyframes msgFadeOut{to{opacity:0;transform:translateX(-50%) translateY(-6px);}}
+
+/* 성장 연출 오버레이 */
+.tree-levelup-overlay{
+  position:fixed;inset:0;z-index:500;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;pointer-events:none;
+}
+.tree-levelup-bg{
+  position:absolute;inset:0;
+  animation:levelupBg 2.4s ease forwards;
+}
+@keyframes levelupBg{
+  0%{opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{opacity:0;}
+}
+.tree-levelup-text{
+  position:relative;z-index:1;
+  text-align:center;
+  animation:levelupText 2.4s ease forwards;
+}
+@keyframes levelupText{
+  0%{opacity:0;transform:scale(0.6);}20%{opacity:1;transform:scale(1.08);}30%{transform:scale(1);}85%{opacity:1;}100%{opacity:0;}
+}
+.tree-levelup-name{
+  font-family:'Playfair Display',serif;
+  font-size:36px;font-weight:700;
+  text-shadow:0 0 30px currentColor,0 0 60px currentColor;
+  margin-bottom:6px;
+}
+.tree-levelup-sub{font-size:14px;opacity:0.75;letter-spacing:0.06em;}
+.tree-levelup-lore{
+  font-size:13px;font-style:italic;
+  max-width:280px;text-align:center;
+  opacity:0.65;line-height:1.7;
+  font-family:'Georgia',serif;
+  position:relative;z-index:1;
+}
+
+/* 파티클 */
+.tree-particle{
+  position:absolute;border-radius:50%;pointer-events:none;z-index:3;
+  animation:particleFloat linear forwards;
+}
+@keyframes particleFloat{
+  from{opacity:1;transform:translate(0,0) scale(1);}
+  to{opacity:0;transform:var(--p-to) scale(0);}
+}
