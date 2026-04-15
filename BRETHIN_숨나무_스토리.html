@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숨나무의 전설 — BRETHIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Noto+Serif+KR:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+:root{
+  --gold:#c8a860;--gold2:#e8c878;--gold3:#f8e8a0;
+  --green:#4a9a38;--green2:#6abf50;
+  --purple:#7860b8;--blue:#4880c8;
+  --teal:#38b8a0;--silver:#b8c8d8;
+}
+
+/* ── BASE ── */
+body{
+  background:#050508;
+  color:#e0dcd0;
+  font-family:'Noto Serif KR',serif;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── CURSOR ── */
+.cursor{position:fixed;width:8px;height:8px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .3s,height .3s,opacity .3s;mix-blend-mode:screen;}
+.cursor-trail{position:fixed;width:24px;height:24px;border:1px solid rgba(200,168,96,.3);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .12s ease,top .12s ease;}
+
+/* ── STARS ── */
+#starfield{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.star{position:absolute;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite var(--dl,0s);}
+@keyframes twinkle{0%,100%{opacity:.1;}50%{opacity:1;}}
+
+/* ── PARTICLES ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;}
+.fp{position:absolute;border-radius:50%;animation:floatUp var(--d,8s) ease-in infinite var(--dl,0s);}
+@keyframes floatUp{
+  0%{opacity:0;transform:translateY(0) scale(1);}
+  10%{opacity:.8;}
+  90%{opacity:.4;}
+  100%{opacity:0;transform:translateY(-100vh) scale(.5);}
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--green2));z-index:200;transition:width .1s;}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:20px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .4s;
+}
+nav.solid{
+  background:rgba(5,5,8,.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(200,168,96,.08);
+  padding:14px 40px;
+}
+.nav-logo{
+  font-family:'Playfair Display',serif;
+  font-size:18px;letter-spacing:.14em;
+  color:#e0dcd0;text-decoration:none;
+  display:flex;align-items:center;gap:10px;
+}
+.nav-logo-dot{width:8px;height:8px;background:var(--gold);border-radius:50%;animation:dotPulse 2s ease-in-out infinite;}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,168,96,.6);}50%{box-shadow:0 0 0 8px rgba(200,168,96,0);}}
+.nav-cta{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;letter-spacing:.1em;
+  border:1px solid rgba(200,168,96,.35);
+  color:var(--gold);padding:8px 20px;border-radius:20px;
+  text-decoration:none;transition:all .3s;
+}
+.nav-cta:hover{background:var(--gold);color:#050508;}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:2;}
+
+/* ── HERO ── */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:80px 24px;
+  text-align:center;
+  overflow:hidden;
+}
+.hero-orb{
+  position:absolute;width:500px;height:500px;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(74,154,56,.05) 0%,transparent 70%);
+  animation:orbPulse 6s ease-in-out infinite;
+}
+@keyframes orbPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+.hero-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.h-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(200,168,96,.05);
+  animation:ringExpand 8s ease-in-out infinite;
+}
+@keyframes ringExpand{0%,100%{transform:scale(1);opacity:.5;}50%{transform:scale(1.04);opacity:1;}}
+
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.22em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:24px;
+  opacity:0;animation:fadeUp .8s .3s ease forwards;
+}
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(48px,12vw,108px);
+  line-height:.95;
+  letter-spacing:-.01em;
+  margin-bottom:8px;
+  opacity:0;animation:fadeUp .8s .5s ease forwards;
+}
+.hero-title-main{
+  background:linear-gradient(135deg,#f8e8a0 0%,#c8a860 40%,#e0d890 70%,#c8a860 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-title-sub{
+  display:block;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:clamp(20px,5vw,48px);
+  color:rgba(224,220,208,.5);
+  letter-spacing:.04em;
+  margin-top:6px;
+}
+.hero-divider{
+  width:60px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:28px auto;
+  opacity:0;animation:fadeUp .8s .7s ease forwards;
+}
+.hero-lore{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(16px,3vw,22px);
+  font-style:italic;
+  color:rgba(224,220,208,.6);
+  max-width:560px;line-height:1.8;
+  opacity:0;animation:fadeUp .8s .9s ease forwards;
+}
+.hero-scroll{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.2em;color:rgba(200,168,96,.4);
+  opacity:0;animation:fadeUp .8s 1.4s ease forwards;
+}
+.scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,rgba(200,168,96,.5),transparent);animation:scrollDown 2s ease-in-out infinite;}
+@keyframes scrollDown{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}51%{transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+
+/* ── WORLD INTRO ── */
+#world{
+  padding:120px 24px;
+  display:flex;align-items:center;justify-content:center;
+}
+.world-inner{max-width:760px;margin:0 auto;text-align:center;}
+.book-ornament{
+  font-size:32px;color:rgba(200,168,96,.4);
+  letter-spacing:.3em;margin-bottom:40px;
+  display:block;
+}
+.world-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(18px,3vw,26px);
+  line-height:2;color:rgba(224,220,208,.7);
+  font-style:italic;
+}
+.world-text em{color:var(--gold2);font-style:normal;}
+.world-text strong{color:#e8dfd0;font-style:normal;font-weight:600;}
+.world-sig{
+  margin-top:40px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:rgba(200,168,96,.35);letter-spacing:.15em;
+}
+
+/* ── CHAPTER HEADER ── */
+.chapter-header{
+  text-align:center;padding:80px 24px 60px;
+}
+.ch-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.25em;color:rgba(200,168,96,.5);
+  text-transform:uppercase;margin-bottom:14px;
+}
+.ch-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,5vw,48px);
+  color:#e0dcd0;
+}
+.ch-line{width:40px;height:1px;background:var(--gold);margin:20px auto 0;opacity:.4;}
+
+/* ── STAGE SCROLL SECTIONS ── */
+.stage-section{
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding:80px 24px;
+  position:relative;
+  overflow:hidden;
+}
+.stage-section:nth-child(odd) .stage-layout{flex-direction:row;}
+.stage-section:nth-child(even) .stage-layout{flex-direction:row-reverse;}
+.stage-layout{
+  max-width:1100px;margin:0 auto;
+  display:flex;align-items:center;
+  gap:60px;width:100%;
+}
+.stage-visual-wrap{
+  flex:0 0 360px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.stage-glow{
+  position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  filter:blur(80px);
+  animation:glowPulse 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes glowPulse{0%,100%{opacity:.25;}50%{opacity:.5;}}
+.stage-svg-wrap{position:relative;z-index:1;}
+.stage-text{flex:1;}
+.stage-num-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.22em;
+  color:rgba(200,168,96,.5);text-transform:uppercase;
+  margin-bottom:12px;
+}
+.stage-name-ko{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(32px,6vw,56px);
+  line-height:1.05;margin-bottom:6px;
+  text-shadow:0 0 40px currentColor;
+}
+.stage-name-en{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:18px;
+  margin-bottom:24px;opacity:.5;
+  letter-spacing:.06em;
+}
+.stage-tp-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 16px;border-radius:20px;border:1px solid;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;margin-bottom:24px;
+}
+.stage-lore{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:clamp(15px,2.5vw,19px);
+  line-height:1.9;color:rgba(224,220,208,.65);
+  border-left:2px solid rgba(200,168,96,.2);
+  padding-left:18px;margin-bottom:20px;
+}
+.stage-unlocks{display:flex;flex-direction:column;gap:7px;}
+.unlock-item{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;color:rgba(224,220,208,.55);
+  font-weight:300;
+}
+.unlock-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+
+/* ── DIVIDER ── */
+.section-divider{
+  text-align:center;padding:40px;
+  font-size:16px;color:rgba(200,168,96,.2);
+  letter-spacing:.4em;
+}
+
+/* ── STORY END ── */
+#ending{
+  min-height:80vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:80px 24px;text-align:center;
+}
+.ending-tree{margin-bottom:40px;animation:endFloat 4s ease-in-out infinite;}
+@keyframes endFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.ending-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,6vw,52px);
+  color:#e0dcd0;margin-bottom:16px;
+}
+.ending-sub{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:clamp(15px,2.5vw,20px);
+  color:rgba(224,220,208,.55);max-width:480px;line-height:1.8;
+  margin-bottom:48px;
+}
+.ending-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  background:transparent;
+  border:1px solid rgba(200,168,96,.4);
+  color:var(--gold);
+  padding:16px 44px;border-radius:32px;
+  font-size:15px;font-weight:600;
+  text-decoration:none;
+  font-family:'Noto Serif KR',serif;
+  transition:all .3s;cursor:pointer;
+  letter-spacing:.04em;
+}
+.ending-cta:hover{
+  background:var(--gold);color:#050508;
+  box-shadow:0 0 40px rgba(200,168,96,.3);
+}
+.ending-note{
+  margin-top:24px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:rgba(224,220,208,.2);
+  letter-spacing:.08em;
+}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid rgba(200,168,96,.06);
+  padding:40px 24px;text-align:center;
+  position:relative;z-index:2;
+}
+.footer-logo{
+  font-family:'Playfair Display',serif;
+  font-size:18px;letter-spacing:.14em;
+  color:rgba(224,220,208,.3);margin-bottom:8px;
+}
+.footer-sub{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:13px;color:rgba(224,220,208,.2);
+}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s ease;}
+.reveal.vis{opacity:1;transform:translateY(0);}
+.reveal-l{opacity:0;transform:translateX(-32px);transition:opacity .9s ease,transform .9s ease;}
+.reveal-l.vis{opacity:1;transform:translateX(0);}
+.reveal-r{opacity:0;transform:translateX(32px);transition:opacity .9s ease,transform .9s ease;}
+.reveal-r.vis{opacity:1;transform:translateX(0);}
+.d1{transition-delay:.1s;}.d2{transition-delay:.2s;}.d3{transition-delay:.3s;}.d4{transition-delay:.4s;}.d5{transition-delay:.5s;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  .stage-layout{flex-direction:column!important;gap:40px;}
+  .stage-visual-wrap{flex:none;width:100%;}
+  nav{padding:16px 24px;}
+  nav.solid{padding:12px 24px;}
+}
+@media(max-width:480px){
+  .stage-section{padding:60px 20px;}
+  .stage-glow{width:200px;height:200px;}
+}
+</style>
+</head>
+<body>
+
+<!-- 커서 -->
+<div class="cursor" id="cur"></div>
+<div class="cursor-trail" id="curT"></div>
+
+<!-- 진행 바 -->
+<div class="progress-bar" id="prog" style="width:0"></div>
+
+<!-- 별 -->
+<div id="starfield"></div>
+<!-- 파티클 -->
+<div id="particles"></div>
+
+<!-- 네비 -->
+<nav id="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    BRETHIN
+  </a>
+  <a href="index.html" class="nav-cta">앱 시작하기</a>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section id="hero">
+  <div class="hero-orb"></div>
+  <div class="hero-rings">
+    <div class="h-ring" style="width:300px;height:300px;animation-delay:0s;"></div>
+    <div class="h-ring" style="width:500px;height:500px;animation-delay:1s;"></div>
+    <div class="h-ring" style="width:700px;height:700px;animation-delay:2s;"></div>
+    <div class="h-ring" style="width:900px;height:900px;animation-delay:3s;"></div>
+  </div>
+  <div class="hero-eyebrow">BRETHIN · The Legend of Breath Tree</div>
+  <h1 class="hero-title">
+    <span class="hero-title-main">숨나무의</span>
+    <span class="hero-title-sub">전설</span>
+  </h1>
+  <div class="hero-divider"></div>
+  <p class="hero-lore">당신이 숨을 쉴 때마다, 보이지 않는 세계에서<br>나무 하나가 자란다.</p>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    scroll
+  </div>
+</section>
+
+<!-- ══════════ WORLD ══════════ -->
+<section id="world">
+  <div class="world-inner">
+    <span class="book-ornament reveal">✦ ✦ ✦</span>
+    <p class="world-text reveal d1">
+      태초에 세상은 <em>숨</em>으로 만들어졌다.<br><br>
+      첫 번째 존재가 들이쉰 숨이 <em>바람</em>이 되고,<br>
+      내쉰 숨이 <em>땅</em>이 되었다고 전해진다.<br><br>
+      그때부터 모든 생명은 호흡할 때마다<br>
+      보이지 않는 세계, <strong>브레시아(Brethia)</strong>에<br>
+      기운을 불어넣는다.<br><br>
+      브레시아에는 각자의 나무가 있다.<br>
+      당신이 고요히 숨 쉬는 그 순간마다,<br>
+      나무는 자란다.
+    </p>
+    <p class="world-sig reveal d2">— 브레시아 고서 『숨의 기원』 첫 장 중</p>
+  </div>
+</section>
+
+<div class="section-divider reveal">· · ·</div>
+
+<!-- ══════════ CHAPTER ══════════ -->
+<div class="chapter-header">
+  <div class="ch-num reveal">Chapter I</div>
+  <h2 class="ch-title reveal d1">일곱 개의 생애</h2>
+  <div class="ch-line reveal d2"></div>
+</div>
+
+<!-- ══════════ STAGE 1 — 씨앗 ══════════ -->
+<section class="stage-section">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-l">
+      <div class="stage-glow" style="background:radial-gradient(circle,#c8a860,transparent);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="200" height="180" viewBox="0 0 200 180">
+          <ellipse cx="100" cy="158" rx="60" ry="12" fill="rgba(50,35,10,0.4)"/>
+          <ellipse cx="100" cy="140" rx="22" ry="26" fill="#2a1e0a"/>
+          <ellipse cx="100" cy="136" rx="17" ry="21" fill="#3d2c10"/>
+          <ellipse cx="100" cy="132" rx="12" ry="16" fill="#523d18"/>
+          <ellipse cx="100" cy="128" rx="6" ry="8" fill="#d4a84b" opacity="0.35">
+            <animate attributeName="rx" values="6;10;6" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="ry" values="8;12;8" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.35;0.8;0.35" dur="3s" repeatCount="indefinite"/>
+          </ellipse>
+          <ellipse cx="100" cy="126" rx="2.5" ry="3.5" fill="#f0cc78" opacity="0.95">
+            <animate attributeName="opacity" values="0.95;1;0.95" dur="1.5s" repeatCount="indefinite"/>
+          </ellipse>
+          <circle cx="82" cy="100" r="1.8" fill="#d4a84b" opacity="0">
+            <animate attributeName="cy" values="128;80;50" dur="4s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0;0.7;0" dur="4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="118" cy="100" r="1.4" fill="#d4a84b" opacity="0">
+            <animate attributeName="cy" values="128;75;45" dur="4s" repeatCount="indefinite" begin="1.3s"/>
+            <animate attributeName="opacity" values="0;0.6;0" dur="4s" repeatCount="indefinite" begin="1.3s"/>
+          </circle>
+          <circle cx="100" cy="100" r="1.6" fill="#f0cc78" opacity="0">
+            <animate attributeName="cy" values="128;70;40" dur="4s" repeatCount="indefinite" begin="2.6s"/>
+            <animate attributeName="opacity" values="0;0.8;0" dur="4s" repeatCount="indefinite" begin="2.6s"/>
+          </circle>
+          <text x="100" y="175" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(200,168,96,0.35)">Seed of Breath</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-r">
+      <div class="stage-num-badge">Stage 01 · The Beginning</div>
+      <div class="stage-name-ko" style="color:#c8a860;">숨씨앗</div>
+      <div class="stage-name-en" style="color:#c8a860;">Seed of Breath</div>
+      <div class="stage-tp-badge" style="border-color:rgba(200,168,96,.2);color:#c8a860;background:rgba(200,168,96,.06);">0 TP · 탄생</div>
+      <div class="stage-lore">"땅 속에 묻힌 아주 작은 씨앗. 눈에는 보이지 않지만, 첫 번째 고요한 숨을 들이쉰 순간 씨앗의 중심에서 황금빛 불꽃이 깜박인다.<br><br>그것이 브레시아에서의 당신의 시작이다."</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#c8a860;"></div>황금빛 맥동 애니메이션</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#c8a860;"></div>씨앗에서 위로 올라가는 빛 파티클</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#c8a860;"></div>완전한 어둠 배경 — 별 하나 없는 밤</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STAGE 2 ══════════ -->
+<section class="stage-section">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-r">
+      <div class="stage-glow" style="background:radial-gradient(circle,#6abf50,transparent);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="200" height="220" viewBox="0 0 200 220">
+          <ellipse cx="100" cy="200" rx="65" ry="13" fill="rgba(30,50,20,0.5)"/>
+          <path d="M100,198 Q97,180 100,155" stroke="#3a5a20" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <ellipse cx="86" cy="175" rx="16" ry="10" fill="#4a8a2c" transform="rotate(-28 86 175)"/>
+          <ellipse cx="114" cy="169" rx="16" ry="10" fill="#5aa034" transform="rotate(22 114 169)"/>
+          <ellipse cx="100" cy="142" rx="26" ry="32" fill="#4a9030"/>
+          <ellipse cx="80" cy="158" rx="16" ry="22" fill="#5aaa38" transform="rotate(-15 80 158)"/>
+          <ellipse cx="100" cy="138" rx="4" ry="5" fill="rgba(180,220,255,0.65)"/>
+          <ellipse cx="100" cy="136" rx="2.5" ry="2" fill="rgba(220,240,255,0.8)"/>
+          <ellipse cx="100" cy="135" rx="30" ry="30" fill="rgba(74,144,48,0.04)">
+            <animate attributeName="rx" values="30;38;30" dur="4s" repeatCount="indefinite"/>
+            <animate attributeName="ry" values="30;38;30" dur="4s" repeatCount="indefinite"/>
+          </ellipse>
+          <circle r="3" fill="#c8f060" opacity="0.8">
+            <animateMotion path="M60,170 Q42,148 60,126 Q80,148 60,170" dur="5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+          <text x="100" y="215" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(106,191,80,0.35)">First Light</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-l">
+      <div class="stage-num-badge">Stage 02 · Awakening</div>
+      <div class="stage-name-ko" style="color:#6abf50;">빛새싹</div>
+      <div class="stage-name-en" style="color:#6abf50;">First Light Sprout</div>
+      <div class="stage-tp-badge" style="border-color:rgba(106,191,80,.2);color:#6abf50;background:rgba(106,191,80,.06);">50 TP~</div>
+      <div class="stage-lore" style="border-left-color:rgba(106,191,80,.2);">"드디어 땅을 뚫고 나온 첫 싹. 그 잎사귀 끝에 맺힌 이슬 한 방울이 새벽 빛을 머금어 반짝인다.<br><br>어디선가 반딧불이 한 마리가 다가온다. 브레시아에서 처음 친구가 생기는 순간이다."</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#6abf50;"></div>반딧불이 1마리 등장</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#6abf50;"></div>이슬 방울 반짝임 파티클</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#6abf50;"></div>배경이 희미한 새벽빛으로 변화</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STAGE 3 ══════════ -->
+<section class="stage-section">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-l">
+      <div class="stage-glow" style="background:radial-gradient(circle,#38b8a0,transparent);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="220" height="240" viewBox="0 0 220 240">
+          <ellipse cx="110" cy="224" rx="72" ry="14" fill="rgba(30,60,30,0.6)"/>
+          <ellipse cx="88" cy="222" rx="20" ry="7" fill="rgba(50,100,40,0.5)"/>
+          <path d="M110,222 Q107,202 110,177 Q108,158 110,130" stroke="#3a6020" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+          <path d="M109,180 Q94,172 78,178" stroke="#3a6020" stroke-width="3" fill="none"/>
+          <path d="M110,164 Q125,155 140,162" stroke="#3a6020" stroke-width="3" fill="none"/>
+          <ellipse cx="110" cy="114" rx="34" ry="38" fill="#2e6c20"/>
+          <ellipse cx="76" cy="138" rx="22" ry="27" fill="#388226" transform="rotate(-26 76 138)"/>
+          <ellipse cx="144" cy="138" rx="22" ry="27" fill="#388226" transform="rotate(26 144 138)"/>
+          <ellipse cx="110" cy="90" rx="22" ry="24" fill="#46a030"/>
+          <circle cx="110" cy="72" r="14" fill="rgba(56,184,160,0.1)">
+            <animate attributeName="r" values="14;18;14" dur="2.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="110" cy="72" r="7" fill="#78ddb8" opacity="0.8">
+            <animateMotion path="M0,0 Q8,-12 0,-22 Q-8,-12 0,0" dur="4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="110" cy="72" r="3" fill="#c0fff0" opacity="0.9"/>
+          <circle cx="79" cy="178" r="6" fill="#ff80c0" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="79" cy="178" r="3" fill="#ffe0f0"/>
+          <circle r="3" fill="#c8f060" opacity="0.7">
+            <animateMotion path="M55,190 Q38,170 55,150 Q74,170 55,190" dur="6s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.7;0.15;0.7" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle r="2.5" fill="#d0f880" opacity="0.6">
+            <animateMotion path="M170,196 Q188,175 170,155 Q152,175 170,196" dur="7s" repeatCount="indefinite" begin="2s"/>
+            <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.8s" repeatCount="indefinite"/>
+          </circle>
+          <text x="110" y="236" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(56,184,160,0.35)">Spirit Sprout</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-r">
+      <div class="stage-num-badge">Stage 03 · Spirit</div>
+      <div class="stage-name-ko" style="color:#78ddb8;">정령묘목</div>
+      <div class="stage-name-en" style="color:#78ddb8;">Spirit Sprout</div>
+      <div class="stage-tp-badge" style="border-color:rgba(56,184,160,.2);color:#78ddb8;background:rgba(56,184,160,.06);">200 TP~</div>
+      <div class="stage-lore" style="border-left-color:rgba(56,184,160,.2);">"나무가 충분히 자라자 브레시아의 정령이 찾아왔다. 손가락 크기의 빛의 존재가 가장 높은 잎 위에 앉아 노래를 부른다.<br><br>그 노래가 닿는 곳마다 마법 꽃이 피어난다."</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#78ddb8;"></div>숲 정령 등장 — 나무 꼭대기에 깃듦</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#ff80c0;"></div>첫 번째 마법 꽃 개화</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#78ddb8;"></div>이끼가 땅에 깔림 / 반딧불이 3마리</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STAGE 4 ══════════ -->
+<section class="stage-section">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-r">
+      <div class="stage-glow" style="background:radial-gradient(circle,#7860b8,transparent);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="230" height="260" viewBox="0 0 230 260">
+          <circle cx="172" cy="38" r="26" fill="#e8dfa8" opacity="0.13"/>
+          <circle cx="175" cy="35" r="24" fill="#0a0c18"/>
+          <circle cx="170" cy="38" r="26" fill="#e8dfa8" opacity="0.16"/>
+          <ellipse cx="170" cy="38" rx="40" ry="40" fill="rgba(232,223,168,0.04)">
+            <animate attributeName="rx" values="40;48;40" dur="4s" repeatCount="indefinite"/>
+            <animate attributeName="ry" values="40;48;40" dur="4s" repeatCount="indefinite"/>
+          </ellipse>
+          <ellipse cx="115" cy="244" rx="80" ry="15" fill="rgba(25,45,25,0.7)"/>
+          <path d="M115,242 Q111,218 115,188 Q112,164 115,132" stroke="#3a5c1c" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path d="M113,190 Q94,180 76,188" stroke="#3a5c1c" stroke-width="4" fill="none"/>
+          <path d="M115,172 Q136,160 154,170" stroke="#3a5c1c" stroke-width="4" fill="none"/>
+          <ellipse cx="115" cy="118" rx="36" ry="42" fill="#246018"/>
+          <ellipse cx="76" cy="144" rx="26" ry="32" fill="#2e7020" transform="rotate(-28 76 144)"/>
+          <ellipse cx="154" cy="144" rx="26" ry="32" fill="#2e7020" transform="rotate(28 154 144)"/>
+          <ellipse cx="115" cy="88" rx="26" ry="28" fill="#3c8828"/>
+          <circle cx="77" cy="188" r="6" fill="#e0c0ff" opacity="0.8">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="2.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="77" cy="188" r="3" fill="#fff0ff"/>
+          <circle cx="154" cy="170" r="6" fill="#e0c0ff" opacity="0.7">
+            <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite" begin="1s"/>
+          </circle>
+          <circle cx="154" cy="170" r="3" fill="#fff0ff"/>
+          <circle cx="40" cy="214" r="6" fill="#9060a8" opacity="0.6"/>
+          <rect x="42" y="214" width="5" height="10" rx="2.5" fill="#c090e8" opacity="0.5"/>
+          <circle cx="115" cy="64" r="16" fill="rgba(120,96,184,0.08)">
+            <animate attributeName="r" values="16;21;16" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="115" cy="64" r="8" fill="#a090e8" opacity="0.6">
+            <animateMotion path="M0,0 Q10,-16 0,-28 Q-10,-16 0,0" dur="4.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="115" cy="64" r="3.5" fill="#e0d8ff"/>
+          <text x="115" y="256" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(160,144,232,0.35)">Moonlit Tree</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-l">
+      <div class="stage-num-badge">Stage 04 · Moon</div>
+      <div class="stage-name-ko" style="color:#b090f0;">달빛성목</div>
+      <div class="stage-name-en" style="color:#b090f0;">Moonlit Tree</div>
+      <div class="stage-tp-badge" style="border-color:rgba(176,144,240,.2);color:#b090f0;background:rgba(176,144,240,.06);">500 TP~</div>
+      <div class="stage-lore" style="border-left-color:rgba(176,144,240,.2);">"나무가 달의 기운을 머금기 시작했다. 밤이 되면 잎사귀 끝에서 달빛이 흘러내리고, 발광 버섯들이 주변에 피어난다.<br><br>정령은 이제 달의 언어로 속삭인다."</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#b090f0;"></div>초승달 등장 — 배경에 달이 뜸</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#e0c0ff;"></div>달빛 꽃 3송이 (보라빛 발광)</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#c090e8;"></div>발광 버섯이 땅에 돋아남</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STAGE 5 ══════════ -->
+<section class="stage-section">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-l">
+      <div class="stage-glow" style="background:radial-gradient(circle,#d4a84b,transparent);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="250" height="280" viewBox="0 0 250 280">
+          <ellipse cx="125" cy="265" rx="90" ry="15" fill="rgba(40,30,10,0.8)"/>
+          <path d="M125,263 Q120,238 125,210 Q122,185 125,155" stroke="#5a4010" stroke-width="11" fill="none" stroke-linecap="round"/>
+          <path d="M125,263 Q120,238 125,210 Q122,185 125,155" stroke="rgba(212,168,75,0.32)" stroke-width="5.5" fill="none"/>
+          <path d="M123,213 Q102,201 80,210" stroke="#5a4010" stroke-width="5" fill="none"/>
+          <path d="M125,195 Q148,182 168,192" stroke="#5a4010" stroke-width="5" fill="none"/>
+          <path d="M123,213 Q102,201 80,210" stroke="rgba(212,168,75,0.2)" stroke-width="2.5" fill="none"/>
+          <path d="M125,195 Q148,182 168,192" stroke="rgba(212,168,75,0.2)" stroke-width="2.5" fill="none"/>
+          <ellipse cx="125" cy="137" rx="46" ry="50" fill="#1e5810"/>
+          <ellipse cx="82" cy="164" rx="32" ry="38" fill="#286820" transform="rotate(-30 82 164)"/>
+          <ellipse cx="168" cy="164" rx="32" ry="38" fill="#286820" transform="rotate(30 168 164)"/>
+          <ellipse cx="125" cy="106" rx="30" ry="32" fill="#36802c"/>
+          <ellipse cx="82" cy="134" rx="13" ry="17" fill="#d4a84b" opacity="0.3" transform="rotate(-30 82 134)"/>
+          <circle cx="80" cy="210" r="9" fill="#d4a84b">
+            <animate attributeName="opacity" values="0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="80" cy="207" r="4.5" fill="#f0cc78" opacity="0.85"/>
+          <circle cx="80" cy="205" r="2" fill="#ffe880"/>
+          <circle cx="168" cy="192" r="9" fill="#d4a84b">
+            <animate attributeName="opacity" values="1;0.85;1" dur="3s" repeatCount="indefinite" begin="0.8s"/>
+          </circle>
+          <circle cx="168" cy="189" r="4.5" fill="#f0cc78" opacity="0.85"/>
+          <circle cx="168" cy="187" r="2" fill="#ffe880"/>
+          <circle cx="96" cy="110" r="7" fill="#c8943a">
+            <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite" begin="1.5s"/>
+          </circle>
+          <circle cx="125" cy="80" r="20" fill="rgba(212,168,75,0.06)">
+            <animate attributeName="r" values="20;26;20" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="125" cy="80" r="10" fill="#d4a84b" opacity="0.6">
+            <animateMotion path="M0,0 Q14,-20 0,-36 Q-14,-20 0,0" dur="4.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="125" cy="80" r="4.5" fill="#f8e880"/>
+          <line x1="125" y1="30" x2="125" y2="88" stroke="rgba(240,204,120,0.22)" stroke-width="9">
+            <animate attributeName="opacity" values="0.3;0.7;0.3" dur="3s" repeatCount="indefinite"/>
+          </line>
+          <text x="125" y="276" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(212,168,75,0.35)">Golden Divine Tree</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-r">
+      <div class="stage-num-badge">Stage 05 · Divinity</div>
+      <div class="stage-name-ko" style="color:#d4a84b;">황금신수</div>
+      <div class="stage-name-en" style="color:#d4a84b;">Golden Divine Tree</div>
+      <div class="stage-tp-badge" style="border-color:rgba(212,168,75,.25);color:#d4a84b;background:rgba(212,168,75,.08);">1,000 TP~</div>
+      <div class="stage-lore" style="border-left-color:rgba(212,168,75,.3);">"브레시아의 신들이 나무의 존재를 알아차렸다. 황금빛 기운이 줄기를 타고 흐르고, 잎 끝마다 작은 태양이 맺힌다.<br><br>이 나무에서 열리는 열매 하나가 브레시아 전체를 따뜻하게 한다고 전해진다."</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#d4a84b;"></div>황금 열매 3개 — 자체 발광</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#f0cc78;"></div>나무에서 하늘로 빛 기둥 상시 활성화</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#d4a84b;"></div>황금빛 오로라 배경 / 별자리 등장</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STAGE 6 ══════════ -->
+<section class="stage-section">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-r">
+      <div class="stage-glow" style="background:radial-gradient(circle,#7860b8,transparent);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="260" height="290" viewBox="0 0 260 290">
+          <path d="M0,120 Q65,85 130,100 Q195,115 260,88" stroke="rgba(150,100,255,0.09)" stroke-width="35" fill="none"/>
+          <circle cx="22" cy="22" r="2" fill="#c8b8ff" opacity="0.85"><animate attributeName="opacity" values="0.85;0.2;0.85" dur="3s" repeatCount="indefinite"/></circle>
+          <circle cx="220" cy="16" r="1.6" fill="#b0d0ff" opacity="0.75"><animate attributeName="opacity" values="0.75;0.15;0.75" dur="2.5s" repeatCount="indefinite" begin="0.5s"/></circle>
+          <circle cx="44" cy="44" r="1.4" fill="#d8c8ff" opacity="0.65"><animate attributeName="opacity" values="0.65;0.1;0.65" dur="4s" repeatCount="indefinite" begin="1s"/></circle>
+          <circle cx="208" cy="36" r="2.2" fill="#b8e8ff" opacity="0.8"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="3.5s" repeatCount="indefinite" begin="1.5s"/></circle>
+          <circle cx="12" cy="80" r="1.6" fill="#c0b0ff" opacity="0.55"/>
+          <circle cx="248" cy="64" r="1.4" fill="#d0c0ff" opacity="0.6"/>
+          <ellipse cx="130" cy="274" rx="94" ry="16" fill="rgba(20,15,40,0.9)"/>
+          <path d="M130,272 Q125,244 130,212 Q127,184 130,148" stroke="#2a1850" stroke-width="12" fill="none" stroke-linecap="round"/>
+          <path d="M130,272 Q125,244 130,212 Q127,184 130,148" stroke="rgba(150,100,255,0.28)" stroke-width="6" fill="none"/>
+          <path d="M130,272 Q125,244 130,212 Q127,184 130,148" stroke="rgba(100,180,255,0.14)" stroke-width="3.5" fill="none" stroke-dasharray="5 10">
+            <animate attributeName="stroke-dashoffset" values="0;-75" dur="3s" repeatCount="indefinite"/>
+          </path>
+          <path d="M128,212 Q104,200 80,210" stroke="#2a1850" stroke-width="6.5" fill="none"/>
+          <path d="M130,194 Q154,180 176,190" stroke="#2a1850" stroke-width="6.5" fill="none"/>
+          <path d="M128,212 Q104,200 80,210" stroke="rgba(150,100,255,0.22)" stroke-width="3" fill="none"/>
+          <path d="M130,194 Q154,180 176,190" stroke="rgba(100,180,255,0.16)" stroke-width="3" fill="none"/>
+          <ellipse cx="130" cy="126" rx="52" ry="58" fill="#12063a"/>
+          <ellipse cx="86" cy="158" rx="36" ry="44" fill="#160840" transform="rotate(-32 86 158)"/>
+          <ellipse cx="174" cy="158" rx="36" ry="44" fill="#160840" transform="rotate(32 174 158)"/>
+          <ellipse cx="130" cy="92" rx="36" ry="38" fill="#1e0e50"/>
+          <ellipse cx="108" cy="108" rx="16" ry="20" fill="rgba(100,80,200,0.14)" transform="rotate(-15 108 108)"/>
+          <circle cx="80" cy="210" r="8" fill="#6040c0" opacity="0.7">
+            <animate attributeName="r" values="8;11;8" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="80" cy="210" r="4" fill="#a080ff" opacity="0.9"/>
+          <circle cx="80" cy="210" r="1.6" fill="#e0d8ff"/>
+          <circle cx="176" cy="190" r="8" fill="#4060c0" opacity="0.65">
+            <animate attributeName="r" values="8;11;8" dur="3.5s" repeatCount="indefinite" begin="1s"/>
+          </circle>
+          <circle cx="176" cy="190" r="4" fill="#80a0ff" opacity="0.9"/>
+          <circle cx="176" cy="190" r="1.6" fill="#d8e8ff"/>
+          <circle cx="130" cy="60" r="22" fill="rgba(100,60,220,0.06)">
+            <animate attributeName="r" values="22;28;22" dur="4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="130" cy="60" r="11" fill="#7050d0" opacity="0.5">
+            <animateMotion path="M0,0 Q16,-24 0,-42 Q-16,-24 0,0" dur="5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="130" cy="60" r="4.5" fill="#c0b0ff" opacity="0.9"/>
+          <circle cx="130" cy="60" r="2" fill="#fff8ff"/>
+          <path d="M130,148 Q64,110 40,50 Q88,26 130,16 Q172,26 220,50 Q196,110 130,148" stroke="rgba(120,80,220,0.14)" stroke-width="10" fill="none">
+            <animate attributeName="stroke-dasharray" values="0,1200;600,600;1200,0" dur="10s" repeatCount="indefinite"/>
+          </path>
+          <text x="130" y="286" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(120,80,220,0.35)">Celestial Tree</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-l">
+      <div class="stage-num-badge">Stage 06 · Cosmos</div>
+      <div class="stage-name-ko" style="color:#a080f0;">은하수목</div>
+      <div class="stage-name-en" style="color:#a080f0;">Celestial Tree</div>
+      <div class="stage-tp-badge" style="border-color:rgba(160,128,240,.2);color:#a080f0;background:rgba(160,128,240,.07);">2,000 TP~</div>
+      <div class="stage-lore" style="border-left-color:rgba(160,128,240,.25);">"나무가 브레시아의 경계를 넘어 우주와 연결되었다. 가지 사이로 은하수가 흐르고, 잎 하나하나가 행성처럼 자체적인 중력을 가진다.<br><br>이 나무의 그늘 아래 서면 온 우주의 숨소리가 들린다고 한다."</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#a080f0;"></div>은하수가 나무를 감싸며 흐름</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#8080d0;"></div>잎이 딥 퍼플+인디고로 변색</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#a080f0;"></div>성운 꽃 개화 / 완전한 우주 배경</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ STAGE 7 ══════════ -->
+<section class="stage-section" style="background:radial-gradient(ellipse at center,rgba(200,168,96,0.02) 0%,transparent 60%);">
+  <div class="stage-layout">
+    <div class="stage-visual-wrap reveal-l">
+      <div class="stage-glow" style="background:radial-gradient(circle,#d4a84b,#7860b8,transparent);"></div>
+      <div class="stage-svg-wrap">
+        <svg width="270" height="310" viewBox="0 0 270 310">
+          <!-- 후광 -->
+          <ellipse cx="135" cy="140" rx="120" ry="110" fill="rgba(212,168,75,0.025)">
+            <animate attributeName="rx" values="120;132;120" dur="6s" repeatCount="indefinite"/>
+          </ellipse>
+          <!-- 배경 별들 -->
+          <circle cx="18" cy="18" r="1.8" fill="#fff8e0" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="3s" repeatCount="indefinite"/></circle>
+          <circle cx="230" cy="12" r="1.3" fill="#fff0d0" opacity="0.8"><animate attributeName="opacity" values="0.8;0.15;0.8" dur="2.8s" repeatCount="indefinite" begin="0.5s"/></circle>
+          <circle cx="36" cy="46" r="1.5" fill="#fff8f0" opacity="0.7"><animate attributeName="opacity" values="0.7;0.1;0.7" dur="4s" repeatCount="indefinite" begin="1s"/></circle>
+          <circle cx="220" cy="40" r="2" fill="#ffe8c0" opacity="0.85"><animate attributeName="opacity" values="0.85;0.2;0.85" dur="3.5s" repeatCount="indefinite" begin="1.5s"/></circle>
+          <circle cx="10" cy="90" r="1.4" fill="#fff0e0" opacity="0.65"/>
+          <circle cx="255" cy="78" r="1.6" fill="#ffe0d0" opacity="0.7"/>
+          <!-- 영원의 별 -->
+          <polygon points="135,8 139,22 153,22 142,30 146,44 135,36 124,44 128,30 117,22 131,22" fill="#d4a84b" opacity="0.9">
+            <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
+            <animateTransform attributeName="transform" type="rotate" values="0,135,26;360,135,26" dur="20s" repeatCount="indefinite"/>
+          </polygon>
+          <circle cx="135" cy="26" r="20" fill="rgba(212,168,75,0.07)">
+            <animate attributeName="r" values="20;26;20" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <!-- 땅 + 뿌리 크리스탈 -->
+          <ellipse cx="135" cy="296" rx="96" ry="17" fill="rgba(50,35,10,0.9)"/>
+          <polygon points="30,288 36,272 42,288" fill="#c8943a" opacity="0.65"/>
+          <polygon points="34,286 39,274 44,286" fill="#d4a84b" opacity="0.45"/>
+          <polygon points="218,290 224,274 230,290" fill="#c8943a" opacity="0.6"/>
+          <path d="M122,294 Q102,302 86,294" stroke="#5a3c0a" stroke-width="5.5" fill="none"/>
+          <path d="M135,297 Q135,307 125,310" stroke="#5a3c0a" stroke-width="5.5" fill="none"/>
+          <path d="M148,294 Q168,302 184,294" stroke="#5a3c0a" stroke-width="5.5" fill="none"/>
+          <path d="M122,294 Q102,302 86,294" stroke="rgba(212,168,75,0.22)" stroke-width="2.5" fill="none"/>
+          <path d="M148,294 Q168,302 184,294" stroke="rgba(212,168,75,0.2)" stroke-width="2.5" fill="none"/>
+          <!-- 줄기 -->
+          <path d="M135,294 Q130,264 135,230 Q132,200 135,162" stroke="#3c2808" stroke-width="14" fill="none" stroke-linecap="round"/>
+          <path d="M135,294 Q130,264 135,230 Q132,200 135,162" stroke="rgba(212,168,75,0.38)" stroke-width="7" fill="none"/>
+          <!-- 가지 -->
+          <path d="M133,230 Q106,216 80,228" stroke="#3c2808" stroke-width="8" fill="none"/>
+          <path d="M135,212 Q162,196 188,208" stroke="#3c2808" stroke-width="8" fill="none"/>
+          <path d="M133,192 Q112,178 92,188" stroke="#3c2808" stroke-width="5.5" fill="none"/>
+          <path d="M135,180 Q158,164 178,176" stroke="#3c2808" stroke-width="5.5" fill="none"/>
+          <path d="M134,166 Q118,152 102,162" stroke="#3c2808" stroke-width="4" fill="none"/>
+          <path d="M135,158 Q152,142 168,154" stroke="#3c2808" stroke-width="4" fill="none"/>
+          <path d="M133,230 Q106,216 80,228" stroke="rgba(212,168,75,0.26)" stroke-width="3.5" fill="none"/>
+          <path d="M135,212 Q162,196 188,208" stroke="rgba(212,168,75,0.24)" stroke-width="3.5" fill="none"/>
+          <!-- 잎 -->
+          <ellipse cx="135" cy="142" rx="56" ry="62" fill="#1a0e04"/>
+          <ellipse cx="90" cy="170" rx="36" ry="46" fill="#200e04" transform="rotate(-34 90 170)"/>
+          <ellipse cx="180" cy="170" rx="36" ry="46" fill="#200e04" transform="rotate(34 180 170)"/>
+          <ellipse cx="135" cy="112" rx="36" ry="38" fill="#2e1804"/>
+          <ellipse cx="94" cy="128" rx="14" ry="18" fill="rgba(212,168,75,0.15)" transform="rotate(-34 94 128)"/>
+          <ellipse cx="176" cy="130" rx="14" ry="18" fill="rgba(212,168,75,0.13)" transform="rotate(34 176 130)"/>
+          <!-- 열매 -->
+          <circle cx="80" cy="228" r="10" fill="#c8880a"><animate attributeName="opacity" values="0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/></circle>
+          <circle cx="80" cy="225" r="5" fill="#f0b840" opacity="0.9"/><circle cx="80" cy="223" r="2" fill="#ffe880"/>
+          <circle cx="188" cy="208" r="10" fill="#c8880a"><animate attributeName="opacity" values="1;0.85;1" dur="3s" repeatCount="indefinite" begin="0.8s"/></circle>
+          <circle cx="188" cy="205" r="5" fill="#f0b840" opacity="0.9"/><circle cx="188" cy="203" r="2" fill="#ffe880"/>
+          <circle cx="104" cy="134" r="8" fill="#c0c8d0"><animate attributeName="opacity" values="0.85;1;0.85" dur="3.5s" repeatCount="indefinite" begin="2s"/></circle>
+          <circle cx="104" cy="131" r="4" fill="#e8f0f8" opacity="0.9"/>
+          <circle cx="166" cy="138" r="8" fill="#c0c8d0"><animate attributeName="opacity" values="1;0.8;1" dur="3s" repeatCount="indefinite" begin="1.2s"/></circle>
+          <circle cx="166" cy="135" r="4" fill="#e8f0f8" opacity="0.9"/>
+          <!-- 정령 -->
+          <circle cx="135" cy="66" r="26" fill="rgba(212,168,75,0.04)">
+            <animate attributeName="r" values="26;33;26" dur="4s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="135" cy="66" r="13" fill="#d4a84b" opacity="0.65">
+            <animateMotion path="M0,0 Q20,-28 0,-50 Q-20,-28 0,0" dur="5.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="135" cy="66" r="5.5" fill="#f8e880" opacity="0.95"/>
+          <circle cx="135" cy="66" r="2" fill="#fff8e0"/>
+          <!-- 빛 기둥 -->
+          <defs><linearGradient id="lg7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f0cc78" stop-opacity="0"/><stop offset="50%" stop-color="#f0cc78" stop-opacity="1"/><stop offset="100%" stop-color="#d4a84b" stop-opacity="0"/></linearGradient></defs>
+          <rect x="127" y="8" width="16" height="64" fill="url(#lg7)" opacity="0.22"><animate attributeName="opacity" values="0.22;0.48;0.22" dur="3s" repeatCount="indefinite"/></rect>
+          <text x="135" y="305" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="11" font-style="italic" fill="rgba(212,168,75,0.45)">The Eternal Tree</text>
+        </svg>
+      </div>
+    </div>
+    <div class="stage-text reveal-r">
+      <div class="stage-num-badge">Stage 07 · Eternity · 최고 단계</div>
+      <div class="stage-name-ko" style="background:linear-gradient(135deg,#f8e8a0,#c8a860,#f0e090);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">영원수</div>
+      <div class="stage-name-en" style="color:rgba(200,168,96,.6);">The Eternal Tree</div>
+      <div class="stage-tp-badge" style="border-color:rgba(212,168,75,.3);color:#d4a84b;background:rgba(212,168,75,.1);">5,000 TP~ · 전설</div>
+      <div class="stage-lore" style="border-left-color:rgba(212,168,75,.4);">"브레시아의 시작과 끝을 기억하는 나무. 그 뿌리는 세계의 중심을 꿰뚫고, 가지는 모든 별에 닿는다.<br><br>전설에 따르면 이 나무의 잎 하나를 떨어뜨리면, 새로운 세계가 태어난다고 한다.<br><br><strong>당신의 숨결이 여기까지 닿았다.</strong>"</div>
+      <div class="stage-unlocks">
+        <div class="unlock-item"><div class="unlock-dot" style="background:#d4a84b;"></div>영원의 별 — 꼭대기에서 천천히 회전</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#c8943a;"></div>황금+은빛 열매 6개 / 노출된 황금 뿌리</div>
+        <div class="unlock-item"><div class="unlock-dot" style="background:#f0cc78;"></div>전설 칭호 "숨의 수호자" 해금</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ ENDING ══════════ -->
+<div class="section-divider reveal">· · ·</div>
+
+<section id="ending">
+  <div class="ending-tree reveal">
+    <svg width="120" height="130" viewBox="0 0 120 130">
+      <circle cx="60" cy="60" r="50" fill="rgba(200,168,96,0.04)">
+        <animate attributeName="r" values="50;60;50" dur="4s" repeatCount="indefinite"/>
+      </circle>
+      <polygon points="60,4 63,16 75,16 65.5,23 68.5,35 60,28 51.5,35 54.5,23 45,16 57,16" fill="#d4a84b" opacity="0.9">
+        <animateTransform attributeName="transform" type="rotate" values="0,60,20;360,60,20" dur="20s" repeatCount="indefinite"/>
+      </polygon>
+      <path d="M60,122 Q57,108 60,90 Q58,75 60,55" stroke="#5a3c0a" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M60,122 Q57,108 60,90 Q58,75 60,55" stroke="rgba(212,168,75,0.4)" stroke-width="3.5" fill="none"/>
+      <path d="M59,90 Q46,83 34,90" stroke="#5a3c0a" stroke-width="4" fill="none"/>
+      <path d="M60,80 Q73,72 84,78" stroke="#5a3c0a" stroke-width="4" fill="none"/>
+      <ellipse cx="60" cy="44" rx="28" ry="30" fill="#1a0e04"/>
+      <ellipse cx="36" cy="58" rx="18" ry="23" fill="#200e04" transform="rotate(-32 36 58)"/>
+      <ellipse cx="84" cy="58" rx="18" ry="23" fill="#200e04" transform="rotate(32 84 58)"/>
+      <circle cx="34" cy="90" r="5" fill="#c8880a"><animate attributeName="opacity" values="0.9;1;0.9" dur="2.5s" repeatCount="indefinite"/></circle>
+      <circle cx="34" cy="88" r="2.5" fill="#f0b840" opacity="0.9"/>
+      <circle cx="84" cy="78" r="5" fill="#c8880a"><animate attributeName="opacity" values="1;0.85;1" dur="3s" repeatCount="indefinite" begin="0.8s"/></circle>
+      <circle cx="84" cy="76" r="2.5" fill="#f0b840" opacity="0.9"/>
+      <circle cx="60" cy="25" r="10" fill="rgba(212,168,75,0.06)">
+        <animate attributeName="r" values="10;13;10" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="60" cy="25" r="5" fill="#d4a84b" opacity="0.6">
+        <animateMotion path="M0,0 Q8,-12 0,-22 Q-8,-12 0,0" dur="4.5s" repeatCount="indefinite"/>
+      </circle>
+      <defs><linearGradient id="lge" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f0cc78" stop-opacity="0"/><stop offset="50%" stop-color="#f0cc78" stop-opacity="1"/><stop offset="100%" stop-color="#d4a84b" stop-opacity="0"/></linearGradient></defs>
+      <rect x="56" y="4" width="8" height="28" fill="url(#lge)" opacity="0.25"><animate attributeName="opacity" values="0.25;0.55;0.25" dur="3s" repeatCount="indefinite"/></rect>
+    </svg>
+  </div>
+  <h2 class="ending-title reveal d1">지금, 첫 숨을 시작하세요</h2>
+  <p class="ending-sub reveal d2">
+    매일 단 5분의 호흡이<br>
+    브레시아에서 하나의 나무를 키웁니다.<br>
+    당신의 나무는 지금 어디까지 자랐나요?
+  </p>
+  <a href="index.html" class="ending-cta reveal d3">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><polyline points="6,5 10,8 6,11"/></svg>
+    BRETHIN 시작하기
+  </a>
+  <div class="ending-note reveal d4">무료 · 앱 설치 불필요 · iOS & Android 지원</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">BRETHIN</div>
+  <div class="footer-sub">들숨과 날숨 사이, 나를 만나는 브레스인</div>
+</footer>
+
+<script>
+/* ── 커서 ── */
+const cur=document.getElementById('cur');
+const curT=document.getElementById('curT');
+let mx=0,my=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+setInterval(()=>{curT.style.left=mx+'px';curT.style.top=my+'px';},80);
+document.querySelectorAll('a,button,.ending-cta').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='16px';cur.style.height='16px';cur.style.opacity='.6';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='8px';cur.style.height='8px';cur.style.opacity='1';});
+});
+
+/* ── 별 생성 ── */
+const sf=document.getElementById('starfield');
+for(let i=0;i<120;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  const sz=Math.random()*2.2+.6;
+  s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;background:rgba(255,248,220,${Math.random()*.7+.2});--d:${Math.random()*3+2}s;--dl:${Math.random()*5}s;`;
+  sf.appendChild(s);
+}
+
+/* ── 파티클 생성 ── */
+const pc=document.getElementById('particles');
+const pColors=['rgba(200,168,96,0.5)','rgba(74,154,56,0.4)','rgba(120,96,184,0.4)','rgba(56,184,160,0.3)'];
+for(let i=0;i<20;i++){
+  const p=document.createElement('div');
+  p.className='fp';
+  const sz=Math.random()*3+1.5;
+  p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;bottom:${Math.random()*20}%;background:${pColors[Math.floor(Math.random()*pColors.length)]};--d:${Math.random()*10+8}s;--dl:${Math.random()*10}s;`;
+  pc.appendChild(p);
+}
+
+/* ── Nav ── */
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('solid',window.scrollY>60);
+  // 진행 바
+  const tot=document.body.scrollHeight-window.innerHeight;
+  document.getElementById('prog').style.width=(window.scrollY/tot*100)+'%';
+});
+
+/* ── Reveal on scroll ── */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});
+},{threshold:.1,rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
