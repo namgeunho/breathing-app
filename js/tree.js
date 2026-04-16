@@ -608,6 +608,9 @@ function showTreeOnComplete(result){
   if(textEl) textEl.textContent = `🌿 ${msg}`;
   if(tpEl) tpEl.textContent = `+${gained} TP 획득 · 총 ${treeData.tp.toLocaleString()} TP`;
 
+  // 숨나무 메시지가 보이도록 상단으로 스크롤
+  setTimeout(()=>{ window.scrollTo({top:0, behavior:'smooth'}); }, 100);
+
   if(levelUp){
     setTimeout(()=>showLevelUpAnim(newStage), 800);
   }

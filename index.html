@@ -154,6 +154,15 @@
       </div>
     </div>
 
+    <!-- 훈련 완료 나무 메시지 (숨나무 바로 아래) -->
+    <div id="treeCompleteMsg" style="display:none;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:10px;align-items:flex-start;gap:10px;">
+      <div id="treeCompleteSvg" style="flex-shrink:0;"></div>
+      <div>
+        <div id="treeMsgText" style="font-size:13px;color:var(--text);font-style:italic;line-height:1.6;margin-bottom:4px;"></div>
+        <div id="treeTpGain" style="font-size:11px;color:var(--warning);font-weight:600;"></div>
+      </div>
+    </div>
+
     <!-- 숨나무 하단: 프로그램 정보 + 버튼 -->
     <div class="tb tb-undertree">
       <div class="tbl" id="cfgSummary"></div>
@@ -184,14 +193,6 @@
       </div>
     </div>
     <div id="completeArea" style="display:none;">
-      <!-- 나무 메시지 카드 -->
-      <div id="treeCompleteMsg" style="display:none;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;">
-        <div id="treeCompleteSvg" style="flex-shrink:0;"></div>
-        <div>
-          <div id="treeMsgText" style="font-size:13px;color:var(--text);font-style:italic;line-height:1.6;margin-bottom:4px;"></div>
-          <div id="treeTpGain" style="font-size:11px;color:var(--warning);font-weight:600;"></div>
-        </div>
-      </div>
       <div class="kd" id="completeCard">
         <div class="kt">호흡 훈련 완료</div>
         <div class="km" id="cc-date"></div>

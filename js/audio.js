@@ -268,9 +268,10 @@ function toggleSettings(){
     document.getElementById('settingsPanel').className='sp open';
     document.getElementById('cfgBtn').className='ib acfg';
     renderSBody();
-    // Firebase 로드 완료 후 칩 렌더 (비동기 로드 대응)
     renderSfxChips();
     renderBgmChips();
+    // 설정 패널 열릴 때 페이지 최상단으로 스크롤
+    window.scrollTo({top:0, behavior:'smooth'});
   }
 }
 

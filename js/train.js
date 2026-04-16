@@ -115,6 +115,9 @@ function resetAll(){
   const tSec=parseInt(document.getElementById('duration').value)*60;
   document.getElementById('mainArea').style.display='block';
   document.getElementById('completeArea').style.display='none';
+  // 나무 메시지 숨김
+  const treeMsg=document.getElementById('treeCompleteMsg');
+  if(treeMsg) treeMsg.style.display='none';
   document.getElementById('phaseLabel').textContent='준비';
   document.getElementById('timerLabel').textContent='시작 버튼을 눌러주세요';
   document.getElementById('startBtn').textContent='시작';
