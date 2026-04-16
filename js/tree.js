@@ -616,3 +616,87 @@ function showTreeOnComplete(result){
   }
 }
 
+
+/* ── 숨나무 스토리 모달 ── */
+function openTreeStory(){
+  const body = document.getElementById('treeStoryBody');
+  if(!body) return;
+  const curStage = treeData.stage || 1;
+
+  body.innerHTML = TREE_STAGES.map((st, idx) => {
+    const stageNum = idx + 1;
+    const unlocked = stageNum <= curStage;
+
+    if(unlocked){
+      // 달성 카드 — SVG + 스토리 풀 표시
+      const svgHtml = getTreeSVG(stageNum, null, 100);
+      const tpText  = stageNum === 1 ? '시작' : `${st.tpReq.toLocaleString()} TP~`;
+      const isCur   = stageNum === curStage;
+      return `
+        <div class="tsc" style="${isCur ? 'border-color:'+st.color+'44;box-shadow:0 0 20px '+st.color+'18;' : ''}">
+          <div class="tsc-bg" style="background:linear-gradient(180deg,${st.bgFrom} 0%,${st.bgTo} 100%);"></div>
+          <div class="tsc-visual" style="position:relative;z-index:1;">${svgHtml}</div>
+          <div class="tsc-info">
+            <div class="tsc-header">
+              <span class="tsc-num">Stage ${String(stageNum).padStart(2,'0')}</span>
+              <span class="tsc-tp" style="color:${st.color};border-color:${st.color}44;background:${st.color}12;">${tpText}</span>
+            </div>
+            <div class="tsc-name" style="color:${st.color};">${st.name}${isCur ? ' <span style="font-size:11px;opacity:.6;">◀ 현재</span>' : ''}</div>
+            <div class="tsc-en">${st.en}</div>
+            <div class="tsc-lore">"${st.lore}"</div>
+            <div class="tsc-unlocks">${st.unlocks.map(u=>`<span class="tsc-tag">✦ ${u}</span>`).join('')}</div>
+          </div>
+        </div>`;
+    } else {
+      // 미달성 카드 — 잠금
+      const tpReq = st.tpReq.toLocaleString();
+      const tpNeed = (st.tpReq - treeData.tp);
+      const needText = tpNeed > 0 ? `${tpNeed.toLocaleString()} TP 더 필요` : `${tpReq} TP 달성 필요`;
+      return `
+        <div class="tsc-locked">
+          <div class="tsc-locked-inner">
+            <div class="tsc-lock-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <div class="tsc-lock-info">
+              <div class="tsc-lock-name">${st.name}</div>
+              <div class="tsc-lock-req">${needText}</div>
+            </div>
+          </div>
+          <div class="tsc-lock-bar"></div>
+        </div>`;
+    }
+  }).join('');
+
+  document.getElementById('treeStoryOverlay').style.display = 'flex';
+  // 현재 단계 카드로 스크롤
+  setTimeout(()=>{
+    const cards = body.querySelectorAll('.tsc');
+    const curCard = cards[curStage - 1];
+    if(curCard) curCard.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 350);
+}
+
+function closeTreeStory(){
+  const overlay = document.getElementById('treeStoryOverlay');
+  if(overlay){
+    overlay.style.animation = 'none';
+    const modal = overlay.querySelector('.tree-story-modal');
+    if(modal){
+      modal.style.animation = 'storySlideDown .22s ease forwards';
+      // keyframe 주입
+      if(!document.getElementById('storySlideDownKF')){
+        const s = document.createElement('style');
+        s.id = 'storySlideDownKF';
+        s.textContent = '@keyframes storySlideDown{to{transform:translateY(100%);opacity:0;}}';
+        document.head.appendChild(s);
+      }
+      setTimeout(()=>{ overlay.style.display='none'; modal.style.animation=''; }, 220);
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
+}

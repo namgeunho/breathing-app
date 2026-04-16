@@ -99,7 +99,12 @@
   white-space:nowrap;
   text-shadow:0 0 10px currentColor;
   flex-shrink:0;
+  cursor:pointer;touch-action:manipulation;
+  text-decoration:underline;text-decoration-style:dotted;
+  text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.25);
+  transition:opacity .15s;
 }
+.tree-name:hover{opacity:.8;}
 .tree-tp-bar-wrap{flex:1;}
 .tree-tp-label{
   font-size:10px;color:rgba(255,255,255,0.4);
@@ -312,4 +317,135 @@
 @keyframes particleFloat{
   from{opacity:1;transform:translate(0,0) scale(1);}
   to{opacity:0;transform:var(--p-to) scale(0);}
+}
+
+/* ── 숨나무 스토리 모달 ── */
+.tree-story-overlay{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:0;
+}
+.tree-story-modal{
+  background:#0a080e;
+  border-radius:20px 20px 0 0;
+  width:100%;max-width:520px;
+  max-height:90vh;
+  display:flex;flex-direction:column;
+  animation:storySlideUp .32s cubic-bezier(.32,1.6,.64,1);
+  border-top:1px solid rgba(200,168,96,.15);
+  overflow:hidden;
+}
+@keyframes storySlideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.tree-story-header{
+  padding:20px 20px 16px;
+  border-bottom:1px solid rgba(200,168,96,.1);
+  position:relative;flex-shrink:0;
+}
+.tree-story-title{
+  font-family:'Playfair Display',serif;
+  font-size:20px;
+  background:linear-gradient(135deg,#f8e8a0,#c8a860);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:3px;
+}
+.tree-story-sub{
+  font-size:11px;color:rgba(200,168,96,.45);
+  letter-spacing:.1em;font-family:'JetBrains Mono',monospace;
+}
+.tree-story-close{
+  position:absolute;top:16px;right:16px;
+  width:28px;height:28px;border-radius:50%;
+  border:none;background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.5);font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+}
+.tree-story-close:hover{background:rgba(255,255,255,.15);}
+.tree-story-body{
+  overflow-y:auto;padding:16px 16px 32px;
+  display:flex;flex-direction:column;gap:12px;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 스토리 카드 — 달성 */
+.tsc{
+  border-radius:14px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.06);
+  background:#12101a;
+  position:relative;
+}
+.tsc-visual{
+  display:flex;justify-content:center;align-items:flex-end;
+  padding:20px 16px 8px;
+  min-height:130px;
+  position:relative;
+}
+.tsc-bg{
+  position:absolute;inset:0;border-radius:14px 14px 0 0;
+}
+.tsc-info{padding:12px 14px 14px;}
+.tsc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.tsc-num{
+  font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,.25);
+  font-family:'JetBrains Mono',monospace;text-transform:uppercase;
+}
+.tsc-tp{
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  padding:2px 8px;border-radius:10px;border:1px solid;
+}
+.tsc-name{
+  font-family:'Playfair Display',serif;
+  font-size:20px;line-height:1.1;margin-bottom:3px;
+  text-shadow:0 0 20px currentColor;
+}
+.tsc-en{
+  font-size:10px;letter-spacing:.08em;opacity:.45;
+  font-family:'JetBrains Mono',monospace;margin-bottom:8px;
+}
+.tsc-lore{
+  font-size:12px;color:rgba(224,220,208,.55);
+  line-height:1.7;font-style:italic;
+  border-left:2px solid rgba(200,168,96,.2);
+  padding-left:10px;
+}
+.tsc-unlocks{
+  display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;
+}
+.tsc-tag{
+  font-size:10px;padding:2px 8px;border-radius:8px;
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);
+}
+
+/* 스토리 카드 — 잠금 */
+.tsc-locked{
+  border-radius:14px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.04);
+  background:#0d0b12;
+  position:relative;
+}
+.tsc-locked-inner{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 14px;
+}
+.tsc-lock-icon{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  border:1px solid rgba(255,255,255,.06);
+}
+.tsc-lock-info{}
+.tsc-lock-name{
+  font-size:14px;font-weight:600;
+  color:rgba(255,255,255,.2);margin-bottom:3px;
+}
+.tsc-lock-req{
+  font-size:11px;color:rgba(255,255,255,.18);
+  font-family:'JetBrains Mono',monospace;
+}
+.tsc-lock-bar{
+  position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:rgba(255,255,255,.04);
 }

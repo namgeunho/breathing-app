@@ -129,7 +129,7 @@
       <div id="treeLoggedIn" style="display:none;" onclick="onTreeTap()">
         <div class="tree-stage-area" id="treeSvgArea"></div>
         <div class="tree-info-bar">
-          <div class="tree-name" id="treeName">숨씨앗</div>
+          <div class="tree-name" id="treeName" onclick="event.stopPropagation();openTreeStory()">숨씨앗</div>
           <div class="tree-tp-bar-wrap">
             <div class="tree-tp-label" id="treeTPLabel">0 / 50 TP</div>
             <div class="tree-tp-bar"><div class="tree-tp-fill" id="treeTPFill" style="width:0%"></div></div>
@@ -323,6 +323,18 @@
 <div class="toast" id="toast"></div>
 
 <!-- 로그인 모달 -->
+<!-- 숨나무 스토리 모달 -->
+<div class="tree-story-overlay" id="treeStoryOverlay" onclick="if(event.target===this)closeTreeStory()">
+  <div class="tree-story-modal">
+    <div class="tree-story-header">
+      <div class="tree-story-title">숨나무의 전설</div>
+      <div class="tree-story-sub">브레시아 — 숨으로 키우는 나무</div>
+      <button class="tree-story-close" onclick="closeTreeStory()">✕</button>
+    </div>
+    <div class="tree-story-body" id="treeStoryBody"></div>
+  </div>
+</div>
+
 <div class="auth-overlay" id="authOverlay" style="display:none;" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-sheet">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
