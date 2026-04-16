@@ -298,6 +298,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .gdp-mood-arrow{font-size:11px;color:var(--text3);}
 .gdp-memo{font-size:12px;color:var(--text2);line-height:1.6;background:var(--bg3);border-radius:8px;padding:8px 10px;}
 .gdp-empty{font-size:12px;color:var(--text3);text-align:center;padding:8px 0;}
+.gdp-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;}
 .graph-label{font-size:9px;color:var(--text3);margin-top:4px;white-space:nowrap;}
 .graph-val{font-size:9px;color:var(--info);margin-bottom:2px;font-weight:500;min-height:12px;}
 /* ── 감정 상태 ── */
@@ -316,14 +317,36 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .pc.sel-pc .pcn{color:var(--info);}
 /* ── 설정 그룹 라벨 ── */
 .cfg-group-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;padding:0 2px;margin:18px 0 6px;}
-/* ── 로그인 모달 ── */
-.auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:flex;align-items:flex-end;justify-content:center;}
-.auth-sheet{background:var(--bg);border-radius:20px 20px 0 0;padding:32px 24px 40px;width:100%;max-width:520px;animation:sheetUp 0.3s ease;}
-@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
-.auth-title{font-size:20px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px;}
-.auth-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:28px;line-height:1.6;}
+/* ── 로그인 모달 (센터 팝업) ── */
+.auth-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.65);
+  z-index:300;display:flex;align-items:center;justify-content:center;
+  padding:24px;backdrop-filter:blur(4px);
+}
+.auth-sheet{
+  background:var(--bg);border-radius:20px;
+  padding:32px 28px 28px;width:100%;max-width:360px;
+  position:relative;
+  animation:popupIn 0.25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 24px 64px rgba(0,0,0,0.4);
+}
+@keyframes popupIn{from{opacity:0;transform:scale(0.88);}to{opacity:1;transform:scale(1);}}
+.auth-close{
+  position:absolute;top:14px;right:14px;
+  width:28px;height:28px;border-radius:50%;
+  border:none;background:var(--bg3);color:var(--text2);
+  font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.auth-close:hover{background:var(--bd2);}
+.auth-logo{text-align:center;margin-bottom:12px;}
+.auth-title{font-size:18px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px;}
+.auth-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px;line-height:1.6;white-space:pre-line;}
 .auth-btn-google{width:100%;padding:14px;border-radius:12px;border:1.5px solid var(--bd2);background:var(--bg);color:var(--text);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;transition:background 0.2s;}
 .auth-btn-google:hover{background:var(--bg2);}
+.cfg-signout-btn{margin-top:12px;width:100%;padding:11px;border-radius:10px;border:1px solid var(--bd2);background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s,color .2s;}
+.cfg-signout-btn:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-bd);}
 .auth-skip{width:100%;padding:12px;border:none;background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit;}
 .auth-skip:hover{color:var(--text2);}
 .auth-divider{display:flex;align-items:center;gap:10px;margin:4px 0 16px;}

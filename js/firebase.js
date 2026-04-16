@@ -89,6 +89,10 @@ let colSearchQuery = '';
 function saveBookmarks(){localStorage.setItem('breath5_bookmarks',JSON.stringify(_bookmarks));}
 function isBookmarked(id){return _bookmarks.includes(id);}
 function toggleBookmark(id){
+  if(!curUser){
+    openAuthModal('로그인하면 북마크가 저장됩니다 🔖\n어떤 기기에서도 저장한 칼럼을 볼 수 있어요.');
+    return;
+  }
   if(isBookmarked(id))_bookmarks=_bookmarks.filter(b=>b!==id);
   else _bookmarks.push(id);
   saveBookmarks();

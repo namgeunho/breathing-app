@@ -311,21 +311,28 @@ function tick(ts){if(!running)return;if(!lastTs)lastTs=ts;const dt=(ts-lastTs)/1
 function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
 function finish(){
   running=false;isPaused=false;
-  cancelAnimationFrame(raf);saveRec();playFS();stopBgm();
+  cancelAnimationFrame(raf);playFS();stopBgm();
   document.getElementById('blackScreen').classList.remove('active');
   screenOff=false;document.getElementById('screenOffBtn').className='ib';
   releaseWakeLock();
   const s=getAS();
   const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;
   lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm};
-  // 훈련 완료 이벤트
   logEvent('training_complete',{mode:curMode,preset:nm||'manual',duration_min:lastResult.duration,cycles:cyclesDone});
-  // 숨나무 업데이트
-  const memoData=memos[today()]||{};
-  const preMood=typeof memoData==='object'?memoData.preMood||'':'';
-  const postMood=typeof memoData==='object'?memoData.postMood||'':'';
-  const treeResult=updateTreeAfterTrain(lastResult.duration, preMood, postMood);
-  showCC();
-  setTimeout(()=>showTreeOnComplete(treeResult), 400);
+  // 로그인 상태일 때만 기록 저장 + 숨나무 업데이트
+  if(curUser){
+    saveRec();
+    const memoData=memos[today()]||{};
+    const preMood=typeof memoData==='object'?memoData.preMood||'':'';
+    const postMood=typeof memoData==='object'?memoData.postMood||'':'';
+    const treeResult=updateTreeAfterTrain(lastResult.duration, preMood, postMood);
+    showCC();
+    setTimeout(()=>showTreeOnComplete(treeResult), 400);
+  } else {
+    // 비로그인: 나무 메시지 없이 완료 화면만
+    const msgEl=document.getElementById('treeCompleteMsg');
+    if(msgEl) msgEl.style.display='none';
+    showCC();
+  }
 }
 function showCC(){document.getElementById('mainArea').style.display='none';document.getElementById('completeArea').style.display='block';const r=lastResult;document.getElementById('cc-date').textContent=r.date;document.getElementById('cc-time').textContent=r.time+' 완료';document.getElementById('cc-duration').textContent=r.duration+'분';document.getElementById('cc-cycles').textContent=r.cycles+'회';let pat=r.level?`[${r.level}] `:'';pat+=`들숨 ${r.inhale}초`;if(r.holdIn>0)pat+=` · 멈춤 ${r.holdIn}초`;pat+=` · 날숨 ${r.exhale}초`;if(r.holdOut>0)pat+=` · 멈춤 ${r.holdOut}초`;document.getElementById('cc-pattern').textContent=pat;}

@@ -14,7 +14,7 @@ let screenOff=false,lastResult=null;
 let curMode='program',selPI=0;
 // 설정 임시 복사본 (저장 전까지 실제 데이터 보호)
 let tempPresets=[],tempManSt={},tempSelPI=-1;
-let userName='사용자',userPhoto=null,curTheme='white';
+let userName='사용자',userPhoto=null,curTheme='black';
 let curPage='train';
 let curUser = null; // 현재 로그인 유저 (null = 비로그인)
 

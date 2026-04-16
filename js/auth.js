@@ -347,6 +347,7 @@ function renderGraphDayPanel(key){
   const postMood = typeof memoData==='object'?memoData.postMood||'':'';
   const dateLabel = fl(key);
   const isToday = key===today();
+  const hasMemoData = !!(memo||preMood||postMood);
 
   let html = `<div class="gdp-header">
     <span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span>
@@ -375,7 +376,7 @@ function renderGraphDayPanel(key){
   }
 
   // 감정·메모
-  if(preMood||postMood||memo){
+  if(hasMemoData){
     html += `<div class="gdp-divider"></div><div class="gdp-section-label">감정 · 메모</div>`;
     if(preMood||postMood){
       html += `<div class="gdp-mood">`;
@@ -385,13 +386,39 @@ function renderGraphDayPanel(key){
       html += `</div>`;
     }
     if(memo) html += `<div class="gdp-memo">${eh(memo)}</div>`;
+    // 공유/수정/삭제 버튼
+    html += `<div class="gdp-actions">
+      <button class="bsm bshr" onclick="shareRecord('${key}')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
+        공유
+      </button>
+      <button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button>
+      <button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button>
+    </div>`;
   } else if(recs.length===0){
-    // 기록도 메모도 없는 날
     html = `<div class="gdp-header"><span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span></div>
       <div class="gdp-empty">이 날의 기록이 없어요</div>`;
+  } else {
+    // 훈련 기록은 있지만 메모 없음 — 공유만 표시
+    html += `<div class="gdp-actions">
+      <button class="bsm bshr" onclick="shareRecord('${key}')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
+        공유
+      </button>
+    </div>`;
   }
 
   panel.innerHTML = html;
+}
+
+// 그래프 패널에서 메모 수정 — 캘린더 탭으로 이동 후 해당 날짜 열기
+function editMemoFromGraph(key){
+  setCalView('calendar');
+  setTimeout(()=>selD(key), 100);
+}
+function delMemoFromGraph(key){
+  delMemo(key);
+  renderGraphDayPanel(key);
 }
 
 function renderDB(key){
