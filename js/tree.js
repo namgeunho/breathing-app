@@ -683,21 +683,5 @@ function openTreeStory(){
 
 function closeTreeStory(){
   const overlay = document.getElementById('treeStoryOverlay');
-  if(overlay){
-    overlay.style.animation = 'none';
-    const modal = overlay.querySelector('.tree-story-modal');
-    if(modal){
-      modal.style.animation = 'storySlideDown .22s ease forwards';
-      // keyframe 주입
-      if(!document.getElementById('storySlideDownKF')){
-        const s = document.createElement('style');
-        s.id = 'storySlideDownKF';
-        s.textContent = '@keyframes storySlideDown{to{transform:translateY(100%);opacity:0;}}';
-        document.head.appendChild(s);
-      }
-      setTimeout(()=>{ overlay.style.display='none'; modal.style.animation=''; }, 220);
-    } else {
-      overlay.style.display = 'none';
-    }
-  }
+  if(overlay) overlay.style.display = 'none';
 }

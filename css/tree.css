@@ -56,6 +56,12 @@
 .tree-collapsed-name{
   font-size:13px;font-weight:700;
   text-shadow:0 0 10px currentColor;
+  cursor:pointer;
+  touch-action:manipulation;
+  text-decoration:underline;
+  text-decoration-style:dotted;
+  text-underline-offset:3px;
+  text-decoration-color:rgba(255,255,255,.25);
 }
 .tree-collapsed-tp{flex:1;min-width:0;margin-right:60px;}
 .tree-collapsed-tp-label{
@@ -325,26 +331,31 @@
   background:rgba(0,0,0,0.75);
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   display:none;
-  align-items:flex-end;justify-content:center;
-  padding:0;
+  align-items:flex-start;justify-content:center;
+  overflow-y:auto;        /* 오버레이 자체가 스크롤 */
+  -webkit-overflow-scrolling:touch;
+  padding:60px 0 0;       /* 상단 여백으로 배경 보이게 */
 }
 .tree-story-modal{
   background:#0a080e;
   color:#e0dcd0;
   border-radius:20px 20px 0 0;
   width:100%;max-width:520px;
-  height:88vh;           /* 고정 높이 — 모달이 뷰포트 88% 차지 */
+  min-height:calc(100vh - 60px); /* 최소 높이 = 뷰포트 - 상단여백 */
   display:flex;flex-direction:column;
   animation:storySlideUp .32s cubic-bezier(.32,1.6,.64,1);
   border-top:1px solid rgba(200,168,96,.15);
-  overflow:hidden;
+  flex-shrink:0;
 }
-@keyframes storySlideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes storySlideUp{from{transform:translateY(60px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .tree-story-header{
   padding:16px 20px 14px;
   border-bottom:1px solid rgba(200,168,96,.1);
-  position:relative;
-  flex-shrink:0;          /* 헤더는 고정 */
+  position:sticky;        /* 헤더 고정 */
+  top:0;
+  background:#0a080e;
+  z-index:1;
+  flex-shrink:0;
 }
 .tree-story-title{
   font-family:'Playfair Display',serif;
@@ -367,12 +378,9 @@
 }
 .tree-story-close:hover{background:rgba(255,255,255,.15);}
 .tree-story-body{
-  flex:1;                 /* 남은 공간 전부 차지 */
-  overflow-y:auto;        /* 내용 스크롤 */
-  -webkit-overflow-scrolling:touch;
-  padding:14px 14px 40px;
+  padding:14px 14px 60px;
   display:flex;flex-direction:column;gap:10px;
-  min-height:0;           /* flex child overflow 버그 수정 */
+  flex:1;
 }
 
 /* 스토리 카드 — 달성 */

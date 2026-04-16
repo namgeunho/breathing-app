@@ -98,12 +98,12 @@
       </button>
 
       <!-- 닫힌 상태: 로그인 -->
-      <div id="treeCollapsedLogin" style="display:none;" onclick="toggleTree(event)">
+      <div id="treeCollapsedLogin" style="display:none;">
         <div class="tree-collapsed-bar">
           <div class="tree-collapsed-stars" id="treeCollapsedStars"></div>
           <div class="tree-collapsed-left">
             <div class="tree-health-icon" id="treeCollapsedIcon">🌱</div>
-            <div class="tree-collapsed-name" id="treeCollapsedName">숨씨앗</div>
+            <div class="tree-collapsed-name" id="treeCollapsedName" onclick="openTreeStory()">숨씨앗</div>
           </div>
           <div class="tree-collapsed-tp">
             <div class="tree-collapsed-tp-label" id="treeCollapsedLabel">0 / 50 TP</div>
@@ -324,7 +324,7 @@
 
 <!-- 로그인 모달 -->
 <!-- 숨나무 스토리 모달 -->
-<div class="tree-story-overlay" id="treeStoryOverlay" style="display:none;" onclick="if(event.target===this)closeTreeStory()">
+<div class="tree-story-overlay" id="treeStoryOverlay" style="display:none;" onclick="if(event.target===this||event.target.classList.contains('tree-story-overlay'))closeTreeStory()">
   <div class="tree-story-modal">
     <div class="tree-story-header">
       <div class="tree-story-title">숨나무의 전설</div>
