@@ -50,6 +50,7 @@ let treeData = {
   tp: 0, stage: 1, lastDate: '', bornAt: '', health: 'healthy',
   stageHistory: [], totalTpEarned: 0
 };
+let treeOpen = true; // 열림/닫힘 상태
 
 function loadTree(){
   try{
@@ -57,6 +58,9 @@ function loadTree(){
     if(raw) treeData = {...treeData, ...JSON.parse(raw)};
     if(!treeData.bornAt) treeData.bornAt = today();
   }catch(e){}
+  // 토글 상태 복원
+  const saved = localStorage.getItem(LS+'treeOpen');
+  if(saved !== null) treeOpen = saved !== '0';
 }
 
 function saveTree(){
@@ -375,75 +379,133 @@ function setTreeBg(stageId, health){
 }
 
 /* ── 나무 렌더링 ── */
-function renderTree(){
-  const loggedInEl = document.getElementById('treeLoggedIn');
-  const guestEl    = document.getElementById('treeGuest');
-  if(!loggedInEl || !guestEl) return;
-
-  if(!curUser){
-    // ── 비로그인: 판타지 타이틀 카드 ──
-    loggedInEl.style.display = 'none';
-    guestEl.style.display    = 'block';
-    setTreeBg(1, 'seed');
-    // 별 생성 (한 번만)
-    const starsEl = document.getElementById('treeStars');
-    if(starsEl && !starsEl.dataset.init){
-      starsEl.dataset.init = '1';
-      for(let i=0;i<40;i++){
-        const s = document.createElement('div');
-        const sz = Math.random()*1.8+0.6;
-        const delay = Math.random()*4;
-        const dur   = Math.random()*3+2;
-        s.style.cssText = `
-          position:absolute;border-radius:50%;
-          width:${sz}px;height:${sz}px;
-          left:${Math.random()*100}%;top:${Math.random()*100}%;
-          background:rgba(255,248,220,${Math.random()*.7+.2});
-          animation:treeTwinkle ${dur}s ease-in-out infinite ${delay}s;
-        `;
-        starsEl.appendChild(s);
-      }
-      // twinkle keyframes 주입
-      if(!document.getElementById('treeStarKF')){
-        const kf = document.createElement('style');
-        kf.id = 'treeStarKF';
-        kf.textContent = '@keyframes treeTwinkle{0%,100%{opacity:.1;}50%{opacity:1;}}';
-        document.head.appendChild(kf);
-      }
-    }
-    return;
+/* ── 별 생성 공통 함수 ── */
+function spawnStars(containerId){
+  const el = document.getElementById(containerId);
+  if(!el || el.dataset.init) return;
+  el.dataset.init = '1';
+  for(let i=0;i<40;i++){
+    const s = document.createElement('div');
+    const sz = Math.random()*1.8+0.6;
+    s.style.cssText = `
+      position:absolute;border-radius:50%;
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      background:rgba(255,248,220,${Math.random()*.7+.2});
+      animation:treeTwinkle ${Math.random()*3+2}s ease-in-out infinite ${Math.random()*4}s;
+    `;
+    el.appendChild(s);
   }
+  if(!document.getElementById('treeStarKF')){
+    const kf = document.createElement('style');
+    kf.id = 'treeStarKF';
+    kf.textContent = '@keyframes treeTwinkle{0%,100%{opacity:.1;}50%{opacity:1;}}';
+    document.head.appendChild(kf);
+  }
+}
 
-  // ── 로그인: 나무 표시 ──
-  loggedInEl.style.display = 'block';
-  guestEl.style.display    = 'none';
+/* ── 토글 버튼 상태 반영 ── */
+function applyToggleBtn(){
+  const btn = document.getElementById('treeToggleBtn');
+  const label = document.getElementById('treeToggleLabel');
+  if(!btn) return;
+  if(treeOpen){
+    btn.classList.add('is-on');
+    if(label) label.textContent = 'ON';
+  } else {
+    btn.classList.remove('is-on');
+    if(label) label.textContent = 'OFF';
+  }
+}
 
-  const svgArea = document.getElementById('treeSvgArea');
-  const nameEl  = document.getElementById('treeName');
-  const labelEl = document.getElementById('treeTPLabel');
-  const fillEl  = document.getElementById('treeTPFill');
-  const iconEl  = document.getElementById('treeHealthIcon');
-  if(!svgArea) return;
+/* ── 토글 함수 ── */
+function toggleTree(e){
+  if(e) e.stopPropagation();
+  treeOpen = !treeOpen;
+  try{ localStorage.setItem(LS+'treeOpen', treeOpen?'1':'0'); }catch(e2){}
+  renderTree();
+}
 
-  const st     = TREE_STAGES[treeData.stage-1];
-  const h      = getTreeHealth();
-  const nextTP = TREE_STAGES[treeData.stage] ? TREE_STAGES[treeData.stage].tpReq : treeData.tp;
-  const prevTP = st.tpReq;
-  const pct    = treeData.stage===7 ? 100 : Math.min(100, Math.round(((treeData.tp-prevTP)/(nextTP-prevTP))*100));
+/* ── 나무 전체 렌더링 ── */
+function renderTree(){
+  const loginEl    = document.getElementById('treeLoggedIn');
+  const guestEl    = document.getElementById('treeGuest');
+  const colLoginEl = document.getElementById('treeCollapsedLogin');
+  const colGuestEl = document.getElementById('treeCollapsedGuest');
+  if(!loginEl) return;
 
-  svgArea.innerHTML = getTreeSVG(treeData.stage);
-  setTreeBg(treeData.stage, h);
+  applyToggleBtn();
 
-  if(nameEl){ nameEl.textContent = st.name; nameEl.style.color = st.color; }
-  if(labelEl){
-    labelEl.textContent = treeData.stage===7
+  if(curUser){
+    // ── 로그인 상태 ──
+    guestEl.style.display    = 'none';
+    colGuestEl.style.display = 'none';
+
+    const st     = TREE_STAGES[treeData.stage-1];
+    const h      = getTreeHealth();
+    const nextTP = TREE_STAGES[treeData.stage] ? TREE_STAGES[treeData.stage].tpReq : treeData.tp;
+    const prevTP = st.tpReq;
+    const pct    = treeData.stage===7 ? 100 : Math.min(100, Math.round(((treeData.tp-prevTP)/(nextTP-prevTP))*100));
+    const tpText = treeData.stage===7
       ? `${treeData.tp.toLocaleString()} TP · 전설`
       : `${treeData.tp.toLocaleString()} / ${nextTP.toLocaleString()} TP`;
-  }
-  if(fillEl){ fillEl.style.width = pct+'%'; fillEl.style.background = st.color; }
+    const healthIcons = {healthy:'🌿',good:'🌱',caution:'🍂',wilt:'🥀',dormant:'❄️',seed:'🌱'};
+    const icon = healthIcons[h] || '🌱';
 
-  const healthIcons = {healthy:'🌿',good:'🌱',caution:'🍂',wilt:'🥀',dormant:'❄️',seed:'🌱'};
-  if(iconEl) iconEl.textContent = healthIcons[h] || '🌱';
+    if(treeOpen){
+      // 열린 상태
+      loginEl.style.display    = 'block';
+      colLoginEl.style.display = 'none';
+
+      const svgArea = document.getElementById('treeSvgArea');
+      if(svgArea) svgArea.innerHTML = getTreeSVG(treeData.stage);
+      setTreeBg(treeData.stage, h);
+
+      const nameEl  = document.getElementById('treeName');
+      const labelEl = document.getElementById('treeTPLabel');
+      const fillEl  = document.getElementById('treeTPFill');
+      const iconEl  = document.getElementById('treeHealthIcon');
+      if(nameEl){ nameEl.textContent = st.name; nameEl.style.color = st.color; }
+      if(labelEl) labelEl.textContent = tpText;
+      if(fillEl){ fillEl.style.width = pct+'%'; fillEl.style.background = st.color; }
+      if(iconEl) iconEl.textContent = icon;
+
+    } else {
+      // 닫힌 상태 — 아이콘+이름+게이지바
+      loginEl.style.display    = 'none';
+      colLoginEl.style.display = 'block';
+      setTreeBg(treeData.stage, h);
+      spawnStars('treeCollapsedStars');
+
+      const cIcon  = document.getElementById('treeCollapsedIcon');
+      const cName  = document.getElementById('treeCollapsedName');
+      const cLabel = document.getElementById('treeCollapsedLabel');
+      const cFill  = document.getElementById('treeCollapsedFill');
+      if(cIcon) cIcon.textContent = icon;
+      if(cName){ cName.textContent = st.name; cName.style.color = st.color; }
+      if(cLabel) cLabel.textContent = tpText;
+      if(cFill){ cFill.style.width = pct+'%'; cFill.style.background = st.color; }
+    }
+
+  } else {
+    // ── 비로그인 상태 ──
+    loginEl.style.display    = 'none';
+    colLoginEl.style.display = 'none';
+    setTreeBg(1, 'seed');
+
+    if(treeOpen){
+      // 열린 상태 — 판타지 타이틀
+      guestEl.style.display    = 'block';
+      colGuestEl.style.display = 'none';
+      spawnStars('treeStars');
+
+    } else {
+      // 닫힌 상태 — 한 줄 메시지
+      guestEl.style.display    = 'none';
+      colGuestEl.style.display = 'block';
+      spawnStars('treeGuestStars');
+    }
+  }
 }
 
 /* ── 나무 탭 인터랙션 ── */

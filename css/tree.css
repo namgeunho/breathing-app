@@ -4,11 +4,188 @@
 .tree-wrap{
   border-radius:14px;margin-bottom:14px;
   position:relative;overflow:hidden;
-  cursor:pointer;
   transition:background 1.2s ease;
   border:1px solid var(--bd);
   background:linear-gradient(180deg,#0a0612 0%,#0d1008 100%);
 }
+
+/* ── 토글 버튼 (ON/OFF) ── */
+.tree-toggle-btn{
+  position:absolute;top:12px;right:12px;z-index:10;
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px;padding:5px 10px 5px 8px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.tree-toggle-btn:hover{background:rgba(0,0,0,0.6);}
+.tree-toggle-track{
+  width:32px;height:18px;border-radius:9px;
+  background:rgba(255,255,255,0.15);
+  position:relative;transition:background .25s;
+  flex-shrink:0;
+}
+.tree-toggle-btn.is-on .tree-toggle-track{background:rgba(200,168,96,0.7);}
+.tree-toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;
+  background:#fff;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+.tree-toggle-btn.is-on .tree-toggle-thumb{transform:translateX(14px);}
+.tree-toggle-label{
+  font-size:11px;font-weight:600;letter-spacing:.06em;
+  color:rgba(255,255,255,0.55);
+  font-family:'JetBrains Mono',monospace;
+  min-width:20px;
+}
+.tree-toggle-btn.is-on .tree-toggle-label{color:rgba(200,168,96,.9);}
+
+/* ── 닫힌 상태 공통 바 ── */
+.tree-collapsed-bar{
+  display:flex;align-items:center;
+  padding:12px 14px;
+  min-height:52px;
+  position:relative;z-index:2;
+  gap:10px;
+  cursor:pointer;
+}
+.tree-collapsed-stars{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:14px;
+}
+
+/* 닫힌 상태: 로그인 */
+.tree-collapsed-left{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tree-collapsed-name{
+  font-size:13px;font-weight:700;
+  text-shadow:0 0 10px currentColor;
+}
+.tree-collapsed-tp{flex:1;min-width:0;margin-right:60px;}
+.tree-collapsed-tp-label{
+  font-size:10px;color:rgba(255,255,255,0.4);
+  margin-bottom:4px;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.04em;
+}
+.tree-collapsed-bar-track{height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+
+/* 닫힌 상태: 비로그인 */
+.tree-collapsed-guest{justify-content:center;}
+.tree-collapsed-msg{
+  font-size:13px;font-weight:500;
+  color:rgba(200,168,96,0.8);
+  letter-spacing:.02em;
+  display:flex;align-items:center;gap:8px;
+  margin-right:54px;
+}
+.tree-collapsed-msg-dot{
+  font-size:10px;color:rgba(200,168,96,0.5);
+  animation:dotBlink 2s ease-in-out infinite;
+}
+@keyframes dotBlink{0%,100%{opacity:.3;}50%{opacity:1;}}
+
+/* ── 열린 상태: 나무 표시 ── */
+.tree-stage-area{
+  display:flex;justify-content:center;align-items:flex-end;
+  padding:16px 16px 0;
+  min-height:160px;
+  position:relative;z-index:2;
+}
+
+/* 하단 정보바 */
+.tree-info-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px 12px;
+  position:relative;z-index:2;
+}
+.tree-name{
+  font-size:13px;font-weight:700;
+  white-space:nowrap;
+  text-shadow:0 0 10px currentColor;
+  flex-shrink:0;
+}
+.tree-tp-bar-wrap{flex:1;}
+.tree-tp-label{
+  font-size:10px;color:rgba(255,255,255,0.4);
+  margin-bottom:3px;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:.04em;
+}
+.tree-tp-bar{height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;}
+.tree-tp-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(.4,0,.2,1);}
+.tree-health-icon{
+  font-size:16px;flex-shrink:0;
+  filter:drop-shadow(0 0 4px rgba(255,255,255,0.3));
+}
+
+/* ── 비로그인 열린 상태 ── */
+.tree-guest-card{
+  min-height:220px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:32px 24px 24px;
+  position:relative;z-index:2;
+  text-align:center;
+  gap:10px;
+}
+.tree-guest-eyebrow{
+  font-size:9px;letter-spacing:.22em;
+  color:rgba(200,168,96,.5);
+  text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+}
+.tree-guest-title-ko{
+  font-family:'Playfair Display',serif;
+  font-size:32px;line-height:1.05;
+  background:linear-gradient(135deg,#f8e8a0 0%,#c8a860 50%,#f0e090 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.tree-guest-title-sub{
+  font-family:'Playfair Display',serif;
+  font-style:italic;font-size:16px;
+  color:rgba(200,168,96,.6);margin-top:-4px;
+}
+.tree-guest-desc{
+  font-size:12px;color:rgba(224,220,208,.45);
+  line-height:1.7;margin-top:4px;font-style:italic;
+}
+.tree-guest-cta{
+  margin-top:10px;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;color:rgba(200,168,96,.7);
+  border:1px solid rgba(200,168,96,.2);
+  padding:6px 16px;border-radius:16px;transition:all .2s;
+}
+.tree-guest-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+
+/* 나무 탭 메시지 */
+.tree-msg{
+  position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px;padding:8px 16px;
+  font-size:12px;color:rgba(255,255,255,0.85);
+  white-space:nowrap;z-index:10;pointer-events:none;
+  animation:msgFadeIn 0.4s ease,msgFadeOut 0.4s ease 2.8s forwards;
+}
+@keyframes msgFadeIn{from{opacity:0;transform:translateX(-50%) translateY(6px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+@keyframes msgFadeOut{to{opacity:0;transform:translateX(-50%) translateY(-6px);}}
+
+/* 성장 연출 */
+.tree-levelup-overlay{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;pointer-events:none;}
+.tree-levelup-bg{position:absolute;inset:0;animation:levelupBg 2.4s ease forwards;}
+@keyframes levelupBg{0%{opacity:0;}15%{opacity:1;}85%{opacity:1;}100%{opacity:0;}}
+.tree-levelup-text{position:relative;z-index:1;text-align:center;animation:levelupText 2.4s ease forwards;}
+@keyframes levelupText{0%{opacity:0;transform:scale(0.6);}20%{opacity:1;transform:scale(1.08);}30%{transform:scale(1);}85%{opacity:1;}100%{opacity:0;}}
+.tree-levelup-name{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;text-shadow:0 0 30px currentColor,0 0 60px currentColor;margin-bottom:6px;}
+.tree-levelup-sub{font-size:14px;opacity:0.75;letter-spacing:0.06em;}
+.tree-levelup-lore{font-size:13px;font-style:italic;max-width:280px;text-align:center;opacity:0.65;line-height:1.7;font-family:'Georgia',serif;position:relative;z-index:1;}
+
+/* 파티클 */
+.tree-particle{position:absolute;border-radius:50%;pointer-events:none;z-index:3;animation:particleFloat linear forwards;}
+@keyframes particleFloat{from{opacity:1;transform:translate(0,0) scale(1);}to{opacity:0;transform:var(--p-to) scale(0);}}
 
 /* ── 로그인 상태: 나무 표시 ── */
 .tree-stage-area{
