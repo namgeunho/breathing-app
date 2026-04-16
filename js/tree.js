@@ -407,14 +407,11 @@ function spawnStars(containerId){
 /* ── 토글 버튼 상태 반영 ── */
 function applyToggleBtn(){
   const btn = document.getElementById('treeToggleBtn');
-  const label = document.getElementById('treeToggleLabel');
   if(!btn) return;
   if(treeOpen){
     btn.classList.add('is-on');
-    if(label) label.textContent = 'ON';
   } else {
     btn.classList.remove('is-on');
-    if(label) label.textContent = 'OFF';
   }
 }
 

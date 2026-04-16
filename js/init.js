@@ -3,10 +3,21 @@
 ── */
 
 /* ── Auth 상태 감지 (초기화 완료 후 등록) ── */
-// redirect 로그인 결과 처리
+// redirect 로그인 결과 처리 — 모바일에서 Google 페이지 후 돌아왔을 때
 auth.getRedirectResult().then(result=>{
-  if(result&&result.user) closeAuthModal();
-}).catch(e=>{ if(e.code) console.log('redirect 결과:',e.code); });
+  if(result && result.user){
+    closeAuthModal();
+    showToast('로그인됐어요! 🌿');
+  }
+}).catch(e=>{
+  if(e.code && e.code !== 'auth/no-current-user'){
+    console.log('redirect 결과 에러:', e.code, e.message);
+    // credential 에러는 무시 (정상 흐름)
+    if(e.code !== 'auth/credential-already-in-use'){
+      showToast('로그인 중 오류가 발생했어요.');
+    }
+  }
+});
 
 auth.onAuthStateChanged(user=>{
   curUser=user;

@@ -11,11 +11,11 @@
 
 /* ── 토글 버튼 (ON/OFF) ── */
 .tree-toggle-btn{
-  position:absolute;top:12px;right:12px;z-index:10;
-  display:flex;align-items:center;gap:6px;
-  background:rgba(0,0,0,0.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:20px;padding:5px 10px 5px 8px;
+  position:absolute;top:10px;right:10px;z-index:10;
+  display:flex;align-items:center;
+  background:rgba(0,0,0,0.4);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:4px;
   cursor:pointer;
   touch-action:manipulation;
   transition:all .2s;
@@ -27,7 +27,7 @@
   position:relative;transition:background .25s;
   flex-shrink:0;
 }
-.tree-toggle-btn.is-on .tree-toggle-track{background:rgba(200,168,96,0.7);}
+.tree-toggle-btn.is-on .tree-toggle-track{background:rgba(200,168,96,0.75);}
 .tree-toggle-thumb{
   position:absolute;top:2px;left:2px;
   width:14px;height:14px;border-radius:50%;
@@ -36,13 +36,6 @@
   box-shadow:0 1px 4px rgba(0,0,0,0.3);
 }
 .tree-toggle-btn.is-on .tree-toggle-thumb{transform:translateX(14px);}
-.tree-toggle-label{
-  font-size:11px;font-weight:600;letter-spacing:.06em;
-  color:rgba(255,255,255,0.55);
-  font-family:'JetBrains Mono',monospace;
-  min-width:20px;
-}
-.tree-toggle-btn.is-on .tree-toggle-label{color:rgba(200,168,96,.9);}
 
 /* ── 닫힌 상태 공통 바 ── */
 .tree-collapsed-bar{

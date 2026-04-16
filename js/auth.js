@@ -146,22 +146,33 @@ async function inviteFriend(){
 
 /* ── Google 로그인 / 로그아웃 ── */
 async function signInGoogle(){
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const btn = document.querySelector('.auth-btn-google');
+  if(btn){ btn.disabled=true; btn.style.opacity='0.6'; }
   try{
-    if(isMobile){
-      // 모바일: redirect 방식 (popup은 모바일에서 자동 차단됨)
-      await auth.signInWithRedirect(googleProvider);
-    } else {
-      // 데스크탑: popup 우선
-      await auth.signInWithPopup(googleProvider);
-      closeAuthModal();
-    }
+    // popup 방식 — 모바일 포함 대부분 작동 (사용자 제스처 직후 호출 시)
+    await auth.signInWithPopup(googleProvider);
+    closeAuthModal();
   }catch(e){
-    if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment'){
-      await auth.signInWithRedirect(googleProvider);
-    } else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){
-      showToast('로그인 실패: '+e.message);
+    // popup 차단/미지원 시 redirect fallback
+    if(
+      e.code==='auth/popup-blocked' ||
+      e.code==='auth/operation-not-supported-in-this-environment' ||
+      e.code==='auth/popup-closed-by-user' === false && e.message && e.message.includes('popup')
+    ){
+      try{
+        await auth.signInWithRedirect(googleProvider);
+      }catch(e2){
+        showToast('로그인을 시작합니다...');
+      }
+    } else if(
+      e.code!=='auth/popup-closed-by-user' &&
+      e.code!=='auth/cancelled-popup-request'
+    ){
+      showToast('로그인 실패. 다시 시도해주세요.');
+      console.error('로그인 에러:', e.code, e.message);
     }
+  } finally {
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
   }
 }
 async function signOut(){
