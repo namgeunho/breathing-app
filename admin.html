@@ -208,6 +208,10 @@ tr:hover td{background:var(--bg);}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
           칼럼 관리
         </div>
+        <div class="nav-item" onclick="showPage('columnists',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          칼럼리스트
+        </div>
         <div class="nav-item" onclick="showPage('sounds',this)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
           사운드 관리
@@ -296,11 +300,24 @@ tr:hover td{background:var(--bg);}
 
       <!-- 칼럼 -->
       <div id="columnsPage" class="page-section">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:1rem;">
+          <button class="btn btn-outline btn-sm" onclick="showPage('columnists',document.querySelector('[onclick*=columnists]'))">칼럼리스트 관리</button>
           <button class="btn btn-primary btn-sm" onclick="openColumnModal()">+ 새 칼럼</button>
         </div>
         <div class="card">
           <div class="card-body table-wrap" id="columnTableWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 칼럼리스트 -->
+      <div id="columnistsPage" class="page-section">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn btn-primary btn-sm" onclick="openColumnistModal()">+ 새 칼럼리스트 등록</button>
+        </div>
+        <div class="card">
+          <div class="card-body" id="columnistListWrap">
             <div class="loading">불러오는 중...</div>
           </div>
         </div>
@@ -486,10 +503,74 @@ tr:hover td{background:var(--bg);}
         <label class="form-label">카테고리</label>
         <input class="form-input" id="columnCategory" placeholder="예: 건강, 명상, 호흡법">
       </div>
+      <div class="form-group">
+        <label class="form-label">칼럼리스트 연결</label>
+        <select class="form-select" id="columnColumnist">
+          <option value="">없음 (칼럼리스트 미지정)</option>
+        </select>
+        <div class="form-hint">칼럼 하단에 작성자 정보가 표시됩니다.</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeModal('columnModal')">취소</button>
       <button class="btn btn-primary btn-sm" onclick="saveColumn()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 칼럼리스트 모달 -->
+<div class="modal-overlay" id="columnistModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="columnistModalTitle">새 칼럼리스트 등록</div>
+      <button class="modal-close" onclick="closeModal('columnistModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">프로필 사진</label>
+        <div class="img-upload-area" id="columnistPhotoArea" onclick="document.getElementById('columnistPhotoFile').click()" style="max-width:140px;aspect-ratio:1;border-radius:50%;overflow:hidden;">
+          <img id="columnistPhotoPreview" class="img-preview" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+          <div id="columnistPhotoPlaceholder" style="padding:1.5rem;text-align:center;">
+            <div class="img-upload-icon">👤</div>
+            <div class="img-upload-hint" style="font-size:11px;">사진 선택</div>
+          </div>
+        </div>
+        <input type="file" id="columnistPhotoFile" accept="image/*" style="display:none;" onchange="previewColumnistPhoto(event)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">이름 *</label>
+        <input class="form-input" id="columnistName" placeholder="칼럼리스트 이름">
+      </div>
+      <div class="form-group">
+        <label class="form-label">닉네임</label>
+        <input class="form-input" id="columnistNickname" placeholder="@닉네임 (선택)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">한 줄 소개</label>
+        <input class="form-input" id="columnistBio" placeholder="예: 호흡 전문가 · 명상 코치">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SNS 링크</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;width:24px;text-align:center;">📝</span>
+            <input class="form-input" id="columnistBlog" placeholder="블로그 URL (선택)" style="flex:1;">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;width:24px;text-align:center;">📸</span>
+            <input class="form-input" id="columnistInsta" placeholder="인스타그램 URL 또는 @아이디 (선택)" style="flex:1;">
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;width:24px;text-align:center;">▶️</span>
+            <input class="form-input" id="columnistYoutube" placeholder="유튜브 채널 URL (선택)" style="flex:1;">
+          </div>
+        </div>
+        <div class="form-hint">인스타그램은 @아이디만 입력해도 됩니다. 예) @brethin_official</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('columnistModal')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveColumnist()">저장</button>
     </div>
   </div>
 </div>
@@ -656,19 +737,29 @@ function changePassword() {
 }
 
 /* ── 페이지 이동 ── */
-const pageTitles = { dashboard:'대시보드', notices:'공지사항', banners:'배너 관리', columns:'칼럼 관리', sounds:'사운드 관리', guide:'이용가이드', settings:'계정 설정' };
+const pageTitles = { dashboard:'대시보드', notices:'공지사항', banners:'배너 관리', columns:'칼럼 관리', columnists:'칼럼리스트', sounds:'사운드 관리', guide:'이용가이드', settings:'계정 설정' };
 function showPage(id, el) {
   document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(id+'Page').classList.add('active');
   if (el) el.classList.add('active');
   document.getElementById('mainTitle').textContent = pageTitles[id] || id;
-  if (id==='dashboard') loadDashboard();
-  if (id==='notices')   loadNotices();
-  if (id==='banners')   loadBanners();
-  if (id==='columns')   loadColumns();
-  if (id==='sounds')    loadSoundsAdmin();
-  if (id==='guide')     loadGuideAdmin();
+  if (id==='dashboard')   loadDashboard();
+  if (id==='notices')     loadNotices();
+  if (id==='banners')     loadBanners();
+  if (id==='columns')     { loadColumnistsCached(); loadColumns(); }
+  if (id==='columnists')  loadColumnists();
+  if (id==='sounds')      loadSoundsAdmin();
+  if (id==='guide')       loadGuideAdmin();
+}
+
+// 칼럼 페이지 진입 시 칼럼리스트 캐시 로드
+async function loadColumnistsCached(){
+  if(_columnists.length) return;
+  try{
+    const snap=await db.collection('columnists').orderBy('name').get();
+    _columnists=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){}
 }
 
 /* ── 대시보드 ── */
@@ -849,31 +940,162 @@ function deleteBanner(id, imagePath) {
 }
 
 /* ── 칼럼 ── */
+/* ── 칼럼리스트 관리 ── */
+let columnistPhotoFile = null;
+let columnistPhotoData = null;
+let columnistEditingId = null;
+let _columnists = []; // 캐시
+
+async function loadColumnists() {
+  const wrap = document.getElementById('columnistListWrap');
+  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+  try {
+    const snap = await db.collection('columnists').orderBy('createdAt','desc').get();
+    _columnists = snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!_columnists.length){
+      wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">등록된 칼럼리스트가 없습니다</div></div>';
+      return;
+    }
+    wrap.innerHTML = _columnists.map(c=>`
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bg3,#f1f3f5);">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--bg3,#f1f3f5);flex-shrink:0;overflow:hidden;border:1px solid var(--bd);">
+          ${c.photoUrl?`<img src="${c.photoUrl}" style="width:100%;height:100%;object-fit:cover;">`:
+          `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">👤</div>`}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:2px;">${eh(c.name)}${c.nickname?` <span style="font-size:12px;color:var(--text2);">@${eh(c.nickname)}</span>`:''}  </div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:5px;">${eh(c.bio||'')}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${c.blog?`<a href="${eh(c.blog)}" target="_blank" style="font-size:11px;color:var(--primary);">📝 블로그</a>`:''}
+            ${c.insta?`<a href="${c.insta.startsWith('http')?eh(c.insta):'https://instagram.com/'+c.insta.replace('@','')}" target="_blank" style="font-size:11px;color:var(--primary);">📸 인스타</a>`:''}
+            ${c.youtube?`<a href="${eh(c.youtube)}" target="_blank" style="font-size:11px;color:var(--primary);">▶️ 유튜브</a>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="btn btn-outline btn-sm" onclick="editColumnist('${c.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteColumnist('${c.id}')">삭제</button>
+        </div>
+      </div>`).join('');
+  } catch(e) { wrap.innerHTML='<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; }
+}
+
+function openColumnistModal() {
+  columnistEditingId=null; columnistPhotoFile=null; columnistPhotoData=null;
+  document.getElementById('columnistModalTitle').textContent='새 칼럼리스트 등록';
+  ['columnistName','columnistNickname','columnistBio','columnistBlog','columnistInsta','columnistYoutube'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('columnistPhotoPreview').style.display='none';
+  document.getElementById('columnistPhotoPlaceholder').style.display='block';
+  document.getElementById('columnistModal').classList.add('open');
+}
+
+function editColumnist(id) {
+  columnistEditingId=id; columnistPhotoFile=null;
+  const c = _columnists.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('columnistModalTitle').textContent='칼럼리스트 수정';
+  document.getElementById('columnistName').value=c.name||'';
+  document.getElementById('columnistNickname').value=c.nickname||'';
+  document.getElementById('columnistBio').value=c.bio||'';
+  document.getElementById('columnistBlog').value=c.blog||'';
+  document.getElementById('columnistInsta').value=c.insta||'';
+  document.getElementById('columnistYoutube').value=c.youtube||'';
+  if(c.photoUrl){
+    columnistPhotoData=c.photoUrl;
+    document.getElementById('columnistPhotoPreview').src=c.photoUrl;
+    document.getElementById('columnistPhotoPreview').style.display='block';
+    document.getElementById('columnistPhotoPlaceholder').style.display='none';
+  } else {
+    document.getElementById('columnistPhotoPreview').style.display='none';
+    document.getElementById('columnistPhotoPlaceholder').style.display='block';
+  }
+  document.getElementById('columnistModal').classList.add('open');
+}
+
+function previewColumnistPhoto(e) {
+  const file=e.target.files[0];if(!file)return;
+  columnistPhotoFile=file;
+  const r=new FileReader();r.onload=ev=>{
+    columnistPhotoData=ev.target.result;
+    document.getElementById('columnistPhotoPreview').src=columnistPhotoData;
+    document.getElementById('columnistPhotoPreview').style.display='block';
+    document.getElementById('columnistPhotoPlaceholder').style.display='none';
+  };r.readAsDataURL(file);
+}
+
+function saveColumnist() {
+  const name=document.getElementById('columnistName').value.trim();
+  const nickname=document.getElementById('columnistNickname').value.trim().replace('@','');
+  const bio=document.getElementById('columnistBio').value.trim();
+  const blog=document.getElementById('columnistBlog').value.trim();
+  const insta=document.getElementById('columnistInsta').value.trim();
+  const youtube=document.getElementById('columnistYoutube').value.trim();
+  if(!name){alert('이름을 입력하세요.');return;}
+
+  const doSave=(photoUrl,photoPath)=>{
+    const data={name,nickname,bio,blog,insta,youtube};
+    if(photoUrl) data.photoUrl=photoUrl;
+    if(photoPath) data.photoPath=photoPath;
+    if(columnistEditingId){
+      data.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+      return db.collection('columnists').doc(columnistEditingId).update(data);
+    } else {
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      return db.collection('columnists').add(data);
+    }
+  };
+  const finish=()=>{showAlert(columnistEditingId?'수정됐습니다!':'등록됐습니다!');closeModal('columnistModal');loadColumnists();};
+  if(columnistPhotoFile){
+    const sRef=storage.ref(`columnists/${Date.now()}_${columnistPhotoFile.name}`);
+    sRef.put(columnistPhotoFile).then(()=>sRef.getDownloadURL()).then(dlUrl=>doSave(dlUrl,sRef.fullPath)).then(finish).catch(e=>alert('저장 실패: '+e.message));
+  } else {
+    doSave(columnistPhotoData&&columnistPhotoData.startsWith('http')?columnistPhotoData:'','').then(finish).catch(e=>alert('저장 실패: '+e.message));
+  }
+}
+
+function deleteColumnist(id) {
+  if(!confirm('이 칼럼리스트를 삭제하시겠습니까?'))return;
+  db.collection('columnists').doc(id).delete().then(()=>{showAlert('삭제됐습니다.');loadColumnists();});
+}
+
+// 칼럼 모달 열기 시 칼럼리스트 셀렉트 로드
+async function loadColumnistSelect(selectedId) {
+  const sel=document.getElementById('columnColumnist');
+  sel.innerHTML='<option value="">없음 (칼럼리스트 미지정)</option>';
+  try{
+    if(!_columnists.length){
+      const snap=await db.collection('columnists').orderBy('name').get();
+      _columnists=snap.docs.map(d=>({id:d.id,...d.data()}));
+    }
+    _columnists.forEach(c=>{
+      const opt=document.createElement('option');
+      opt.value=c.id;
+      opt.textContent=c.name+(c.nickname?` (@${c.nickname})`:'');
+      if(c.id===selectedId) opt.selected=true;
+      sel.appendChild(opt);
+    });
+  }catch(e){}
+}
+
+/* ── 칼럼 관리 (칼럼리스트 연동) ── */
 function loadColumns() {
   const wrap=document.getElementById('columnTableWrap');
   wrap.innerHTML='<div class="loading">불러오는 중...</div>';
   db.collection('columns').orderBy('createdAt','desc').get().then(snap=>{
     if (snap.empty){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">등록된 칼럼이 없습니다</div></div>';return;}
-    wrap.innerHTML=`<table><thead><tr><th>제목</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`<tr>
-      <td style="max-width:280px;"><div style="font-weight:500;">${eh(d.data().title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(d.data().subtitle||'')}</div></td>
-      <td><span class="badge badge-gray">${eh(d.data().category||'일반')}</span></td>
-      <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
-      <td><div style="display:flex;gap:6px;">
-        <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
-      </div></td></tr>`).join('')}</tbody></table>`;
+    wrap.innerHTML=`<table><thead><tr><th>제목</th><th>칼럼리스트</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>{
+      const v=d.data();
+      const cInfo = v.columnistId ? (_columnists.find(c=>c.id===v.columnistId)||null) : null;
+      return `<tr>
+        <td style="max-width:220px;"><div style="font-weight:500;">${eh(v.title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(v.subtitle||'')}</div></td>
+        <td style="font-size:13px;">${cInfo?`<div style="display:flex;align-items:center;gap:6px;">${cInfo.photoUrl?`<img src="${cInfo.photoUrl}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">`:''}<span>${eh(cInfo.name)}</span></div>`:'<span style="color:var(--text2);font-size:12px;">—</span>'}</td>
+        <td><span class="badge badge-gray">${eh(v.category||'일반')}</span></td>
+        <td style="color:var(--text2);font-size:13px;">${fmtDate(v.createdAt)}</td>
+        <td><div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
+        </div></td></tr>`;
+    }).join('')}</tbody></table>`;
   }).catch(()=>{wrap.innerHTML='<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>';});
-}
-
-function previewColThumb(e) {
-  const file=e.target.files[0];if(!file)return;
-  colThumbFile=file;
-  const r=new FileReader();r.onload=ev=>{
-    colThumbData=ev.target.result;
-    document.getElementById('colThumbPreview').src=colThumbData;
-    document.getElementById('colThumbPreview').style.display='block';
-    document.getElementById('colThumbPlaceholder').style.display='none';
-  };r.readAsDataURL(file);
 }
 
 function openColumnModal() {
@@ -882,6 +1104,7 @@ function openColumnModal() {
   ['columnTitle','columnSubtitle','columnContent','columnCategory'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('colThumbPreview').style.display='none';
   document.getElementById('colThumbPlaceholder').style.display='block';
+  loadColumnistSelect('');
   document.getElementById('columnModal').classList.add('open');
 }
 
@@ -897,6 +1120,7 @@ function editColumn(id) {
     document.getElementById('columnCategory').value=v.category||'';
     if(v.thumbUrl){colThumbData=v.thumbUrl;document.getElementById('colThumbPreview').src=v.thumbUrl;document.getElementById('colThumbPreview').style.display='block';document.getElementById('colThumbPlaceholder').style.display='none';}
     else{document.getElementById('colThumbPreview').style.display='none';document.getElementById('colThumbPlaceholder').style.display='block';}
+    loadColumnistSelect(v.columnistId||'');
     document.getElementById('columnModal').classList.add('open');
   });
 }
@@ -906,14 +1130,22 @@ function saveColumn() {
   const subtitle=document.getElementById('columnSubtitle').value.trim();
   const content=document.getElementById('columnContent').value.trim();
   const category=document.getElementById('columnCategory').value.trim();
+  const columnistId=document.getElementById('columnColumnist').value;
   if(!title||!content){alert('제목과 내용을 입력하세요.');return;}
+  // 칼럼리스트 정보 스냅샷 (앱에서 바로 쓸 수 있게)
+  const cInfo = columnistId ? (_columnists.find(c=>c.id===columnistId)||null) : null;
+  const columnistSnap = cInfo ? {id:cInfo.id,name:cInfo.name,nickname:cInfo.nickname||'',bio:cInfo.bio||'',photoUrl:cInfo.photoUrl||'',blog:cInfo.blog||'',insta:cInfo.insta||'',youtube:cInfo.youtube||''} : null;
+
   const doSave=(thumbUrl,thumbPath)=>{
+    const data={title,subtitle,content,category,columnistId:columnistId||'',columnistSnap:columnistSnap||null};
     if(editingId){
-      const upd={title,subtitle,content,category,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-      if(thumbUrl)upd.thumbUrl=thumbUrl;if(thumbPath)upd.thumbPath=thumbPath;
-      return db.collection('columns').doc(editingId).update(upd);
+      data.updatedAt=firebase.firestore.FieldValue.serverTimestamp();
+      if(thumbUrl){data.thumbUrl=thumbUrl;data.thumbPath=thumbPath;}
+      return db.collection('columns').doc(editingId).update(data);
     } else {
-      return db.collection('columns').add({title,subtitle,content,category,thumbUrl:thumbUrl||'',thumbPath:thumbPath||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      data.thumbUrl=thumbUrl||'';data.thumbPath=thumbPath||'';
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      return db.collection('columns').add(data);
     }
   };
   const finish=()=>{showAlert(editingId?'칼럼이 수정됐습니다!':'칼럼이 등록됐습니다!');closeModal('columnModal');loadColumns();loadDashboard();};
