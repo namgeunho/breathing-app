@@ -45,7 +45,7 @@ async function loadBanner() {
         }
         return true;
       })
-      .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0))
+      .sort((a,b) => ((b.createdAt&&b.createdAt.seconds)||0) - ((a.createdAt&&a.createdAt.seconds)||0))
       .slice(0, 3);
     if (_banners.length) renderBanners();
   } catch(e) { console.log('배너 로드 실패:', e.message); }
@@ -155,7 +155,7 @@ async function loadColumns() {
     const snap=await db.collection('columns').get();
     _columns=snap.docs
       .map(d=>({id:d.id,...d.data()}))
-      .sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+      .sort((a,b)=>((b.createdAt&&b.createdAt.seconds)||0)-((a.createdAt&&a.createdAt.seconds)||0));
     spinner.style.display='none';
     const btn=document.getElementById('colBtnAll');
     if(btn)btn.classList.add('act');

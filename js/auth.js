@@ -146,13 +146,18 @@ async function inviteFriend(){
 
 /* ── Google 로그인 / 로그아웃 ── */
 async function signInGoogle(){
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   try{
-    // popup 우선 시도, 실패 시 redirect fallback
-    await auth.signInWithPopup(googleProvider);
-    closeAuthModal();
+    if(isMobile){
+      // 모바일: redirect 방식 (popup은 모바일에서 자동 차단됨)
+      await auth.signInWithRedirect(googleProvider);
+    } else {
+      // 데스크탑: popup 우선
+      await auth.signInWithPopup(googleProvider);
+      closeAuthModal();
+    }
   }catch(e){
     if(e.code==='auth/popup-blocked'||e.code==='auth/operation-not-supported-in-this-environment'){
-      // popup이 차단된 경우 redirect 방식으로 전환
       await auth.signInWithRedirect(googleProvider);
     } else if(e.code!=='auth/popup-closed-by-user'&&e.code!=='auth/cancelled-popup-request'){
       showToast('로그인 실패: '+e.message);

@@ -13,10 +13,11 @@
 .tree-toggle-btn{
   position:absolute;top:12px;right:12px;z-index:10;
   display:flex;align-items:center;gap:6px;
-  background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);
+  background:rgba(0,0,0,0.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   border:1px solid rgba(255,255,255,0.12);
   border-radius:20px;padding:5px 10px 5px 8px;
   cursor:pointer;
+  touch-action:manipulation;
   transition:all .2s;
 }
 .tree-toggle-btn:hover{background:rgba(0,0,0,0.6);}
@@ -51,6 +52,7 @@
   position:relative;z-index:2;
   gap:10px;
   cursor:pointer;
+  touch-action:manipulation;
 }
 .tree-collapsed-stars{
   position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:14px;
@@ -163,7 +165,7 @@
 /* 나무 탭 메시지 */
 .tree-msg{
   position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  background:rgba(0,0,0,0.65);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   border:1px solid rgba(255,255,255,0.12);
   border-radius:20px;padding:8px 16px;
   font-size:12px;color:rgba(255,255,255,0.85);
@@ -274,7 +276,7 @@
 /* 나무 탭 메시지 */
 .tree-msg{
   position:absolute;bottom:48px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  background:rgba(0,0,0,0.65);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   border:1px solid rgba(255,255,255,0.12);
   border-radius:20px;padding:8px 16px;
   font-size:12px;color:rgba(255,255,255,0.85);

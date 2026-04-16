@@ -1,4 +1,4 @@
-const CACHE = 'brethin-v4';
+const CACHE = 'brethin-v5';
 
 // index.html은 항상 네트워크 우선
 const NETWORK_FIRST = ['index.html', '/'];
@@ -13,6 +13,7 @@ const CACHE_FIRST = [
   'https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js',
   'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js',
+  'https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js',
   'https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js',
   'https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',

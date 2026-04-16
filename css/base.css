@@ -1,7 +1,7 @@
 /* ── base.css — 기본 레이아웃, 모든 컴포넌트 스타일
 ── */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent;overflow-x:hidden;transition:background 0.2s,color 0.2s;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent;overflow-x:hidden;transition:background 0.2s,color 0.2s;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .wrap{padding:env(safe-area-inset-top,16px) 1rem 0;max-width:520px;margin:0 auto;position:relative;}
 .app-title-bar{text-align:center;padding:14px 0 10px;margin-bottom:10px;}
 .app-title{font-size:30px;font-weight:700;font-family:'Playfair Display',serif;color:var(--text);letter-spacing:0.12em;}
@@ -39,7 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pni:focus{outline:none;border-color:var(--info-bd);}
 .row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}.row:last-child{margin-bottom:0;}
 .lbl{font-size:14px;color:var(--text2);width:82px;flex-shrink:0;}
-.row input[type=range]{flex:1;accent-color:var(--info);}
+.row input[type=range]{flex:1;accent-color:var(--info);touch-action:pan-x;}
 .val{font-size:14px;font-weight:500;color:var(--text);width:44px;text-align:right;flex-shrink:0;}
 .divl{height:0.5px;background:var(--bd);margin:14px 0;}
 .sndrow{display:flex;align-items:center;justify-content:space-between;}
@@ -73,7 +73,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sn{font-size:18px;font-weight:600;color:var(--text);}
 .sl2{font-size:11px;color:var(--text2);margin-top:2px;}
 .br{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-button{font-size:14px;padding:10px 24px;border-radius:8px;border:0.5px solid var(--bd);background:transparent;color:var(--text);cursor:pointer;font-family:inherit;}
+button{font-size:14px;padding:10px 24px;border-radius:8px;border:0.5px solid var(--bd);background:transparent;color:var(--text);cursor:pointer;font-family:inherit;-webkit-appearance:none;appearance:none;touch-action:manipulation;}
 button:hover{background:var(--bg2);}
 button:active{transform:scale(0.98);}
 .bp{background:var(--info-bg);color:var(--info);border-color:var(--info-bd);}
@@ -321,7 +321,7 @@ textarea.mi:focus{outline:none;border-color:var(--info-bd);}
 .auth-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,0.65);
   z-index:300;display:flex;align-items:center;justify-content:center;
-  padding:24px;backdrop-filter:blur(4px);
+  padding:24px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
 }
 .auth-sheet{
   background:var(--bg);border-radius:20px;
