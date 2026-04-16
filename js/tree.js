@@ -629,7 +629,7 @@ function openTreeStory(){
 
     if(unlocked){
       // 달성 카드 — SVG + 스토리 풀 표시
-      const svgHtml = getTreeSVG(stageNum, null, 100);
+      const svgHtml = getTreeSVG(stageNum, null, 80);
       const tpText  = stageNum === 1 ? '시작' : `${st.tpReq.toLocaleString()} TP~`;
       const isCur   = stageNum === curStage;
       return `
