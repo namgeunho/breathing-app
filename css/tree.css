@@ -323,12 +323,14 @@
 .tree-story-overlay{
   position:fixed;inset:0;z-index:400;
   background:rgba(0,0,0,0.75);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  display:flex;align-items:flex-end;justify-content:center;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  display:none;  /* JS로만 열림 */
+  align-items:flex-end;justify-content:center;
   padding:0;
 }
 .tree-story-modal{
   background:#0a080e;
+  color:#e0dcd0;
   border-radius:20px 20px 0 0;
   width:100%;max-width:520px;
   max-height:90vh;
@@ -394,12 +396,13 @@
 .tsc-visual svg{position:relative;z-index:1;}
 .tsc-info{
   padding:12px 14px 14px;
-  position:relative;z-index:1;
+  position:relative;z-index:2;
   background:#12101a;
+  color:#e0dcd0;  /* 명시적 텍스트 색상 */
 }
 .tsc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .tsc-num{
-  font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,.25);
+  font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,.3);
   font-family:'JetBrains Mono',monospace;text-transform:uppercase;
 }
 .tsc-tp{
@@ -412,21 +415,25 @@
   text-shadow:0 0 20px currentColor;
 }
 .tsc-en{
-  font-size:10px;letter-spacing:.08em;opacity:.45;
+  font-size:10px;letter-spacing:.08em;
+  color:rgba(224,220,208,.4);
   font-family:'JetBrains Mono',monospace;margin-bottom:8px;
+  display:block;
 }
 .tsc-lore{
-  font-size:12px;color:rgba(224,220,208,.55);
+  font-size:13px;color:rgba(224,220,208,.7);
   line-height:1.7;font-style:italic;
-  border-left:2px solid rgba(200,168,96,.2);
+  border-left:2px solid rgba(200,168,96,.25);
   padding-left:10px;
+  display:block;
 }
 .tsc-unlocks{
   display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;
 }
 .tsc-tag{
-  font-size:10px;padding:2px 8px;border-radius:8px;
-  background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);
+  font-size:11px;padding:3px 9px;border-radius:8px;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);
+  display:inline-block;
 }
 
 /* 스토리 카드 — 잠금 */
