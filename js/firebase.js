@@ -170,9 +170,31 @@ async function showColDetail(i) {
   try{await db.collection('columns').doc(c.id).update({views:(c.views||0)+1});c.views=(c.views||0)+1;}catch(e){}
   const appUrl=window.location.href.split('?')[0];
   const bm=isBookmarked(c.id);
-  // 대표이미지 (thumbUrl이 http로 시작하는 경우만 표시)
   const thumbHtml=c.thumbUrl&&c.thumbUrl.startsWith('http')
     ?`<img src="${c.thumbUrl}" alt="" style="width:100%;border-radius:10px;object-fit:cover;max-height:200px;margin-bottom:1.25rem;display:block;">`:'';
+
+  // 칼럼리스트 카드 생성
+  const cs = c.columnistSnap;
+  const columnistHtml = cs && cs.name ? `
+    <div style="margin-top:1.5rem;padding:14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;">
+      <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">칼럼리스트</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--bg3);flex-shrink:0;overflow:hidden;border:1px solid var(--bd);">
+          ${cs.photoUrl?`<img src="${cs.photoUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:
+          `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px;">👤</div>`}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text);">${eh(cs.name)}${cs.nickname?` <span style="font-size:12px;color:var(--text3);font-weight:400;">@${eh(cs.nickname)}</span>`:''}</div>
+          ${cs.bio?`<div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(cs.bio)}</div>`:''}
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+            ${cs.blog?`<a href="${eh(cs.blog)}" target="_blank" style="font-size:12px;color:var(--info);display:flex;align-items:center;gap:3px;"><span>📝</span> 블로그</a>`:''}
+            ${cs.insta?`<a href="${cs.insta.startsWith('http')?eh(cs.insta):'https://instagram.com/'+cs.insta.replace('@','')}" target="_blank" style="font-size:12px;color:var(--info);display:flex;align-items:center;gap:3px;"><span>📸</span> 인스타그램</a>`:''}
+            ${cs.youtube?`<a href="${eh(cs.youtube)}" target="_blank" style="font-size:12px;color:var(--info);display:flex;align-items:center;gap:3px;"><span>▶️</span> 유튜브</a>`:''}
+          </div>
+        </div>
+      </div>
+    </div>` : '';
+
   document.getElementById('colDetailContent').innerHTML=`
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
       <div style="flex:1;">
@@ -190,7 +212,8 @@ async function showColDetail(i) {
     </div>
     ${thumbHtml}
     <div class="col-body" style="line-height:1.8;">${renderContent(c.content)}</div>
-    <div style="display:flex;justify-content:flex-end;padding-top:1rem;border-top:0.5px solid var(--bd);margin-top:1.5rem;">
+    ${columnistHtml}
+    <div style="display:flex;justify-content:flex-end;padding-top:1rem;border-top:0.5px solid var(--bd);margin-top:1rem;">
       <button class="col-action-btn" onclick="shareCol('${eh(c.title)}','${appUrl}?col=${c.id}')">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
         공유하기

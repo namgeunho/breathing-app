@@ -126,10 +126,10 @@
       </div>
 
       <!-- 열린 상태: 로그인 -->
-      <div id="treeLoggedIn" style="display:none;" onclick="onTreeTap()">
-        <div class="tree-stage-area" id="treeSvgArea"></div>
+      <div id="treeLoggedIn" style="display:none;">
+        <div class="tree-stage-area" id="treeSvgArea" onclick="onTreeTap()"></div>
         <div class="tree-info-bar">
-          <div class="tree-name" id="treeName" onclick="event.stopPropagation();openTreeStory()">숨씨앗</div>
+          <div class="tree-name" id="treeName" onclick="openTreeStory()">숨씨앗</div>
           <div class="tree-tp-bar-wrap">
             <div class="tree-tp-label" id="treeTPLabel">0 / 50 TP</div>
             <div class="tree-tp-bar"><div class="tree-tp-fill" id="treeTPFill" style="width:0%"></div></div>

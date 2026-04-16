@@ -380,12 +380,23 @@
   display:flex;justify-content:center;align-items:flex-end;
   padding:20px 16px 8px;
   min-height:130px;
-  position:relative;
+  position:relative;  /* tsc-bg의 기준 */
+  overflow:hidden;
 }
 .tsc-bg{
-  position:absolute;inset:0;border-radius:14px 14px 0 0;
+  position:absolute;inset:0; /* tsc-visual 기준으로만 */
+  border-radius:0;
+  z-index:0;
 }
-.tsc-info{padding:12px 14px 14px;}
+.tsc-visual > *:not(.tsc-bg){
+  position:relative;z-index:1;
+}
+.tsc-visual svg{position:relative;z-index:1;}
+.tsc-info{
+  padding:12px 14px 14px;
+  position:relative;z-index:1;
+  background:#12101a;
+}
 .tsc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .tsc-num{
   font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,.25);
