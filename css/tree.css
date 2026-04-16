@@ -376,33 +376,20 @@
   border-radius:14px;overflow:hidden;
   border:1px solid rgba(255,255,255,.06);
   background:#12101a;
-  position:relative;
 }
 .tsc-visual{
   display:flex;justify-content:center;align-items:flex-end;
-  padding:20px 16px 8px;
-  min-height:130px;
-  position:relative;  /* tsc-bg의 기준 */
-  overflow:hidden;
+  padding:20px 16px 12px;
+  min-height:140px;
 }
-.tsc-bg{
-  position:absolute;inset:0; /* tsc-visual 기준으로만 */
-  border-radius:0;
-  z-index:0;
-}
-.tsc-visual > *:not(.tsc-bg){
-  position:relative;z-index:1;
-}
-.tsc-visual svg{position:relative;z-index:1;}
 .tsc-info{
-  padding:12px 14px 14px;
-  position:relative;z-index:2;
+  padding:14px 14px 16px;
   background:#12101a;
-  color:#e0dcd0;  /* 명시적 텍스트 색상 */
+  color:#e0dcd0;
 }
-.tsc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.tsc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .tsc-num{
-  font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,.3);
+  font-size:9px;letter-spacing:.15em;color:rgba(255,255,255,.35);
   font-family:'JetBrains Mono',monospace;text-transform:uppercase;
 }
 .tsc-tp{
@@ -411,28 +398,31 @@
 }
 .tsc-name{
   font-family:'Playfair Display',serif;
-  font-size:20px;line-height:1.1;margin-bottom:3px;
-  text-shadow:0 0 20px currentColor;
+  font-size:20px;line-height:1.15;margin-bottom:4px;
 }
 .tsc-en{
   font-size:10px;letter-spacing:.08em;
-  color:rgba(224,220,208,.4);
-  font-family:'JetBrains Mono',monospace;margin-bottom:8px;
+  color:rgba(224,220,208,.45);
+  font-family:'JetBrains Mono',monospace;
+  margin-bottom:10px;
   display:block;
 }
 .tsc-lore{
-  font-size:13px;color:rgba(224,220,208,.7);
-  line-height:1.7;font-style:italic;
-  border-left:2px solid rgba(200,168,96,.25);
+  font-size:13px;
+  color:rgba(224,220,208,.72);
+  line-height:1.75;
+  font-style:italic;
+  border-left:2px solid rgba(200,168,96,.3);
   padding-left:10px;
   display:block;
+  margin-bottom:2px;
 }
 .tsc-unlocks{
   display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;
 }
 .tsc-tag{
   font-size:11px;padding:3px 9px;border-radius:8px;
-  background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);
   display:inline-block;
 }
 

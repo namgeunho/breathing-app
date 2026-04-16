@@ -634,8 +634,7 @@ function openTreeStory(){
       const isCur   = stageNum === curStage;
       return `
         <div class="tsc" style="${isCur ? 'border-color:'+st.color+'44;box-shadow:0 0 20px '+st.color+'18;' : ''}">
-          <div class="tsc-visual">
-            <div class="tsc-bg" style="background:linear-gradient(180deg,${st.bgFrom} 0%,${st.bgTo} 100%);"></div>
+          <div class="tsc-visual" style="background:linear-gradient(180deg,${st.bgFrom} 0%,${st.bgTo} 100%);">
             ${svgHtml}
           </div>
           <div class="tsc-info">
