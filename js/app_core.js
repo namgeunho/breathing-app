@@ -97,7 +97,9 @@ function calcLv(s){
   }
 
   // 7일 이상 미훈련: 최고 달성 레벨에서 1단계 강등
-  if(lastGap >= 7){
+  // 단, 로그아웃 상태이거나 훈련 기록 자체가 없으면 강등 미적용
+  const hasAnyRecord = Object.keys(records).some(k => records[k]&&records[k].length>0);
+  if(lastGap >= 7 && hasAnyRecord && curUser){
     const maxLv = getMaxAchievedLv();
     const demotedLv = Math.max(0, maxLv - 1);
     const def = LV_DEF[demotedLv];
@@ -219,22 +221,38 @@ function showSub(menu){
   } else if(menu==='grade'){
     const s=calcStreak();const lv=calcLv(s);
     const lvList=[{n:0,l:'레벨 0',r:'0~9일',c:'#888780'},{n:1,l:'레벨 1',r:'10일~',c:'#185fa5'},{n:2,l:'레벨 2',r:'20일~',c:'#639922'},{n:3,l:'레벨 3',r:'40일~',c:'#BA7517'},{n:4,l:'레벨 4',r:'80일~',c:'#7F77DD'}];
-    // 숨나무 현재 단계
+
+    // 로그인 여부에 따라 표시 분기
+    const isLoggedIn = !!curUser;
     const treeSt = TREE_STAGES[treeData.stage-1];
     const treeNextSt = TREE_STAGES[treeData.stage] || null;
     const treePct = treeNextSt
       ? Math.min(100, Math.round(((treeData.tp - treeSt.tpReq) / (treeNextSt.tpReq - treeSt.tpReq)) * 100))
       : 100;
+
+    // TP 계산식 요약
+    const tpFormula = `
+    <div class="cfg-group-label" style="margin-top:1.5rem;">TP 계산 방식</div>
+    <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.9;">
+      <div><span style="color:var(--text);font-weight:500;">기본</span> · 훈련시간(분) × 1.5</div>
+      <div><span style="color:var(--text);font-weight:500;">시간 보너스</span> · 3분+2 / 5분+5 / 10분+12 / 15분+22 / 20분+35 / 25분+50</div>
+      <div><span style="color:var(--text);font-weight:500;">연속 보너스</span> · 연속일 × 0.3 (최대 20)</div>
+      <div><span style="color:var(--text);font-weight:500;">첫 훈련 보너스</span> · 오늘 첫 훈련 시 +5</div>
+      <div><span style="color:var(--text);font-weight:500;">감정 개선 보너스</span> · 훈련 전→후 개선 시 단계별 +3~+20</div>
+      <div><span style="color:var(--text);font-weight:500;">레벨 보너스</span> · 나의 레벨 × 3</div>
+    </div>`;
+
     sub.innerHTML=back+`
     <div class="pfc" style="margin-bottom:1rem;">
-      <div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일 · ${lv.desc}</div>
-      ${lv.demoted?`<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>`:''}
-      ${lv.next?`<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>`:''}
+      <div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일${isLoggedIn ? ' · '+lv.desc : ''}</div>
+      ${isLoggedIn && lv.demoted ? `<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>` : ''}
+      ${isLoggedIn && lv.next ? `<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>` : ''}
     </div>
     <div class="dp" style="margin-bottom:1.5rem;">
       <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>
-      ${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}
+      ${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${isLoggedIn && lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}
     </div>
+    ${isLoggedIn ? `
     <div class="cfg-group-label">숨나무 등급</div>
     <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -250,7 +268,7 @@ function showSub(menu){
       <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;">
         <div style="height:100%;width:${treePct}%;background:${treeSt.color};border-radius:2px;transition:width .6s;"></div>
       </div>
-      ${treeNextSt?`<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>`:''}
+      ${treeNextSt ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>` : ''}
     </div>
     <div class="dp">
       <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">숨나무는 꾸준한 훈련으로 성장합니다.</div>
@@ -265,7 +283,10 @@ function showSub(menu){
           </div>
           ${treeData.stage===st.id?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:treeData.stage>st.id?`<span style="font-size:12px;color:var(--text3);">✓ 달성</span>`:''}
         </div>`).join('')}
-    </div>`;
+    </div>
+    ${tpFormula}
+    ` : `<div style="font-size:13px;color:var(--text2);text-align:center;padding:1rem 0;">로그인하면 숨나무 등급을 확인할 수 있어요 🌱</div>`}
+    `;
   } else if(menu==='theme'){
     sub.innerHTML=back+`<div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;">테마 선택</div>
       <div class="theme-grid">
