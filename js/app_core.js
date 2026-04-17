@@ -125,7 +125,8 @@ function calcLv(s){
 }
 function avHtml(sz,fsz,fb){if(userPhoto)return`<img src="${userPhoto}" alt="" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;">`;return`<span style="font-size:${fsz}px;">${eh(fb)}</span>`;}
 function renderUserBar(){
-  const s=calcStreak();const lv=calcLv(s);const ini=userName.substring(0,2);
+  const s = curUser ? calcStreak() : 0;
+  const lv=calcLv(s);const ini=userName.substring(0,2);
   const lvSt={lv0:'background:var(--bg2);color:var(--text2)',lv1:'background:#e6f1fb;color:#185fa5',lv2:'background:#eaf3de;color:#3b6d11',lv3:'background:#faeeda;color:#854f0b',lv4:'background:linear-gradient(90deg,#7F77DD,#D4537E);color:#fff'};
   const nxt=lv.next?`목표 ${lv.next}일`:'최고 등급';
   const authBtn=curUser
@@ -134,7 +135,11 @@ function renderUserBar(){
   document.getElementById('userBar').innerHTML=`<div class="uba">${avHtml(28,11,ini)}</div><div class="ubi"><div class="ubn">${eh(userName)}</div></div><div class="ubd"></div><div class="ubi"><div class="ubv">${s}일</div><div class="ubl">연속 달성</div></div><div class="ubd"></div><div class="ubi"><span class="ubb" style="${lvSt[lv.cls]||lvSt.lv0}">${lv.name}</span><div class="ubl" style="margin-top:2px;">${nxt}</div></div>${authBtn}`;
 }
 
-function renderConfigMain(){const s=calcStreak();const lv=calcLv(s);const ini=userName.substring(0,2);document.getElementById('configMain').innerHTML=`
+function renderConfigMain(){
+  // 로그아웃 상태에서는 연속일·레벨을 0으로 표시
+  const s = curUser ? calcStreak() : 0;
+  const lv = calcLv(s);
+  const ini=userName.substring(0,2);document.getElementById('configMain').innerHTML=`
   <div class="pfc">
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;"><div class="av">${avHtml(56,22,ini)}</div><div><div style="font-size:17px;font-weight:500;color:var(--text);margin-bottom:6px;">${eh(userName)}</div><span class="lvb ${lv.cls}">${lv.name}</span>${curUser?`<div style="font-size:11px;color:var(--text3);margin-top:4px;">☁️ 클라우드 저장 중</div>`:''}</div></div>
     <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);"><span>연속 달성 ${s}일${lv.next?' / 목표 '+lv.next+'일':''}</span><span>${lv.desc}</span></div>
@@ -219,7 +224,8 @@ function showSub(menu){
       </div>
     </div>`;
   } else if(menu==='grade'){
-    const s=calcStreak();const lv=calcLv(s);
+    const s = curUser ? calcStreak() : 0;
+    const lv=calcLv(s);
     const lvList=[{n:0,l:'레벨 0',r:'0~9일',c:'#888780'},{n:1,l:'레벨 1',r:'10일~',c:'#185fa5'},{n:2,l:'레벨 2',r:'20일~',c:'#639922'},{n:3,l:'레벨 3',r:'40일~',c:'#BA7517'},{n:4,l:'레벨 4',r:'80일~',c:'#7F77DD'}];
 
     // 로그인 여부에 따라 표시 분기
