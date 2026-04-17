@@ -307,8 +307,54 @@ function cancelSettings(){
   // 편집창도 초기화
   tempPresets=[];tempManSt={};tempSelPI=-1;
 }function getPL(){const s=getAS();return[{name:'들숨',dur:s.inhale,gi:0},{name:'멈춤',dur:s.holdIn,gi:1},{name:'날숨',dur:s.exhale,gi:2},{name:'멈춤',dur:s.holdOut,gi:3}].filter(x=>x.dur>0);}
-function getScale(n,p,g){if(n==='들숨')return 1+p*0.8;if(n==='날숨')return 1.8-p*0.8;if(n==='멈춤')return g===1?1.8:1.0;return 1.0;}
-function tick(ts){if(!running)return;if(!lastTs)lastTs=ts;const dt=(ts-lastTs)/1000;lastTs=ts;totalElapsed+=dt;const tSec=parseInt(document.getElementById('duration').value)*60;if(totalElapsed>=tSec){totalElapsed=tSec;finish();return;}const list=getPL();if(!list.length)return;phaseTime+=dt;const ci=phase%list.length;const cur=list[ci];const prog=Math.min(phaseTime/cur.dur,1);if(ci!==prevPI){prevPI=ci;playPS(cur.name);}const rem=Math.max(0,cur.dur-phaseTime);document.getElementById('circle').style.transform=`translate(-50%,-50%) scale(${getScale(cur.name,prog,cur.gi)})`;document.getElementById('circle').style.background=pGrads[cur.gi];document.getElementById('phaseLabel').textContent=cur.name;document.getElementById('timerLabel').textContent=Math.ceil(rem)+'초';document.getElementById('progressFill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('elapsedDisplay').textContent=fmt(totalElapsed);document.getElementById('remainDisplay').textContent=fmt(tSec-totalElapsed);if(screenOff){document.getElementById('bs-phase').textContent=cur.name;document.getElementById('bs-timer').textContent=Math.ceil(rem);document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);}if(phaseTime>=cur.dur){phaseTime=0;phase++;if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}}raf=requestAnimationFrame(tick);}
+function getScale(name, prog, gi, prevName){
+  if(name==='들숨') return 1.0 + prog * 0.8;
+  if(name==='날숨') return 1.8 - prog * 0.8;
+  if(name==='멈춤'){
+    // 들숨 후 멈춤: 들숨 끝 크기(1.8) 유지
+    if(gi===1) return 1.8;
+    // 날숨 후 멈춤: 날숨 끝 크기(1.0) 유지
+    return 1.0;
+  }
+  return 1.0;
+}
+function tick(ts){
+  if(!running)return;
+  if(!lastTs)lastTs=ts;
+  const dt=(ts-lastTs)/1000;lastTs=ts;
+  totalElapsed+=dt;
+  const tSec=parseInt(document.getElementById('duration').value)*60;
+  if(totalElapsed>=tSec){totalElapsed=tSec;finish();return;}
+  const list=getPL();if(!list.length)return;
+  phaseTime+=dt;
+  const ci=phase%list.length;
+  const cur=list[ci];
+  const prog=Math.min(phaseTime/cur.dur,1);
+  // 페이즈 전환 감지 — 새 페이즈 시작 시 효과음
+  if(ci!==prevPI){prevPI=ci;playPS(cur.name);}
+  const rem=Math.max(0,cur.dur-phaseTime);
+  // scale: 현재 prog 기준
+  const sc=getScale(cur.name,prog,cur.gi);
+  document.getElementById('circle').style.transform=`translate(-50%,-50%) scale(${sc})`;
+  document.getElementById('circle').style.background=pGrads[cur.gi];
+  document.getElementById('phaseLabel').textContent=cur.name;
+  document.getElementById('timerLabel').textContent=Math.ceil(rem)+'초';
+  document.getElementById('progressFill').style.width=((totalElapsed/tSec)*100)+'%';
+  document.getElementById('elapsedDisplay').textContent=fmt(totalElapsed);
+  document.getElementById('remainDisplay').textContent=fmt(tSec-totalElapsed);
+  if(screenOff){
+    document.getElementById('bs-phase').textContent=cur.name;
+    document.getElementById('bs-timer').textContent=Math.ceil(rem);
+    document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';
+    document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);
+  }
+  // 페이즈 전환
+  if(phaseTime>=cur.dur){
+    phaseTime=0;phase++;
+    if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}
+  }
+  raf=requestAnimationFrame(tick);
+}
 function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
 function finish(){
   running=false;isPaused=false;
