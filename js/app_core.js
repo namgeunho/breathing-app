@@ -153,7 +153,7 @@ function renderConfigMain(){const s=calcStreak();const lv=calcLv(s);const ini=us
   <div class="cfg-group-label">내 정보</div>
   <div class="dp">
     <div class="ci2" onclick="showSub('profile')"><div class="cil"><div class="cic" style="background:var(--success-bg);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5"/></svg></div><div><div class="clb">사용자 정보</div><div class="csb">${eh(userName)}</div></div></div><div class="car">›</div></div>
-    <div class="ci2" onclick="showSub('grade')" style="border-bottom:none;"><div class="cil"><div class="cic" style="background:var(--warning-bg);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--warning)" stroke-width="1.5"><polygon points="8,2 10,6 14,6.5 11,9.5 11.5,14 8,12 4.5,14 5,9.5 2,6.5 6,6"/></svg></div><div><div class="clb">등급</div><div class="csb">${lv.name} · 연속 ${s}일</div></div></div><div class="car">›</div></div>
+    <div class="ci2" onclick="showSub('grade')" style="border-bottom:none;"><div class="cil"><div class="cic" style="background:var(--warning-bg);"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--warning)" stroke-width="1.5"><polygon points="8,2 10,6 14,6.5 11,9.5 11.5,14 8,12 4.5,14 5,9.5 2,6.5 6,6"/></svg></div><div><div class="clb">등급</div><div class="csb">${lv.name} · ${TREE_STAGES[treeData.stage-1]?TREE_STAGES[treeData.stage-1].name:'숨씨앗'}</div></div></div><div class="car">›</div></div>
   </div>
 
   <div class="cfg-group-label">고객지원</div>
@@ -219,7 +219,53 @@ function showSub(menu){
   } else if(menu==='grade'){
     const s=calcStreak();const lv=calcLv(s);
     const lvList=[{n:0,l:'레벨 0',r:'0~9일',c:'#888780'},{n:1,l:'레벨 1',r:'10일~',c:'#185fa5'},{n:2,l:'레벨 2',r:'20일~',c:'#639922'},{n:3,l:'레벨 3',r:'40일~',c:'#BA7517'},{n:4,l:'레벨 4',r:'80일~',c:'#7F77DD'}];
-    sub.innerHTML=back+`<div class="pfc" style="margin-bottom:1rem;"><div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일 · ${lv.desc}</div>${lv.demoted?`<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>`:''} ${lv.next?`<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>`:''}</div><div class="dp"><div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}</div>`;
+    // 숨나무 현재 단계
+    const treeSt = TREE_STAGES[treeData.stage-1];
+    const treeNextSt = TREE_STAGES[treeData.stage] || null;
+    const treePct = treeNextSt
+      ? Math.min(100, Math.round(((treeData.tp - treeSt.tpReq) / (treeNextSt.tpReq - treeSt.tpReq)) * 100))
+      : 100;
+    sub.innerHTML=back+`
+    <div class="pfc" style="margin-bottom:1rem;">
+      <div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일 · ${lv.desc}</div>
+      ${lv.demoted?`<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>`:''}
+      ${lv.next?`<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>`:''}
+    </div>
+    <div class="dp" style="margin-bottom:1.5rem;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>
+      ${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}
+    </div>
+    <div class="cfg-group-label">숨나무 등급</div>
+    <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-size:16px;font-weight:600;color:${treeSt.color};">${treeSt.name}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;">${treeSt.en}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${treeData.tp.toLocaleString()} TP</div>
+          <div style="font-size:11px;color:var(--text3);">${treeNextSt ? `다음까지 ${(treeNextSt.tpReq-treeData.tp).toLocaleString()} TP` : '최고 단계'}</div>
+        </div>
+      </div>
+      <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:${treePct}%;background:${treeSt.color};border-radius:2px;transition:width .6s;"></div>
+      </div>
+      ${treeNextSt?`<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>`:''}
+    </div>
+    <div class="dp">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">숨나무는 꾸준한 훈련으로 성장합니다.</div>
+      ${TREE_STAGES.map(st=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:${st.color};flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:14px;font-weight:500;color:${treeData.stage>=st.id?st.color:'var(--text2)'};">${st.name}</div>
+              <div style="font-size:11px;color:var(--text3);">${st.tpReq===0?'시작':st.tpReq.toLocaleString()+' TP'}${st.reqDay?` · 연속 ${st.reqDay}일+`:''}</div>
+            </div>
+          </div>
+          ${treeData.stage===st.id?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:treeData.stage>st.id?`<span style="font-size:12px;color:var(--text3);">✓ 달성</span>`:''}
+        </div>`).join('')}
+    </div>`;
   } else if(menu==='theme'){
     sub.innerHTML=back+`<div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;">테마 선택</div>
       <div class="theme-grid">

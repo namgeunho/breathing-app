@@ -7,27 +7,27 @@
 
 /* ── 나무 기본 데이터 ── */
 const TREE_STAGES = [
-  { id:1, name:'숨씨앗',   en:'Seed of Breath',     tpReq:0,    color:'#c8a030', bgFrom:'#070508', bgTo:'#080708',
+  { id:1, name:'숨씨앗',   en:'Seed of Breath',     tpReq:0,     color:'#c8a030', bgFrom:'#070508', bgTo:'#080708',
     health:'#3a2a10', lore:'땅 속에 묻힌 씨앗. 첫 숨결이 닿자 황금빛 불꽃이 깜박인다.',
-    unlocks:['황금빛 맥동'] },
-  { id:2, name:'빛새싹',   en:'First Light Sprout', tpReq:50,   color:'#7acc4a', bgFrom:'#081008', bgTo:'#060a06',
+    unlocks:['황금빛 맥동'], reqDay:0,  reqMin:0  },
+  { id:2, name:'빛새싹',   en:'First Light Sprout', tpReq:500,   color:'#7acc4a', bgFrom:'#081008', bgTo:'#060a06',
     health:'#2a4a18', lore:'땅을 뚫고 솟은 첫 싹. 반딧불이가 처음으로 다가온다.',
-    unlocks:['반딧불이','이슬 파티클','새벽빛 배경'] },
-  { id:3, name:'정령묘목', en:'Spirit Sprout',       tpReq:200,  color:'#78ddb8', bgFrom:'#071210', bgTo:'#050a08',
+    unlocks:['반딧불이','이슬 파티클','새벽빛 배경'], reqDay:10, reqMin:3  },
+  { id:3, name:'정령묘목', en:'Spirit Sprout',       tpReq:1300,  color:'#78ddb8', bgFrom:'#071210', bgTo:'#050a08',
     health:'#1a3a28', lore:'숲의 정령이 찾아왔다. 마법 꽃 한 송이가 피어난다.',
-    unlocks:['숲 정령','마법 꽃','이끼 땅'] },
-  { id:4, name:'달빛성목', en:'Moonlit Tree',         tpReq:500,  color:'#b090f0', bgFrom:'#090a18', bgTo:'#060710',
+    unlocks:['숲 정령','마법 꽃','이끼 땅'], reqDay:20, reqMin:5  },
+  { id:4, name:'달빛성목', en:'Moonlit Tree',         tpReq:3600,  color:'#b090f0', bgFrom:'#090a18', bgTo:'#060710',
     health:'#1a1840', lore:'달의 기운을 머금기 시작했다. 발광 버섯들이 피어오른다.',
-    unlocks:['초승달','달빛 꽃','발광 버섯'] },
-  { id:5, name:'황금신수', en:'Golden Divine Tree',   tpReq:1000, color:'#d4a84b', bgFrom:'#100c00', bgTo:'#080808',
+    unlocks:['초승달','달빛 꽃','발광 버섯'], reqDay:40, reqMin:10 },
+  { id:5, name:'황금신수', en:'Golden Divine Tree',   tpReq:10500, color:'#d4a84b', bgFrom:'#100c00', bgTo:'#080808',
     health:'#30200a', lore:'신들이 나무의 존재를 알아차렸다. 황금 열매가 맺힌다.',
-    unlocks:['황금 열매','빛 기둥','황금 오로라'] },
-  { id:6, name:'은하수목', en:'Celestial Tree',       tpReq:2000, color:'#a080f0', bgFrom:'#060418', bgTo:'#04050e',
+    unlocks:['황금 열매','빛 기둥','황금 오로라'], reqDay:80, reqMin:15 },
+  { id:6, name:'은하수목', en:'Celestial Tree',       tpReq:18500, color:'#a080f0', bgFrom:'#060418', bgTo:'#04050e',
     health:'#12083a', lore:'은하수가 나무를 감싸기 시작했다. 우주가 응답한다.',
-    unlocks:['은하수','성운 꽃','우주 배경'] },
-  { id:7, name:'영원수',   en:'The Eternal Tree',    tpReq:5000, color:'#d4a84b', bgFrom:'#0c0800', bgTo:'#050506',
+    unlocks:['은하수','성운 꽃','우주 배경'], reqDay:120, reqMin:20 },
+  { id:7, name:'영원수',   en:'The Eternal Tree',    tpReq:30000, color:'#d4a84b', bgFrom:'#0c0800', bgTo:'#050506',
     health:'#201400', lore:'브레시아의 시작과 끝을 기억하는 나무. 당신의 숨결이 여기까지 닿았다.',
-    unlocks:['영원의 별','황금 뿌리','전설 칭호'] },
+    unlocks:['영원의 별','황금 뿌리','전설 칭호'], reqDay:180, reqMin:25 },
 ];
 
 const TREE_NEXT_TP = [50,200,500,1000,2000,5000,Infinity];
@@ -91,25 +91,40 @@ function getTreeStageFromTP(tp){
   return 1;
 }
 
-/* ── TP 계산 ── */
+/* ── TP 계산 (새 계산식) ── */
 function calcTP(durationMin, preMood, postMood){
   const streak = calcStreak();
   const lv = calcLv(streak);
-  let tp = 0;
-  tp += durationMin * 2;                              // 훈련 시간 × 2
-  tp += lv.lv * 5;                                   // 레벨 보너스
-  tp += Math.min(Math.floor(streak * 0.5), 30);       // 연속 달성 보너스 (최대 30)
-  // 감정 개선 보너스
-  const emoVals = {'아주나쁨':1,'나쁨':2,'보통':3,'좋음':4,'아주좋음':5};
-  if(preMood && postMood && (emoVals[postMood]||0) > (emoVals[preMood]||0)) tp += 5;
+  const curStage = treeData.stage || 1;
+
+  // 기본 TP
+  let tp = durationMin * 1.5;
+
+  // 시간 보너스 (누적)
+  if(durationMin >= 25)      tp += 50;
+  else if(durationMin >= 20) tp += 35;
+  else if(durationMin >= 15) tp += 22;
+  else if(durationMin >= 10) tp += 12;
+  else if(durationMin >= 5)  tp += 5;
+  else if(durationMin >= 3)  tp += 2;
+
+  // 연속 보너스 (최대 20)
+  tp += Math.min(streak * 0.3, 20);
+
   // 오늘 첫 훈련 보너스
   const todayRecs = records[today()] || [];
-  if(todayRecs.length <= 1) tp += 10;
-  // 복귀 보너스
-  const health = getTreeHealth();
-  if(health==='caution') tp = Math.round(tp * 1.2);
-  if(health==='wilt')    tp = Math.round(tp * 1.5);
-  if(health==='dormant') tp = Math.round(tp * 2.0);
+  if(todayRecs.length <= 1) tp += 5;
+
+  // 감정 개선 보너스 (숨나무 단계별 차등)
+  const emoVals = {'아주나쁨':1,'나쁨':2,'보통':3,'좋음':4,'아주좋음':5};
+  if(preMood && postMood && (emoVals[postMood]||0) > (emoVals[preMood]||0)){
+    const emoBonuses = [3, 3, 5, 8, 12, 15, 20]; // stage 1~7
+    tp += emoBonuses[curStage - 1] || 3;
+  }
+
+  // 레벨 보너스
+  tp += lv.lv * 3;
+
   return Math.max(1, Math.round(tp));
 }
 
@@ -632,6 +647,11 @@ function openTreeStory(){
       const svgHtml = getTreeSVG(stageNum, null, 80);
       const tpText  = stageNum === 1 ? '시작' : `${st.tpReq.toLocaleString()} TP~`;
       const isCur   = stageNum === curStage;
+      const reqInfo = stageNum === 1 ? '' :
+        `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;margin-bottom:2px;">
+          <span style="font-size:10px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">📅 연속 ${st.reqDay}일+</span>
+          <span style="font-size:10px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">⏱ 1회 ${st.reqMin}분+</span>
+        </div>`;
       return `
         <div class="tsc" style="${isCur ? 'border-color:'+st.color+'44;box-shadow:0 0 20px '+st.color+'18;' : ''}">
           <div class="tsc-visual" style="background:linear-gradient(180deg,${st.bgFrom} 0%,${st.bgTo} 100%);">
@@ -644,6 +664,7 @@ function openTreeStory(){
             </div>
             <div class="tsc-name" style="color:${st.color};">${st.name}${isCur ? ' <span style="font-size:11px;opacity:.6;">◀ 현재</span>' : ''}</div>
             <div class="tsc-en">${st.en}</div>
+            ${reqInfo}
             <div class="tsc-lore">"${st.lore}"</div>
             <div class="tsc-unlocks">${st.unlocks.map(u=>`<span class="tsc-tag">✦ ${u}</span>`).join('')}</div>
           </div>
@@ -665,6 +686,10 @@ function openTreeStory(){
             <div class="tsc-lock-info">
               <div class="tsc-lock-name">${st.name}</div>
               <div class="tsc-lock-req">${needText}</div>
+              <div style="display:flex;gap:8px;margin-top:4px;">
+                <span style="font-size:10px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;">📅 연속 ${st.reqDay}일+</span>
+                <span style="font-size:10px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;">⏱ ${st.reqMin}분+</span>
+              </div>
             </div>
           </div>
           <div class="tsc-lock-bar"></div>
