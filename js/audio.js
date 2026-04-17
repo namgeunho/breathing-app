@@ -327,14 +327,25 @@ function tick(ts){
   if(totalElapsed>=tSec){totalElapsed=tSec;finish();return;}
   const list=getPL();if(!list.length)return;
   phaseTime+=dt;
+
+  // ① 페이즈 전환 먼저 처리 (overflow 이월)
+  while(phaseTime>=list[phase%list.length].dur){
+    phaseTime -= list[phase%list.length].dur;
+    phase++;
+    if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}
+  }
+
+  // ② 현재 페이즈 확인
   const ci=phase%list.length;
   const cur=list[ci];
-  const prog=Math.min(phaseTime/cur.dur,1);
-  // 페이즈 전환 감지 — 새 페이즈 시작 시 효과음
+  const prog=phaseTime/cur.dur; // 0~1 (이미 전환 처리됐으므로 항상 0~1)
+
+  // ③ 새 페이즈 시작 시 효과음
   if(ci!==prevPI){prevPI=ci;playPS(cur.name);}
-  const rem=Math.max(0,cur.dur-phaseTime);
-  // scale: 현재 prog 기준
+
+  // ④ 화면 업데이트
   const sc=getScale(cur.name,prog,cur.gi);
+  const rem=Math.max(0,cur.dur-phaseTime);
   document.getElementById('circle').style.transform=`translate(-50%,-50%) scale(${sc})`;
   document.getElementById('circle').style.background=pGrads[cur.gi];
   document.getElementById('phaseLabel').textContent=cur.name;
@@ -347,13 +358,6 @@ function tick(ts){
     document.getElementById('bs-timer').textContent=Math.ceil(rem);
     document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';
     document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);
-  }
-  // 페이즈 전환 (overflow 이월)
-  if(phaseTime>=cur.dur){
-    const overflow = phaseTime - cur.dur;
-    phaseTime = overflow; // 초과 시간 다음 페이즈로 이월
-    phase++;
-    if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}
   }
   raf=requestAnimationFrame(tick);
 }
