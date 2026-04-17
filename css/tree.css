@@ -351,10 +351,6 @@
 .tree-story-header{
   padding:16px 20px 14px;
   border-bottom:1px solid rgba(200,168,96,.1);
-  position:sticky;        /* 헤더 고정 */
-  top:0;
-  background:#0a080e;
-  z-index:1;
   flex-shrink:0;
 }
 .tree-story-title{
