@@ -3,9 +3,6 @@ function startCountdown(cb){
 let n=5;
 const phaseLabel=document.getElementById('phaseLabel');
 const timerLabel=document.getElementById('timerLabel');
-// 카운트다운 중 circle 기본 크기 고정
-const circle=document.getElementById('circle');
-if(circle){circle.style.transform='translate(-50%,-50%) scale(1)';circle.style.background='none';}
 phaseLabel.textContent='준비';
 timerLabel.textContent='잠시 후 시작됩니다';
 document.getElementById('startBtn').textContent='취소';
