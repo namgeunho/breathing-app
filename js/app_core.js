@@ -6,7 +6,6 @@ function save(){
   try{
     localStorage.setItem(LS+'pp',JSON.stringify(presets));localStorage.setItem(LS+'mode',curMode);localStorage.setItem(LS+'pi',selPI);localStorage.setItem(LS+'dur',document.getElementById('duration').value);localStorage.setItem(LS+'rec',JSON.stringify(records));localStorage.setItem(LS+'memo',JSON.stringify(memos));localStorage.setItem(LS+'name',userName);localStorage.setItem(LS+'ms',JSON.stringify(manSt));if(userPhoto&&!userPhoto.startsWith('http'))localStorage.setItem(LS+'photo',userPhoto);else localStorage.removeItem(LS+'photo');localStorage.setItem(LS+'theme',curTheme);localStorage.setItem(LS+'sfx',curSfx);localStorage.setItem(LS+'bgmOn',bgmOn?'1':'0');localStorage.setItem(LS+'bgm',curBgm);localStorage.setItem(LS+'page',curPage);localStorage.setItem(LS+'sfxVol',sfxVolume);localStorage.setItem(LS+'bgmVol',bgmVolume);
   }catch(e){}
-  // 로그인 상태면 Firestore에도 저장 (debounce)
   if(curUser){
     clearTimeout(save._t);
     save._t=setTimeout(saveUserData, 2000);
@@ -50,13 +49,77 @@ function fl(key){const[y,m,d]=key.split('-');return y+'년 '+parseInt(m)+'월 '+
 function eh(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function applyTheme(t){curTheme=t;document.body.setAttribute('data-theme',t);}
 function calcStreak(){let s=0;const t=new Date();for(let i=0;i<365;i++){const d=new Date(t);d.setDate(d.getDate()-i);const k=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());if(records[k]&&records[k].length>0)s++;else break;}return s;}
-function calcLv(s){const t=new Date();let last=999;for(let i=0;i<365;i++){const d=new Date(t);d.setDate(d.getDate()-i);const k=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());if(records[k]&&records[k].length>0){last=i;break;}}
-  if(last>=7)return{lv:0,name:'레벨 0',desc:'훈련을 재개해보세요',next:10,fill:'#888780',cls:'lv0'};
-  if(s>=80)return{lv:4,name:'레벨 4',desc:'마스터!',next:null,fill:'linear-gradient(90deg,#7F77DD,#D4537E)',cls:'lv4'};
-  if(s>=40)return{lv:3,name:'레벨 3',desc:`레벨4까지 ${80-s}일`,next:80,fill:'#BA7517',cls:'lv3'};
-  if(s>=20)return{lv:2,name:'레벨 2',desc:`레벨3까지 ${40-s}일`,next:40,fill:'#639922',cls:'lv2'};
-  if(s>=10)return{lv:1,name:'레벨 1',desc:`레벨2까지 ${20-s}일`,next:20,fill:'#185fa5',cls:'lv1'};
-  return{lv:0,name:'레벨 0',desc:`레벨1까지 ${10-s}일`,next:10,fill:'#888780',cls:'lv0'};
+
+/* ── 레벨 계산 (한 단계 강등 방식) ──
+   7일 이상 미훈련 시 최고 달성 레벨에서 1단계 강등 (최저 레벨0)
+   강등 이후 재훈련 시 현재 연속일 기준으로 다시 상승 가능
+*/
+function getMaxAchievedLv(){
+  // 전체 기록에서 최장 연속 달성일을 기반으로 최고 레벨 계산
+  try{
+    const saved = localStorage.getItem(LS+'maxLv');
+    if(saved !== null) return parseInt(saved);
+  }catch(e){}
+  return 0;
+}
+function updateMaxLv(lv){
+  try{
+    const cur = getMaxAchievedLv();
+    if(lv > cur) localStorage.setItem(LS+'maxLv', lv);
+  }catch(e){}
+}
+
+function calcLv(s){
+  const LV_DEF = [
+    {lv:0, name:'레벨 0', desc:`레벨1까지 ${10-s}일`, next:10,  fill:'#888780', cls:'lv0'},
+    {lv:1, name:'레벨 1', desc:`레벨2까지 ${20-s}일`, next:20,  fill:'#185fa5', cls:'lv1'},
+    {lv:2, name:'레벨 2', desc:`레벨3까지 ${40-s}일`, next:40,  fill:'#639922', cls:'lv2'},
+    {lv:3, name:'레벨 3', desc:`레벨4까지 ${80-s}일`, next:80,  fill:'#BA7517', cls:'lv3'},
+    {lv:4, name:'레벨 4', desc:'마스터!',              next:null, fill:'linear-gradient(90deg,#7F77DD,#D4537E)', cls:'lv4'},
+  ];
+
+  // 현재 연속일 기준 자연 레벨
+  let naturalLv = 0;
+  if(s >= 80) naturalLv = 4;
+  else if(s >= 40) naturalLv = 3;
+  else if(s >= 20) naturalLv = 2;
+  else if(s >= 10) naturalLv = 1;
+
+  // 최고 달성 레벨 갱신
+  updateMaxLv(naturalLv);
+
+  // 마지막 훈련일 확인
+  const t = new Date(); let lastGap = 999;
+  for(let i=0;i<365;i++){
+    const d=new Date(t);d.setDate(d.getDate()-i);
+    const k=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+    if(records[k]&&records[k].length>0){lastGap=i;break;}
+  }
+
+  // 7일 이상 미훈련: 최고 달성 레벨에서 1단계 강등
+  if(lastGap >= 7){
+    const maxLv = getMaxAchievedLv();
+    const demotedLv = Math.max(0, maxLv - 1);
+    const def = LV_DEF[demotedLv];
+    return {
+      ...def,
+      lv: demotedLv,
+      desc: `${demotedLv < maxLv ? `강등됨 (최고 레벨${maxLv})` : '훈련을 재개해보세요'}`,
+      demoted: true,
+    };
+  }
+
+  // 정상 레벨 반환
+  const def = LV_DEF[naturalLv];
+  return {
+    ...def,
+    lv: naturalLv,
+    desc: naturalLv === 4 ? '마스터!' :
+          naturalLv === 3 ? `레벨4까지 ${80-s}일` :
+          naturalLv === 2 ? `레벨3까지 ${40-s}일` :
+          naturalLv === 1 ? `레벨2까지 ${20-s}일` :
+                            `레벨1까지 ${10-s}일`,
+  };
 }
 function avHtml(sz,fsz,fb){if(userPhoto)return`<img src="${userPhoto}" alt="" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;">`;return`<span style="font-size:${fsz}px;">${eh(fb)}</span>`;}
 function renderUserBar(){
@@ -156,7 +219,7 @@ function showSub(menu){
   } else if(menu==='grade'){
     const s=calcStreak();const lv=calcLv(s);
     const lvList=[{n:0,l:'레벨 0',r:'0~9일',c:'#888780'},{n:1,l:'레벨 1',r:'10일~',c:'#185fa5'},{n:2,l:'레벨 2',r:'20일~',c:'#639922'},{n:3,l:'레벨 3',r:'40일~',c:'#BA7517'},{n:4,l:'레벨 4',r:'80일~',c:'#7F77DD'}];
-    sub.innerHTML=back+`<div class="pfc" style="margin-bottom:1rem;"><div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일 · ${lv.desc}</div>${lv.next?`<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>`:''}</div><div class="dp"><div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 한 단계 강등됩니다.</div>${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}</div>`;
+    sub.innerHTML=back+`<div class="pfc" style="margin-bottom:1rem;"><div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일 · ${lv.desc}</div>${lv.demoted?`<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>`:''} ${lv.next?`<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>`:''}</div><div class="dp"><div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}</div>`;
   } else if(menu==='theme'){
     sub.innerHTML=back+`<div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;">테마 선택</div>
       <div class="theme-grid">

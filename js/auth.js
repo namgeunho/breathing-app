@@ -203,27 +203,32 @@ async function syncUserData(){
       if(d.memos) memos=d.memos;
       if(d.presets) presets=d.presets;
       if(d.tree) treeData={...treeData,...d.tree};
-      // 닉네임: 로컬에 이미 사용자 지정 이름이 있으면 우선, 없으면 서버 값
+      // maxLv: 서버와 로컬 중 더 높은 값 유지
+      if(d.maxLv !== undefined){
+        const localMax = getMaxAchievedLv();
+        const serverMax = d.maxLv;
+        const merged = Math.max(localMax, serverMax);
+        if(merged > 0) localStorage.setItem(LS+'maxLv', merged);
+      }
       if(!userName||userName==='사용자'){
         userName=d.userName||curUser.displayName||'사용자';
       }
-      // 프로필 사진: 로컬에 지정한 사진 있으면 우선, 없으면 서버 저장값, 없으면 Google 프로필
       if(!userPhoto){
         userPhoto=d.userPhoto||null;
         if(!userPhoto&&curUser.photoURL) userPhoto=curUser.photoURL;
       }
       save();
     } else {
-      // 최초 로그인 — 로컬 데이터 서버에 저장
       await ref.set({
         records, memos, userName,
         userPhoto: userPhoto||'',
         presets: presets.map(p=>({...p})),
+        maxLv: getMaxAchievedLv(),
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
     renderUserBar();
-    renderTree(); // 로그인 후 나무 표시로 전환
+    renderTree();
     if(curPage==='calendar'){renderCal();updateCalSt();}
     if(curPage==='config') renderConfigMain();
   }catch(e){ console.log('유저 데이터 동기화 실패:',e); }
@@ -236,6 +241,7 @@ async function saveUserData(){
       records, memos, userName,
       userPhoto: userPhoto&&!userPhoto.startsWith('http')?'':userPhoto||'',
       presets: presets.map(p=>({...p})),
+      maxLv: getMaxAchievedLv(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
   }catch(e){ console.log('저장 실패:',e); }
