@@ -70,9 +70,9 @@ let presets=defPresets.map(p=>({...p}));
 const manSt={inhale:4,holdIn:4,exhale:4,holdOut:0};
 const pGrads=[
   'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.45) 58%,transparent 100%)',  // 들숨
-  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.35) 58%,transparent 100%)',  // 멈춤(들숨 후)
+  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.45) 58%,transparent 100%)',  // 멈춤(들숨 후) — 들숨과 동일
   'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.45) 58%,transparent 100%)',  // 날숨
-  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.35) 58%,transparent 100%)',  // 멈춤(날숨 후)
+  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.45) 58%,transparent 100%)',  // 멈춤(날숨 후) — 날숨과 동일
 ];
 const dGrad='radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.25) 58%,transparent 100%)';
 const dNames=['일','월','화','수','목','금','토'];

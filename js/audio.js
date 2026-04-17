@@ -348,9 +348,11 @@ function tick(ts){
     document.getElementById('bs-prog-fill').style.width=((totalElapsed/tSec)*100)+'%';
     document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec);
   }
-  // 페이즈 전환
+  // 페이즈 전환 (overflow 이월)
   if(phaseTime>=cur.dur){
-    phaseTime=0;phase++;
+    const overflow = phaseTime - cur.dur;
+    phaseTime = overflow; // 초과 시간 다음 페이즈로 이월
+    phase++;
     if(phase>=list.length){phase=0;cyclesDone++;document.getElementById('cycleCount').textContent=cyclesDone;}
   }
   raf=requestAnimationFrame(tick);
