@@ -132,7 +132,7 @@ function renderUserBar(){
   const authBtn=curUser
     ? `<button class="ub-login-btn" onclick="signOut()"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2M6 5l-3 3 3 3"/><path d="M6 2h6a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6"/></svg>로그아웃</button>`
     : `<button class="ub-login-btn" onclick="openAuthModal()"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h8M10 5l3 3-3 3"/><path d="M10 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6"/></svg>로그인</button>`;
-  document.getElementById('userBar').innerHTML=`<div class="uba">${avHtml(28,11,ini)}</div><div class="ubi"><div class="ubn">${eh(userName)}</div></div><div class="ubd"></div><div class="ubi"><div class="ubv">${s}일</div><div class="ubl">연속 달성</div></div><div class="ubd"></div><div class="ubi"><span class="ubb" style="${lvSt[lv.cls]||lvSt.lv0}">${lv.name}</span><div class="ubl" style="margin-top:2px;">${nxt}</div></div>${authBtn}`;
+  document.getElementById('userBar').innerHTML=`<div class="uba">${avHtml(28,11,ini)}</div><div class="ubi" onclick="showPage('config',null);setTimeout(()=>showSub('profile'),50);" style="cursor:pointer;"><div class="ubn">${eh(userName)}</div></div><div class="ubd"></div><div class="ubi" onclick="showPage('config',null);setTimeout(()=>showSub('grade'),50);" style="cursor:pointer;"><div class="ubv">${s}일</div><div class="ubl">연속 달성</div></div><div class="ubd"></div><div class="ubi" onclick="showPage('config',null);setTimeout(()=>showSub('grade'),50);" style="cursor:pointer;"><span class="ubb" style="${lvSt[lv.cls]||lvSt.lv0}">${lv.name}</span><div class="ubl" style="margin-top:2px;">${nxt}</div></div>${authBtn}`;
 }
 
 function renderConfigMain(){

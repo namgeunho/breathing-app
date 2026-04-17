@@ -68,8 +68,13 @@ const defPresets=[
 ];
 let presets=defPresets.map(p=>({...p}));
 const manSt={inhale:4,holdIn:4,exhale:4,holdOut:0};
-const pGrads=['radial-gradient(circle,#FFD700 15%,rgba(255,200,0,0.45)58%,transparent 100%)','radial-gradient(circle,#FFA500 15%,rgba(255,165,0,0.4)58%,transparent 100%)','radial-gradient(circle,#F5C000 15%,rgba(245,192,0,0.35)58%,transparent 100%)','radial-gradient(circle,#E89000 15%,rgba(232,144,0,0.3)58%,transparent 100%)'];
-const dGrad='radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.25)58%,transparent 100%)';
+const pGrads=[
+  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.45) 58%,transparent 100%)',  // 들숨
+  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.35) 58%,transparent 100%)',  // 멈춤(들숨 후)
+  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.45) 58%,transparent 100%)',  // 날숨
+  'radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.35) 58%,transparent 100%)',  // 멈춤(날숨 후)
+];
+const dGrad='radial-gradient(circle,#FFD700 15%,rgba(255,215,0,0.25) 58%,transparent 100%)';
 const dNames=['일','월','화','수','목','금','토'];
 const mNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const LS='breath5_';

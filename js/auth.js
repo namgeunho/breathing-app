@@ -69,23 +69,29 @@ function confirmResetData(){
 }
 
 function doResetData(){
-  // localStorage 초기화
+  // localStorage 초기화 (모든 키 포함)
   const LS='breath5_';
-  ['pp','mode','pi','dur','rec','memo','name','ms','photo','theme','sfx','bgmOn','bgm','sfxVol','bgmVol','page','bookmarks'].forEach(k=>localStorage.removeItem(LS+k));
+  ['pp','mode','pi','dur','rec','memo','name','ms','photo','theme','sfx','bgmOn','bgm',
+   'sfxVol','bgmVol','page','bookmarks','tree','treeOpen','maxLv'].forEach(k=>localStorage.removeItem(LS+k));
   // 메모리 초기화
   records={};memos={};userName='사용자';userPhoto=null;
   selPI=0;curMode='program';
   presets=defPresets.map(p=>({...p}));
+  // 숨나무 초기화
+  treeData={tp:0,stage:1,lastDate:'',bornAt:'',health:'healthy',stageHistory:[],totalTpEarned:0};
   // Firestore 동기화
   if(curUser){
     db.collection('users').doc(curUser.uid).set({
       records:{},memos:{},userName:'사용자',
       presets:defPresets.map(p=>({...p})),
+      tree:{tp:0,stage:1,lastDate:'',bornAt:'',health:'healthy',stageHistory:[],totalTpEarned:0},
+      maxLv:0,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     }).catch(e=>console.log(e));
   }
   save();
   renderUserBar();
+  renderTree();
   closeSub();
   showToast('모든 정보가 초기화됐어요.');
 }
@@ -203,6 +209,16 @@ async function syncUserData(){
       if(d.memos) memos=d.memos;
       if(d.presets) presets=d.presets;
       if(d.tree) treeData={...treeData,...d.tree};
+      // 설정 복원 (서버값 우선)
+      if(d.settings){
+        const st=d.settings;
+        if(st.theme) { curTheme=st.theme; applyTheme(curTheme); }
+        if(st.sfx)   curSfx=st.sfx;
+        if(st.bgm)   curBgm=st.bgm;
+        if(st.bgmOn !== undefined) bgmOn=st.bgmOn;
+        if(st.sfxVol !== undefined) sfxVolume=st.sfxVol;
+        if(st.bgmVol !== undefined) bgmVolume=st.bgmVol;
+      }
       // maxLv: 서버와 로컬 중 더 높은 값 유지
       if(d.maxLv !== undefined){
         const localMax = getMaxAchievedLv();
@@ -224,6 +240,10 @@ async function syncUserData(){
         userPhoto: userPhoto||'',
         presets: presets.map(p=>({...p})),
         maxLv: getMaxAchievedLv(),
+        settings:{
+          theme:curTheme, sfx:curSfx, bgmOn:bgmOn,
+          bgm:curBgm, sfxVol:sfxVolume, bgmVol:bgmVolume,
+        },
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -242,6 +262,15 @@ async function saveUserData(){
       userPhoto: userPhoto&&!userPhoto.startsWith('http')?'':userPhoto||'',
       presets: presets.map(p=>({...p})),
       maxLv: getMaxAchievedLv(),
+      // 설정 저장
+      settings:{
+        theme: curTheme,
+        sfx: curSfx,
+        bgmOn: bgmOn,
+        bgm: curBgm,
+        sfxVol: sfxVolume,
+        bgmVol: bgmVolume,
+      },
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
   }catch(e){ console.log('저장 실패:',e); }
@@ -408,14 +437,16 @@ function renderGraphDayPanel(key){
       html += `</div>`;
     }
     if(memo) html += `<div class="gdp-memo">${eh(memo)}</div>`;
-    // 공유/수정/삭제 버튼
-    html += `<div class="gdp-actions">
+    // 공유/수정/삭제 버튼 — 공유 좌측, 수정·삭제 우측
+    html += `<div class="gdp-actions" style="justify-content:space-between;">
       <button class="bsm bshr" onclick="shareRecord('${key}')">
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
         공유
       </button>
-      <button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button>
-      <button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button>
+      <div style="display:flex;gap:8px;">
+        <button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button>
+        <button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button>
+      </div>
     </div>`;
   } else if(recs.length===0){
     html = `<div class="gdp-header"><span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span></div>
@@ -465,10 +496,12 @@ function renderDB(key){
     if(preMood)html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:4px;">훈련 전: <strong>${preMood}</strong></div>`;
     if(postMood)html+=`<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">훈련 후: <strong>${postMood}</strong></div>`;
     if(memo)html+=`<div class="mb2">${eh(memo)}</div>`;
-    html+=`<div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+    html+=`<div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;align-items:center;">
       <button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
-      <button class="bsm" onclick="editMemo('${key}')">수정</button>
-      <button class="bsm bdng" onclick="delMemo('${key}')">삭제</button>
+      <div style="display:flex;gap:8px;">
+        <button class="bsm" onclick="editMemo('${key}')">수정</button>
+        <button class="bsm bdng" onclick="delMemo('${key}')">삭제</button>
+      </div>
     </div>`;
   } else {
     // 메모 입력 폼
@@ -476,8 +509,8 @@ function renderDB(key){
     <div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
     <div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
     <textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>`:''}
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
+      ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>`:'<span></span>'}
       <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
     </div>`;
   }
