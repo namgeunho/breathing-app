@@ -109,7 +109,7 @@ startBgm();
 bgmPreviewTimer=setTimeout(()=>{
 if(!running){stopBgm();}
 bgmOn=wasOn;
-},3000);
+},10000);
 }catch(e){}
 save();
 }
