@@ -424,7 +424,7 @@ const cIcon = document.getElementById('treeCollapsedIcon');
 const cName = document.getElementById('treeCollapsedName');
 const cLabel = document.getElementById('treeCollapsedLabel');
 const cFill = document.getElementById('treeCollapsedFill');
-if(cIcon) cIcon.textContent = icon;
+if(cIcon) cIcon.innerHTML = getTreeSVG(treeData.stage, null, 28);
 if(cName){ cName.textContent = st.name; cName.style.color = st.color; }
 if(cLabel) cLabel.textContent = tpText;
 if(cFill){ cFill.style.width = pct+'%'; cFill.style.background = st.color; }
