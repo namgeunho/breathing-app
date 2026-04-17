@@ -210,50 +210,78 @@ const tpFormula = `
 <div><span style="color:var(--text);font-weight:500;">레벨 보너스</span> · 나의 레벨 × 3</div>
 </div>`;
 sub.innerHTML=back+`
-<div class="pfc" style="margin-bottom:1rem;">
-<div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일${isLoggedIn ? ' · '+lv.desc : ''}</div>
-${isLoggedIn && lv.demoted ? `<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>` : ''}
-${isLoggedIn && lv.next ? `<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>` : ''}
+<div style="font-size:19px;font-weight:800;color:var(--text);letter-spacing:-0.02em;margin-bottom:1rem;">나의 레벨</div>
+<div class="pfc" style="margin-bottom:1rem;background:linear-gradient(180deg,#0a0612 0%,#0d1008 100%);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;">
+<div style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:6px;">연속 달성 ${s}일${isLoggedIn ? ' · '+lv.desc : ''}</div>
+${isLoggedIn && lv.demoted ? `<div style="font-size:12px;color:#ff8080;background:rgba(255,80,80,0.12);padding:8px 12px;border-radius:8px;margin-bottom:10px;border:1px solid rgba(255,80,80,0.2);">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>` : ''}
+${isLoggedIn && lv.next ? `<div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};border-radius:2px;transition:width .6s;"></div></div>` : ''}
+<div style="font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>
+${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(255,255,255,0.07);">
+<div style="display:flex;align-items:center;gap:10px;">
+<div style="width:10px;height:10px;border-radius:50%;background:${l.c};flex-shrink:0;box-shadow:0 0 6px ${l.c}88;"></div>
+<div>
+<div style="font-size:14px;font-weight:${isLoggedIn&&lv.lv===l.n?'700':'500'};color:${isLoggedIn&&lv.lv===l.n?l.c:'rgba(255,255,255,0.5)'};">${l.l}</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.25);">연속 ${l.r}</div>
 </div>
-<div class="dp" style="margin-bottom:1.5rem;">
-<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>
-${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:500;color:var(--text);">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${isLoggedIn && lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}
+</div>
+${isLoggedIn && lv.lv===l.n ? `<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);">현재</span>` : ''}
+</div>`).join('')}
 </div>
 ${isLoggedIn ? `
-<div class="cfg-group-label">숨나무 등급</div>
-<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+<div style="font-size:19px;font-weight:800;color:var(--text);letter-spacing:-0.02em;margin-bottom:1rem;">숨나무 등급</div>
+<div style="background:linear-gradient(180deg,${treeSt.bgFrom} 0%,${treeSt.bgTo} 100%);border:1px solid ${treeSt.color}33;border-radius:14px;padding:16px;margin-bottom:12px;">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
 <div>
-<div style="font-size:16px;font-weight:600;color:${treeSt.color};">${treeSt.name}</div>
-<div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;">${treeSt.en}</div>
+<div style="font-size:17px;font-weight:700;color:${treeSt.color};text-shadow:0 0 12px ${treeSt.color}88;">${treeSt.name}</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'JetBrains Mono',monospace;margin-top:2px;">${treeSt.en}</div>
 </div>
 <div style="text-align:right;">
-<div style="font-size:13px;font-weight:600;color:var(--text);">${treeData.tp.toLocaleString()} TP</div>
-<div style="font-size:11px;color:var(--text3);">${treeNextSt ? `다음까지 ${(treeNextSt.tpReq-treeData.tp).toLocaleString()} TP` : '최고 단계'}</div>
+<div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">${treeData.tp.toLocaleString()} TP</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.35);">${treeNextSt ? `다음까지 ${(treeNextSt.tpReq-treeData.tp).toLocaleString()} TP` : '최고 단계'}</div>
 </div>
 </div>
-<div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;">
-<div style="height:100%;width:${treePct}%;background:${treeSt.color};border-radius:2px;transition:width .6s;"></div>
+<div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-bottom:8px;">
+<div style="height:100%;width:${treePct}%;background:${treeSt.color};border-radius:2px;transition:width .6s;box-shadow:0 0 6px ${treeSt.color};"></div>
 </div>
-${treeNextSt ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>` : ''}
+${treeNextSt ? `<div style="font-size:11px;color:rgba(255,255,255,0.35);">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>` : ''}
 </div>
-<div class="dp">
-<div style="font-size:13px;color:var(--text2);margin-bottom:12px;">숨나무는 꾸준한 훈련으로 성장합니다.</div>
-${TREE_STAGES.map(st=>`
-<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);">
-<div style="display:flex;align-items:center;gap:10px;">
-<div style="width:10px;height:10px;border-radius:50%;background:${st.color};flex-shrink:0;"></div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;">
+${TREE_STAGES.map(st=>{
+const unlocked = treeData.stage >= st.id;
+const isCur = treeData.stage === st.id;
+if(unlocked){
+const svgHtml = getTreeSVG(st.id, null, 56);
+const tpText = st.tpReq===0 ? '시작' : st.tpReq.toLocaleString()+' TP~';
+return `<div style="border-radius:12px;overflow:hidden;border:1px solid ${isCur?st.color+'55':'rgba(255,255,255,0.07)'};${isCur?'box-shadow:0 0 16px '+st.color+'22;':''}">
+<div style="background:linear-gradient(180deg,${st.bgFrom} 0%,${st.bgTo} 100%);display:flex;justify-content:center;align-items:flex-end;padding:12px 16px 6px;min-height:80px;">${svgHtml}</div>
+<div style="background:#12101a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
 <div>
-<div style="font-size:14px;font-weight:500;color:${treeData.stage>=st.id?st.color:'var(--text2)'};">${st.name}</div>
-<div style="font-size:11px;color:var(--text3);">${st.tpReq===0?'시작':st.tpReq.toLocaleString()+' TP'}${st.reqDay?` · 연속 ${st.reqDay}일+`:''}</div>
+<div style="font-size:13px;font-weight:700;color:${st.color};">${st.name}${isCur?' <span style="font-size:10px;opacity:.6;">◀ 현재</span>':''}</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.3);font-family:'JetBrains Mono',monospace;">${tpText}${st.reqDay?' · 연속 '+st.reqDay+'일+':''}</div>
+</div>
+${isCur ? `<span style="font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);">현재</span>` : `<span style="font-size:11px;color:rgba(255,255,255,0.25);">✓ 달성</span>`}
+</div>
+</div>`;
+} else {
+return `<div style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.04);background:#0d0b12;">
+<div style="display:flex;align-items:center;gap:14px;padding:14px;filter:blur(0);">
+<div style="width:56px;height:56px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+</div>
+<div>
+<div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.2);">???</div>
+<div style="font-size:10px;color:rgba(255,255,255,0.12);font-family:'JetBrains Mono',monospace;">${st.tpReq.toLocaleString()} TP · 연속 ${st.reqDay}일+</div>
 </div>
 </div>
-${treeData.stage===st.id?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:treeData.stage>st.id?`<span style="font-size:12px;color:var(--text3);">✓ 달성</span>`:''}
-</div>`).join('')}
+<div style="height:2px;background:rgba(255,255,255,0.04);"></div>
+</div>`;
+}
+}).join('')}
 </div>
 ${tpFormula}
 ` : `<div style="font-size:13px;color:var(--text2);text-align:center;padding:1rem 0;">로그인하면 숨나무 등급을 확인할 수 있어요 🌱</div>`}
 `;
+sub.scrollTop = 0;
 } else if(menu==='theme'){
 sub.innerHTML=back+`<div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;">테마 선택</div>
 <div class="theme-grid">
