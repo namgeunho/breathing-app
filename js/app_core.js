@@ -1,7 +1,6 @@
 function save(){
 try{
 localStorage.setItem(LS+'pp',JSON.stringify(presets));localStorage.setItem(LS+'mode',curMode);localStorage.setItem(LS+'pi',selPI);localStorage.setItem(LS+'dur',document.getElementById('duration').value);localStorage.setItem(LS+'rec',JSON.stringify(records));localStorage.setItem(LS+'memo',JSON.stringify(memos));localStorage.setItem(LS+'name',userName);localStorage.setItem(LS+'ms',JSON.stringify(manSt));if(userPhoto&&!userPhoto.startsWith('http'))localStorage.setItem(LS+'photo',userPhoto);else localStorage.removeItem(LS+'photo');localStorage.setItem(LS+'theme',curTheme);localStorage.setItem(LS+'sfx',curSfx);localStorage.setItem(LS+'bgmOn',bgmOn?'1':'0');localStorage.setItem(LS+'bgm',curBgm);localStorage.setItem(LS+'page',curPage);localStorage.setItem(LS+'sfxVol',sfxVolume);localStorage.setItem(LS+'bgmVol',bgmVolume);
-localStorage.setItem(LS+'localSavedAt', Date.now().toString());
 }catch(e){}
 if(curUser){
 clearTimeout(save._t);

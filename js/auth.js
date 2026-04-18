@@ -166,20 +166,12 @@ document.getElementById('authOverlay').style.display='none';
 }
 async function syncUserData(){
 if(!curUser) return;
+if(syncUserData._skip){syncUserData._skip=false;return;}
 const ref=db.collection('users').doc(curUser.uid);
 try{
 const snap=await ref.get();
 if(snap.exists){
 const d=snap.data();
-// 로컬 저장 시각 vs Firebase updatedAt 비교
-const localSavedAt=parseInt(localStorage.getItem(LS+'localSavedAt')||'0');
-const serverUpdatedAt=d.updatedAt ? d.updatedAt.toMillis() : 0;
-const localIsNewer = localSavedAt > serverUpdatedAt;
-if(localIsNewer){
-// 로컬이 더 최신 → Firebase를 로컬로 업데이트
-await saveUserData();
-} else {
-// Firebase가 더 최신 → 로컬을 Firebase로 업데이트
 if(d.records) records=d.records;
 if(d.memos) memos=d.memos;
 if(d.presets) presets=d.presets;
@@ -193,29 +185,25 @@ if(typeof _bookmarks!=='undefined'){_bookmarks.length=0;merged.forEach(v=>_bookm
 }catch(e){}
 }
 if(d.tpLog){
-try{
-localStorage.setItem(LS+'tpLog',JSON.stringify(d.tpLog));
-}catch(e){}
+try{localStorage.setItem(LS+'tpLog',JSON.stringify(d.tpLog));}catch(e){}
 }
 if(d.shareBonus){
-try{
-localStorage.setItem(LS+'shareBonus',JSON.stringify(d.shareBonus));
-}catch(e){}
+try{localStorage.setItem(LS+'shareBonus',JSON.stringify(d.shareBonus));}catch(e){}
 }
 if(d.settings){
 const st=d.settings;
-if(st.theme) { curTheme=st.theme; applyTheme(curTheme); }
+if(st.theme){curTheme=st.theme;applyTheme(curTheme);}
 if(st.sfx) curSfx=st.sfx;
 if(st.bgm) curBgm=st.bgm;
-if(st.bgmOn !== undefined) bgmOn=st.bgmOn;
-if(st.sfxVol !== undefined) sfxVolume=st.sfxVol;
-if(st.bgmVol !== undefined) bgmVolume=st.bgmVol;
+if(st.bgmOn!==undefined) bgmOn=st.bgmOn;
+if(st.sfxVol!==undefined) sfxVolume=st.sfxVol;
+if(st.bgmVol!==undefined) bgmVolume=st.bgmVol;
 }
-if(d.maxLv !== undefined){
-const localMax = getMaxAchievedLv();
-const serverMax = d.maxLv;
-const merged = Math.max(localMax, serverMax);
-if(merged > 0) localStorage.setItem(LS+'maxLv', merged);
+if(d.maxLv!==undefined){
+const localMax=getMaxAchievedLv();
+const serverMax=d.maxLv;
+const merged=Math.max(localMax,serverMax);
+if(merged>0) localStorage.setItem(LS+'maxLv',merged);
 }
 if(!userName||userName==='사용자'){
 userName=d.userName||curUser.displayName||'사용자';
@@ -225,17 +213,13 @@ userPhoto=d.userPhoto||null;
 if(!userPhoto&&curUser.photoURL) userPhoto=curUser.photoURL;
 }
 save();
-} // else Firebase 최신
 } else {
 await ref.set({
 records, memos, userName,
 userPhoto: userPhoto||'',
 presets: presets.map(p=>({...p})),
 maxLv: getMaxAchievedLv(),
-settings:{
-theme:curTheme, sfx:curSfx, bgmOn:bgmOn,
-bgm:curBgm, sfxVol:sfxVolume, bgmVol:bgmVolume,
-},
+settings:{theme:curTheme,sfx:curSfx,bgmOn:bgmOn,bgm:curBgm,sfxVol:sfxVolume,bgmVol:bgmVolume},
 createdAt: firebase.firestore.FieldValue.serverTimestamp()
 });
 }
@@ -243,7 +227,7 @@ renderUserBar();
 renderTree();
 if(curPage==='calendar'){renderCal();updateCalSt();}
 if(curPage==='config') renderConfigMain();
-}catch(e){ console.log('유저 데이터 동기화 실패:',e); }
+}catch(e){console.log('유저 데이터 동기화 실패:',e);}
 }
 async function saveUserData(){
 if(!curUser) return;
@@ -632,6 +616,7 @@ selDate=null;
 save();
 if(curUser){
 showToast('삭제 중...');
+syncUserData._skip=true;
 await saveUserData();
 showToast('삭제됐어요');
 }
