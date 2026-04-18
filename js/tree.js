@@ -554,6 +554,14 @@ saveTree();renderTree();
 data.sharedTypes.push(type);
 data.totalShareTP=(data.totalShareTP||0)+gained;
 try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}
+// 날짜별 TP 로그 기록
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(!tpLog[td])tpLog[td]=[];
+const shareLabels={result:'결과 공유',invite:'친구 초대',record:'기록 공유',column:'칼럼 공유'};
+tpLog[td].push({type:'share',label:shareLabels[type]||'공유',tp:gained});
+try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 const labels={result:'훈련 결과를 공유했어요!',invite:'초대 링크를 공유했어요!',record:'기록을 공유했어요!',column:'칼럼을 공유했어요!'};
 showToast(`🌿 ${labels[type]||'공유 완료!'}  +${gained} TP 획득`);
 const st=TREE_STAGES[treeData.stage-1];
@@ -563,6 +571,10 @@ if(newStage>prevStage)setTimeout(()=>showLevelUpAnim(newStage),800);
 function getShareBonusTotal(){
 try{const raw=localStorage.getItem(LS+'shareBonus');if(raw)return JSON.parse(raw).totalShareTP||0;}catch(e){}
 return 0;
+}
+function getDayTPLog(dateKey){
+try{const raw=localStorage.getItem(LS+'tpLog');if(raw){const log=JSON.parse(raw);return log[dateKey]||[];}}catch(e){}
+return [];
 }
 function openTreeStory(){
 const body = document.getElementById('treeStoryBody');

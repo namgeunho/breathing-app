@@ -398,6 +398,18 @@ html += `<div class="gdp-actions">
 </button>
 </div>`;
 }
+// TP 적립 내역
+const tpEntries=getDayTPLog(key);
+if(tpEntries.length>0){
+const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
+html+=`<div class="gdp-divider"></div><div class="gdp-section-label">오늘 적립 TP</div>`;
+html+=`<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:10px;padding:10px 14px;">`;
+tpEntries.forEach(e=>{
+html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
+});
+html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0 2px;font-size:13px;font-weight:600;"><span style="color:var(--text);">합계</span><span style="color:var(--success);">+${totalTP} TP</span></div>`;
+html+=`</div>`;
+}
 panel.innerHTML = html;
 }
 function editMemoFromGraph(key){
@@ -445,6 +457,18 @@ html+=`<div class="sl3">감정 · 메모</div>
 ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>`:'<span></span>'}
 <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
 </div>`;
+}
+// TP 적립 내역
+const tpEntries=getDayTPLog(key);
+if(tpEntries.length>0){
+const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
+html+=`<div class="cdiv"></div><div class="sl3">오늘 적립 TP</div>`;
+html+=`<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:10px;padding:10px 14px;">`;
+tpEntries.forEach(e=>{
+html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
+});
+html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0 2px;font-size:13px;font-weight:600;"><span style="color:var(--text);">합계</span><span style="color:var(--success);">+${totalTP} TP</span></div>`;
+html+=`</div>`;
 }
 body.innerHTML=html;
 }

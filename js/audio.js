@@ -312,7 +312,7 @@ document.getElementById('bs-total').textContent=fmt(totalElapsed)+' / '+fmt(tSec
 }
 raf=requestAnimationFrame(tick);
 }
-function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm});save();}
+function saveRec(){const key=today();if(!records[key])records[key]=[];const s=getAS();const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;const memoData=memos[key]||{};const preMood=typeof memoData==='object'?memoData.preMood||'':'';const postMood=typeof memoData==='object'?memoData.postMood||'':'';const gainedTP=calcTP(Math.round(totalElapsed/60*10)/10,preMood,postMood);records[key].push({time:nt(),duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,inhale:s.inhale,holdIn:s.holdIn,exhale:s.exhale,holdOut:s.holdOut,mode:curMode,level:nm,tp:gainedTP});save();}
 function finish(){
 running=false;isPaused=false;
 cancelAnimationFrame(raf);playFS();stopBgm();
@@ -329,6 +329,14 @@ const memoData=memos[today()]||{};
 const preMood=typeof memoData==='object'?memoData.preMood||'':'';
 const postMood=typeof memoData==='object'?memoData.postMood||'':'';
 const treeResult=updateTreeAfterTrain(lastResult.duration, preMood, postMood);
+// TP 로그 기록
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+const td=today();
+if(!tpLog[td])tpLog[td]=[];
+tpLog[td].push({type:'train',label:`${Math.round(lastResult.duration)}분 훈련`,tp:treeResult.gained});
+try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 showCC();
 setTimeout(()=>showTreeOnComplete(treeResult), 400);
 } else {
