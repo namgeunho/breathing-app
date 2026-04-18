@@ -492,7 +492,7 @@ const cells=document.querySelectorAll('#calGrid .cc');
 const[y,m,d]=key.split('-');
 const day=parseInt(d);
 const fd=new Date(parseInt(y),parseInt(m)-1,1).getDay();
-const cellIdx=fd+day-1+7; 
+const cellIdx=fd+day-1;
 const cell=cells[cellIdx];
 if(!cell)return;
 const oldDr=cell.querySelector('.dr');
