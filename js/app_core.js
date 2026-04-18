@@ -145,6 +145,8 @@ function showSub(menu){
 document.getElementById('configMain').style.display='none';
 document.getElementById('configSub').style.display='block';
 const sub=document.getElementById('configSub');
+window.scrollTo({top:0,behavior:'instant'});
+sub.scrollTop=0;
 const back=`<button class="cbk" onclick="closeSub()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10,3 4,8 10,13"/></svg> 설정</button>`;
 if(menu==='guide'){
 const html=_guide
