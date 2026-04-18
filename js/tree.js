@@ -537,12 +537,14 @@ setTimeout(()=>showLevelUpAnim(newStage), 800);
 const SHARE_BONUS_TP = {result:30, invite:50, record:15, column:10};
 function giveShareBonus(type){
 if(!curUser){showToast('로그인하면 공유 보너스 TP를 받을 수 있어요 🌱');return;}
-const key=LS+'shareBonus';
-let data={lastDate:'',sharedTypes:[],totalShareTP:0};
-try{const raw=localStorage.getItem(key);if(raw)data={...data,...JSON.parse(raw)};}catch(e){}
 const td=today();
-if(data.lastDate!==td){data.lastDate=td;data.sharedTypes=[];}
-if(data.sharedTypes.includes(type)){showToast('이미 오늘 공유 보너스를 받았어요 (내일 또 올게요!)');return;}
+// tpLog 기준으로 오늘 이미 받았는지 확인
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(!tpLog[td])tpLog[td]=[];
+const alreadyGot=tpLog[td].some(e=>e.type==='share'&&e.shareType===type);
+if(alreadyGot){showToast('이미 오늘 공유 보너스를 받았어요 (내일 또 올게요!)');return;}
 const gained=SHARE_BONUS_TP[type]||10;
 const prevStage=treeData.stage;
 treeData.tp+=gained;
@@ -553,16 +555,9 @@ if(newStage>prevStage)treeData.stageHistory.push({stage:newStage,date:td});
 saveTree();renderTree();
 clearTimeout(giveShareBonus._t);
 giveShareBonus._t=setTimeout(()=>{if(typeof saveUserData==='function')saveUserData();},2000);
-data.sharedTypes.push(type);
-data.totalShareTP=(data.totalShareTP||0)+gained;
-try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}
-// 날짜별 TP 로그 기록
-const logKey=LS+'tpLog';
-let tpLog={};
-try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
-if(!tpLog[td])tpLog[td]=[];
+// tpLog에만 기록 (shareType 필드 추가로 중복 방지)
 const shareLabels={result:'결과 공유',invite:'친구 초대',record:'기록 공유',column:'칼럼 공유'};
-tpLog[td].push({type:'share',label:shareLabels[type]||'공유',tp:gained});
+tpLog[td].push({type:'share',shareType:type,label:shareLabels[type]||'공유',tp:gained});
 try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 const labels={result:'훈련 결과를 공유했어요!',invite:'초대 링크를 공유했어요!',record:'기록을 공유했어요!',column:'칼럼을 공유했어요!'};
 showToast(`🌿 ${labels[type]||'공유 완료!'}  +${gained} TP 획득`);
@@ -579,10 +574,9 @@ let total=0;
 Object.values(log).forEach(entries=>{
 entries.forEach(e=>{if(e.type==='share')total+=e.tp;});
 });
-if(total>0) return total;
+return total;
 }
 }catch(e){}
-try{const raw=localStorage.getItem(LS+'shareBonus');if(raw)return JSON.parse(raw).totalShareTP||0;}catch(e){}
 return 0;
 }
 function getDayTPLog(dateKey){

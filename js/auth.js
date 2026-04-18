@@ -187,9 +187,6 @@ if(typeof _bookmarks!=='undefined'){_bookmarks.length=0;merged.forEach(v=>_bookm
 if(d.tpLog){
 try{localStorage.setItem(LS+'tpLog',JSON.stringify(d.tpLog));}catch(e){}
 }
-if(d.shareBonus){
-try{localStorage.setItem(LS+'shareBonus',JSON.stringify(d.shareBonus));}catch(e){}
-}
 if(d.settings){
 const st=d.settings;
 if(st.theme){curTheme=st.theme;applyTheme(curTheme);}
@@ -257,7 +254,6 @@ presets: presets.map(p=>({...p})),
 maxLv: getMaxAchievedLv(),
 bookmarks: (()=>{try{return JSON.parse(localStorage.getItem(LS+'bookmarks')||'[]')}catch(e){return []}})(),
 tpLog: tpLog,
-shareBonus: (()=>{try{return JSON.parse(localStorage.getItem(LS+'shareBonus')||'{}')}catch(e){return {}}})(),
 settings:{
 theme: curTheme,
 sfx: curSfx,
