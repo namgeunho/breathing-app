@@ -185,21 +185,12 @@ if(typeof _bookmarks!=='undefined'){_bookmarks.length=0;merged.forEach(v=>_bookm
 }
 if(d.tpLog){
 try{
-const local=JSON.parse(localStorage.getItem(LS+'tpLog')||'{}');
-const merged={...d.tpLog};
-Object.keys(local).forEach(k=>{
-if(!merged[k]) merged[k]=local[k];
-else merged[k]=[...new Map([...merged[k],...local[k]].map(e=>JSON.stringify(e)).map((e,_,a)=>[e,JSON.parse(e)])).values()];
-});
-localStorage.setItem(LS+'tpLog',JSON.stringify(merged));
+localStorage.setItem(LS+'tpLog',JSON.stringify(d.tpLog));
 }catch(e){}
 }
 if(d.shareBonus){
 try{
-const local=JSON.parse(localStorage.getItem(LS+'shareBonus')||'{}');
-const merged={...d.shareBonus};
-if(local.totalShareTP>0) merged.totalShareTP=Math.max(merged.totalShareTP||0,local.totalShareTP||0);
-localStorage.setItem(LS+'shareBonus',JSON.stringify(merged));
+localStorage.setItem(LS+'shareBonus',JSON.stringify(d.shareBonus));
 }catch(e){}
 }
 if(d.settings){
@@ -247,13 +238,31 @@ if(curPage==='config') renderConfigMain();
 async function saveUserData(){
 if(!curUser) return;
 try{
+// tpLog 중복 제거
+let tpLog={};
+try{
+const raw=localStorage.getItem(LS+'tpLog');
+if(raw){
+const log=JSON.parse(raw);
+Object.keys(log).forEach(date=>{
+const seen=new Set();
+tpLog[date]=log[date].filter(e=>{
+const k=e.type+'|'+e.label+'|'+e.tp;
+if(seen.has(k)) return false;
+seen.add(k);
+return true;
+});
+});
+localStorage.setItem(LS+'tpLog',JSON.stringify(tpLog));
+}
+}catch(e){}
 await db.collection('users').doc(curUser.uid).set({
 records, memos, userName,
 userPhoto: userPhoto&&!userPhoto.startsWith('http')?'':userPhoto||'',
 presets: presets.map(p=>({...p})),
 maxLv: getMaxAchievedLv(),
 bookmarks: (()=>{try{return JSON.parse(localStorage.getItem(LS+'bookmarks')||'[]')}catch(e){return []}})(),
-tpLog: (()=>{try{return JSON.parse(localStorage.getItem(LS+'tpLog')||'{}')}catch(e){return {}}})(),
+tpLog: tpLog,
 shareBonus: (()=>{try{return JSON.parse(localStorage.getItem(LS+'shareBonus')||'{}')}catch(e){return {}}})(),
 settings:{
 theme: curTheme,
