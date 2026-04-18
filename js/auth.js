@@ -485,7 +485,8 @@ html+=`<div style="display:flex;justify-content:space-between;align-items:center
 html+=`</div></div>`;
 }
 body.innerHTML=html;
-}(btn,type){
+}
+function selEmo(btn,type){
 const group=btn.closest('.emotion-btns');
 group.querySelectorAll('.emo-btn').forEach(b=>b.classList.remove('sel-emo'));
 btn.classList.add('sel-emo');

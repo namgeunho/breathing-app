@@ -136,9 +136,9 @@ document.getElementById('page-'+id).classList.add('active');
 if(el)el.classList.add('active');
 else{document.querySelectorAll('.tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'"))t.classList.add('active');});}
 const ub=document.getElementById('userBar');
+curPage=id;save();
 if(id==='calendar'){ub.style.display='flex';renderUserBar();}
 else{ub.style.display='none';}
-curPage=id;save();
 logEvent('page_view',{page:id});
 if(id==='calendar'){renderCal();updateCalSt();}
 if(id==='config'){document.getElementById('configMain').style.display='block';document.getElementById('configSub').style.display='none';renderConfigMain();}
