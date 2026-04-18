@@ -56,11 +56,11 @@ if(lv > cur) localStorage.setItem(LS+'maxLv', lv);
 }
 function calcLv(s){
 const LV_DEF = [
-{lv:0, name:'방황하는 자', desc:`길을 찾기까지 ${10-s}일`, next:10, fill:'#888780', cls:'lv0'},
-{lv:1, name:'길을 찾는 자', desc:`길을 알기까지 ${20-s}일`, next:20, fill:'#185fa5', cls:'lv1'},
-{lv:2, name:'길을 아는 자', desc:`수호하기까지 ${40-s}일`, next:40, fill:'#639922', cls:'lv2'},
-{lv:3, name:'수호하는 자', desc:`각성까지 ${80-s}일`, next:80, fill:'#BA7517', cls:'lv3'},
-{lv:4, name:'각성한 수호자', desc:'브레시아의 전설', next:null, fill:'linear-gradient(90deg,#7F77DD,#D4537E)', cls:'lv4'},
+{lv:0, name:'레벨0_ 방황하는 자', desc:`길을 찾기까지 ${10-s}일`, next:10, fill:'#888780', cls:'lv0'},
+{lv:1, name:'레벨1_ 길을 찾는 자', desc:`길을 알기까지 ${20-s}일`, next:20, fill:'#185fa5', cls:'lv1'},
+{lv:2, name:'레벨2_ 길을 아는 자', desc:`수호하기까지 ${40-s}일`, next:40, fill:'#639922', cls:'lv2'},
+{lv:3, name:'레벨3_ 수호하는 자', desc:`각성까지 ${80-s}일`, next:80, fill:'#BA7517', cls:'lv3'},
+{lv:4, name:'레벨4_ 각성한 수호자', desc:'브레시아의 전설', next:null, fill:'linear-gradient(90deg,#7F77DD,#D4537E)', cls:'lv4'},
 ];
 let naturalLv = 0;
 if(s >= 80) naturalLv = 4;
@@ -194,7 +194,7 @@ sub.innerHTML=back+`
 } else if(menu==='grade'){
 const s = curUser ? calcStreak() : 0;
 const lv=calcLv(s);
-const lvList=[{n:0,l:'방황하는 자',r:'0~9일',c:'#888780'},{n:1,l:'길을 찾는 자',r:'10일~',c:'#185fa5'},{n:2,l:'길을 아는 자',r:'20일~',c:'#639922'},{n:3,l:'수호하는 자',r:'40일~',c:'#BA7517'},{n:4,l:'각성한 수호자',r:'80일~',c:'#7F77DD'}];
+const lvList=[{n:0,l:'레벨0_ 방황하는 자',r:'0~9일',c:'#888780'},{n:1,l:'레벨1_ 길을 찾는 자',r:'10일~',c:'#185fa5'},{n:2,l:'레벨2_ 길을 아는 자',r:'20일~',c:'#639922'},{n:3,l:'레벨3_ 수호하는 자',r:'40일~',c:'#BA7517'},{n:4,l:'레벨4_ 각성한 수호자',r:'80일~',c:'#7F77DD'}];
 const isLoggedIn = !!curUser;
 const treeSt = TREE_STAGES[treeData.stage-1];
 const treeNextSt = TREE_STAGES[treeData.stage] || null;
