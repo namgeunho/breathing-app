@@ -588,10 +588,14 @@ try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e
 if(!tpLog[key])tpLog[key]=[];
 tpLog[key].push({type:'mood',label:'감정 개선 보너스',tp:bonus});
 try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
-showToast(`🌿 감정이 개선됐어요! +${bonus} TP 획득`);
+showToast(`🌿 감정이 개선됐어요! +${bonus} TP 획득 (로그:${(tpLog[key]||[]).length}건)`);
 const st=TREE_STAGES[treeData.stage-1];
 if(st)spawnTreeParticles(st.color);
-renderDB(key);return;
+const hasR2=records[key]&&records[key].length>0;
+document.getElementById('xBtn').style.display=(hasR2||true)?'flex':'none';
+updateCalDot(key);
+renderDB(key);
+return;
 } else if(!isImproved&&wasImproved){
 // 기존에 개선됐었는데 수정 후 개선 안 됨 → 보너스 회수
 const emoBonuses=[3,3,5,8,12,15,20];
