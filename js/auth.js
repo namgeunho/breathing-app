@@ -403,19 +403,21 @@ const tpEntries=getDayTPLog(key);
 if(tpEntries.length>0){
 const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
 const tpId='tpGBox_'+key.replace(/-/g,'');
-html+=`<div style="margin-top:12px;background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
-<div onclick="document.getElementById('${tpId}').style.display=document.getElementById('${tpId}').style.display==='none'?'block':'none';this.querySelector('.tp-arr').style.transform=document.getElementById('${tpId}').style.display==='none'?'rotate(0deg)':'rotate(180deg')" style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;">
-<span style="font-size:12px;font-weight:600;color:var(--text2);">📊 오늘 적립 TP</span>
+html+=`<div style="margin-top:12px;">
+<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:0.04em;">오늘 적립 TP</div>
+<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
+<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">
+<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>
 <div style="display:flex;align-items:center;gap:8px;">
-<span style="font-size:13px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
-<span class="tp-arr" style="font-size:10px;color:var(--text3);transition:transform 0.2s;">▾</span>
+<span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
+<span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span>
 </div>
 </div>
-<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:8px 14px 10px;">`;
+<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">`;
 tpEntries.forEach(e=>{
-html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
+html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
 });
-html+=`</div></div>`;
+html+=`</div></div></div>`;
 }
 panel.innerHTML = html;
 }
@@ -470,19 +472,21 @@ const tpEntries=getDayTPLog(key);
 if(tpEntries.length>0){
 const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
 const tpId='tpBox_'+key.replace(/-/g,'');
-html+=`<div style="margin-top:14px;background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
-<div onclick="document.getElementById('${tpId}').style.display=document.getElementById('${tpId}').style.display==='none'?'block':'none';this.querySelector('.tp-arr').style.transform=document.getElementById('${tpId}').style.display==='none'?'rotate(0deg)':'rotate(180deg')" style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;">
-<span style="font-size:12px;font-weight:600;color:var(--text2);">📊 오늘 적립 TP</span>
+html+=`<div style="margin-top:14px;">
+<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:0.04em;">오늘 적립 TP</div>
+<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
+<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">
+<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>
 <div style="display:flex;align-items:center;gap:8px;">
-<span style="font-size:13px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
-<span class="tp-arr" style="font-size:10px;color:var(--text3);transition:transform 0.2s;">▾</span>
+<span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
+<span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span>
 </div>
 </div>
-<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:8px 14px 10px;">`;
+<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">`;
 tpEntries.forEach(e=>{
-html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
+html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
 });
-html+=`</div></div>`;
+html+=`</div></div></div>`;
 }
 body.innerHTML=html;
 }
