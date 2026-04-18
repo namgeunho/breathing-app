@@ -591,6 +591,7 @@ try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 showToast(`🌿 감정이 개선됐어요! +${bonus} TP 획득`);
 const st=TREE_STAGES[treeData.stage-1];
 if(st)spawnTreeParticles(st.color);
+renderDB(key);return;
 } else if(!isImproved&&wasImproved){
 // 기존에 개선됐었는데 수정 후 개선 안 됨 → 보너스 회수
 const emoBonuses=[3,3,5,8,12,15,20];
