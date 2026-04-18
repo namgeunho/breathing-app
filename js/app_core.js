@@ -101,12 +101,28 @@ function avHtml(sz,fsz,fb){if(userPhoto)return`<img src="${userPhoto}" alt="" st
 function renderUserBar(){
 const s = curUser ? calcStreak() : 0;
 const lv=calcLv(s);const ini=userName.substring(0,2);
-const lvSt={lv0:'background:var(--bg2);color:var(--text2)',lv1:'background:#e6f1fb;color:#185fa5',lv2:'background:#eaf3de;color:#3b6d11',lv3:'background:#faeeda;color:#854f0b',lv4:'background:linear-gradient(90deg,#7F77DD,#D4537E);color:#fff'};
-const nxt=lv.next?`목표 ${lv.next}일`:'최고 등급';
+const lvColor={lv0:'var(--text2)',lv1:'#185fa5',lv2:'#639922',lv3:'#BA7517',lv4:'#7F77DD'};
+const barPct=lv.next?Math.min(100,Math.round((s/lv.next)*100)):100;
 const authBtn=curPage==='calendar' ? '' : curUser
 ? `<button class="ub-login-btn" onclick="signOut()"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2M6 5l-3 3 3 3"/><path d="M6 2h6a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6"/></svg>로그아웃</button>`
 : `<button class="ub-login-btn" onclick="openAuthModal()"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h8M10 5l3 3-3 3"/><path d="M10 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h6"/></svg>로그인</button>`;
-document.getElementById('userBar').innerHTML=`<div class="uba">${avHtml(28,11,ini)}</div><div class="ubi" onclick="showPage('config',null);setTimeout(()=>showSub('profile'),50);" style="cursor:pointer;"><div class="ubn">${eh(userName)}</div></div><div class="ubd"></div><div class="ubi" onclick="showPage('config',null);setTimeout(()=>showSub('grade'),50);" style="cursor:pointer;"><div class="ubv">${s}일</div><div class="ubl">연속 달성</div></div><div class="ubd"></div><div class="ubi" onclick="showPage('config',null);setTimeout(()=>showSub('grade'),50);" style="cursor:pointer;"><span class="ubb" style="${lvSt[lv.cls]||lvSt.lv0}">${lv.name}</span><div class="ubl" style="margin-top:2px;">${nxt}</div></div>${authBtn}`;
+document.getElementById('userBar').innerHTML=`
+<div class="uba" onclick="showPage('config',null);setTimeout(()=>showSub('profile'),50);" style="cursor:pointer;flex-shrink:0;">${avHtml(28,11,ini)}</div>
+<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;cursor:pointer;" onclick="showPage('config',null);setTimeout(()=>showSub('profile'),50);">
+<div class="ubn">${eh(userName)}</div>
+</div>
+<div class="ubd" style="flex-shrink:0;"></div>
+<div style="flex:1;min-width:0;cursor:pointer;" onclick="showPage('config',null);setTimeout(()=>showSub('grade'),50);">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+<span style="font-size:13px;font-weight:700;color:${lvColor[lv.cls]||'var(--text2)'};">${lv.name}</span>
+<span style="font-size:11px;color:var(--text3);">${lv.next?`레벨${lv.lv+1}까지 ${lv.next-s}일`:'최고 등급'}</span>
+</div>
+<div style="font-size:11px;color:var(--text2);margin-bottom:5px;">연속 달성 ${s}일${lv.next?' / 목표 '+lv.next+'일':''}</div>
+<div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;">
+<div style="height:100%;width:${barPct}%;background:${lv.fill.startsWith('linear')?'#7F77DD':lv.fill};border-radius:2px;transition:width .6s;"></div>
+</div>
+</div>
+${authBtn}`;
 }
 function renderConfigMain(){
 const s = curUser ? calcStreak() : 0;
