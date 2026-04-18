@@ -612,9 +612,25 @@ let html=`<div class="sl3">감정 · 메모</div>
 </div>`;
 document.getElementById('detailBody').innerHTML=html;
 }
-function delMemo(key){delete memos[key];save();if(curUser)saveUserData();renderCal();renderDB(key);}
+async function delMemo(key){delete memos[key];save();if(curUser){await saveUserData();}renderCal();renderDB(key);}
 function askDeleteDay(){if(!selDate)return;document.getElementById('detailBody').innerHTML=`<div class="cfmb"><div class="cfmm"><strong>${fl(selDate)}</strong>의<br>훈련 기록을 삭제하시겠습니까?</div><div class="cfmbs"><button class="bdng" onclick="confirmDel()">네</button><button onclick="selD('${selDate}')">아니오</button></div></div>`;}
-function confirmDel(){delete records[selDate];delete memos[selDate];selDate=null;save();if(curUser)saveUserData();renderCal();updateCalSt();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';const tb=document.getElementById('detailTPBox');if(tb){tb.style.display='none';tb.innerHTML='';}}
+async function confirmDel(){
+const dateToDelete=selDate;
+delete records[dateToDelete];
+delete memos[dateToDelete];
+selDate=null;
+save();
+if(curUser){
+showToast('삭제 중...');
+await saveUserData();
+showToast('삭제됐어요');
+}
+renderCal();updateCalSt();
+document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';
+document.getElementById('detailBody').innerHTML='<div class="gdp-empty" style="text-align:left;">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';
+document.getElementById('xBtn').style.display='none';
+const tb=document.getElementById('detailTPBox');if(tb){tb.style.display='none';tb.innerHTML='';}
+}
 function changeMonth(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}selDate=null;renderCal();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';const tb=document.getElementById('detailTPBox');if(tb){tb.style.display='none';tb.innerHTML='';}}
 function updateCalSt(){
 const keys=Object.keys(records);
