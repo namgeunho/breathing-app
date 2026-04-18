@@ -325,10 +325,7 @@ lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,da
 logEvent('training_complete',{mode:curMode,preset:nm||'manual',duration_min:lastResult.duration,cycles:cyclesDone});
 if(curUser){
 saveRec();
-const memoData=memos[today()]||{};
-const preMood=typeof memoData==='object'?memoData.preMood||'':'';
-const postMood=typeof memoData==='object'?memoData.postMood||'':'';
-const treeResult=updateTreeAfterTrain(lastResult.duration, preMood, postMood);
+const treeResult=updateTreeAfterTrain(lastResult.duration,'','');
 // TP 로그 기록
 const logKey=LS+'tpLog';
 let tpLog={};

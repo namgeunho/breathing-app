@@ -559,9 +559,54 @@ const preBtn=document.querySelector('.emotion-btns .emo-btn.sel-emo[data-type="p
 const postBtn=document.querySelector('.emotion-btns .emo-btn.sel-emo[data-type="post"]');
 const preMood=preBtn?preBtn.textContent:'';
 const postMood=postBtn?postBtn.textContent:'';
+// 기존 감정값 저장
+const prevMemo=memos[key]||{};
+const prevPreMood=typeof prevMemo==='object'?prevMemo.preMood||'':'';
+const prevPostMood=typeof prevMemo==='object'?prevMemo.postMood||'':'';
 if(v||preMood||postMood) memos[key]={text:v,preMood,postMood};
 else delete memos[key];
 save();
+// 감정 개선 보너스 — 오늘 날짜이고 훈련 기록이 있을 때만
+if(key===today()&&curUser&&records[key]&&records[key].length>0){
+const emoVals={'아주나쁨':1,'나쁨':2,'보통':3,'좋음':4,'아주좋음':5};
+const wasImproved=(emoVals[prevPostMood]||0)>(emoVals[prevPreMood]||0);
+const isImproved=(emoVals[postMood]||0)>(emoVals[preMood]||0);
+if(isImproved&&!wasImproved){
+// 새로 감정 개선됨 → 보너스 지급
+const emoBonuses=[3,3,5,8,12,15,20];
+const bonus=emoBonuses[(treeData.stage||1)-1]||3;
+treeData.tp+=bonus;
+treeData.totalTpEarned+=bonus;
+const newStage=getTreeStageFromTP(treeData.tp);
+if(newStage>treeData.stage){treeData.stageHistory.push({stage:newStage,date:key});}
+treeData.stage=newStage;
+saveTree();renderTree();
+// tpLog에 기록
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(!tpLog[key])tpLog[key]=[];
+tpLog[key].push({type:'mood',label:'감정 개선 보너스',tp:bonus});
+try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
+showToast(`🌿 감정이 개선됐어요! +${bonus} TP 획득`);
+const st=TREE_STAGES[treeData.stage-1];
+if(st)spawnTreeParticles(st.color);
+} else if(!isImproved&&wasImproved){
+// 기존에 개선됐었는데 수정 후 개선 안 됨 → 보너스 회수
+const emoBonuses=[3,3,5,8,12,15,20];
+const bonus=emoBonuses[(treeData.stage||1)-1]||3;
+treeData.tp=Math.max(0,treeData.tp-bonus);
+treeData.totalTpEarned=Math.max(0,treeData.totalTpEarned-bonus);
+treeData.stage=getTreeStageFromTP(treeData.tp);
+saveTree();renderTree();
+// tpLog에서 감정 보너스 제거
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(tpLog[key])tpLog[key]=tpLog[key].filter(e=>e.type!=='mood');
+try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
+}
+}
 const hasR=records[key]&&records[key].length>0;
 const hasM=!!memos[key];
 document.getElementById('xBtn').style.display=(hasR||hasM)?'flex':'none';
