@@ -467,26 +467,27 @@ ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg w
 <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
 </div>`;
 }
-// TP 적립 내역
+// TP 적립 내역 — 별도 박스
+const tpBox=document.getElementById('detailTPBox');
 const tpEntries=getDayTPLog(key);
-if(tpEntries.length>0){
+if(tpEntries.length>0&&tpBox){
 const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
 const tpId='tpBox_'+key.replace(/-/g,'');
-html+=`<div style="margin-top:14px;">
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:0.04em;">오늘 적립 TP</div>
-<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
-<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">
-<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>
+tpBox.style.display='block';
+tpBox.innerHTML=`
+<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;">
+<span style="font-size:13px;font-weight:600;color:var(--text);">오늘 적립 TP</span>
 <div style="display:flex;align-items:center;gap:8px;">
 <span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
 <span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span>
 </div>
 </div>
-<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">`;
-tpEntries.forEach(e=>{
-html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
-});
-html+=`</div></div></div>`;
+<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">
+${tpEntries.map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`).join('')}
+</div>`;
+} else if(tpBox){
+tpBox.style.display='none';
+tpBox.innerHTML='';
 }
 body.innerHTML=html;
 }
@@ -567,8 +568,8 @@ document.getElementById('detailBody').innerHTML=html;
 }
 function delMemo(key){delete memos[key];save();renderCal();renderDB(key);}
 function askDeleteDay(){if(!selDate)return;document.getElementById('detailBody').innerHTML=`<div class="cfmb"><div class="cfmm"><strong>${fl(selDate)}</strong>의<br>훈련 기록을 삭제하시겠습니까?</div><div class="cfmbs"><button class="bdng" onclick="confirmDel()">네</button><button onclick="selD('${selDate}')">아니오</button></div></div>`;}
-function confirmDel(){delete records[selDate];delete memos[selDate];selDate=null;save();renderCal();updateCalSt();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';}
-function changeMonth(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}selDate=null;renderCal();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';}
+function confirmDel(){delete records[selDate];delete memos[selDate];selDate=null;save();renderCal();updateCalSt();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';const tb=document.getElementById('detailTPBox');if(tb){tb.style.display='none';tb.innerHTML='';}}
+function changeMonth(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}selDate=null;renderCal();document.getElementById('detailTitle').textContent='날짜를 선택해 주세요';document.getElementById('detailBody').innerHTML='<div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';document.getElementById('xBtn').style.display='none';const tb=document.getElementById('detailTPBox');if(tb){tb.style.display='none';tb.innerHTML='';}}
 function updateCalSt(){
 const keys=Object.keys(records);
 document.getElementById('totalDays').textContent=keys.length;
