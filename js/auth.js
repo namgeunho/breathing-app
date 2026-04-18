@@ -171,6 +171,15 @@ try{
 const snap=await ref.get();
 if(snap.exists){
 const d=snap.data();
+// 로컬 저장 시각 vs Firebase updatedAt 비교
+const localSavedAt=parseInt(localStorage.getItem(LS+'localSavedAt')||'0');
+const serverUpdatedAt=d.updatedAt ? d.updatedAt.toMillis() : 0;
+const localIsNewer = localSavedAt > serverUpdatedAt;
+if(localIsNewer){
+// 로컬이 더 최신 → Firebase를 로컬로 업데이트
+await saveUserData();
+} else {
+// Firebase가 더 최신 → 로컬을 Firebase로 업데이트
 if(d.records) records=d.records;
 if(d.memos) memos=d.memos;
 if(d.presets) presets=d.presets;
@@ -216,6 +225,7 @@ userPhoto=d.userPhoto||null;
 if(!userPhoto&&curUser.photoURL) userPhoto=curUser.photoURL;
 }
 save();
+} // else Firebase 최신
 } else {
 await ref.set({
 records, memos, userName,
