@@ -269,7 +269,7 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
 </div>
 <div>
-<div style="font-size:14px;font-weight:500;color:var(--text3);">???</div>
+<div style="font-size:14px;font-weight:500;color:var(--text3);">${st.name}</div>
 <div style="font-size:11px;color:var(--text3);">${st.tpReq.toLocaleString()} TP · 연속 ${st.reqDay}일+</div>
 </div>
 </div>
