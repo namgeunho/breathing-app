@@ -658,12 +658,19 @@ async function confirmDel(){
 const dateToDelete=selDate;
 delete records[dateToDelete];
 delete memos[dateToDelete];
-// 해당 날짜 tpLog 삭제
+// 해당 날짜 tpLog 삭제 + treeData.tp 차감
 try{
 const logKey=LS+'tpLog';
 const raw=localStorage.getItem(logKey);
 if(raw){
 const tpLog=JSON.parse(raw);
+if(tpLog[dateToDelete]){
+const dayTP=tpLog[dateToDelete].reduce((s,e)=>s+e.tp,0);
+treeData.tp=Math.max(0,treeData.tp-dayTP);
+treeData.totalTpEarned=Math.max(0,treeData.totalTpEarned-dayTP);
+treeData.stage=getTreeStageFromTP(treeData.tp);
+saveTree();
+}
 delete tpLog[dateToDelete];
 localStorage.setItem(logKey,JSON.stringify(tpLog));
 }
