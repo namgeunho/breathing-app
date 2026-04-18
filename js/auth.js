@@ -470,7 +470,9 @@ ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg w
 <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
 </div>`;
 }
-// TP 적립 내역 — 별도 박스
+// body 먼저 렌더링
+body.innerHTML=html;
+// TP 적립 내역 — body 렌더링 후에 처리
 const tpBox=document.getElementById('detailTPBox');
 const tpEntries=getDayTPLog(key);
 if(tpEntries.length>0&&tpBox){
@@ -495,7 +497,6 @@ ${tpEntries.map(e=>`<div style="display:flex;justify-content:space-between;align
 tpBox.style.display='none';
 tpBox.innerHTML='';
 }
-body.innerHTML=html;
 }
 function selEmo(btn,type){
 const group=btn.closest('.emotion-btns');
