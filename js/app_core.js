@@ -212,9 +212,15 @@ const tpFormula = `
 sub.innerHTML=back+`
 <div style="font-size:16px;font-weight:700;color:var(--text2);letter-spacing:-0.01em;margin-bottom:0.75rem;">나의 레벨</div>
 <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
-<div style="font-size:14px;color:var(--text2);margin-bottom:8px;">연속 달성 ${s}일${isLoggedIn ? ' · '+lv.desc : ''}</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+<div>
+<span class="lvb ${lv.cls}">${lv.name}</span>
+<div style="font-size:13px;color:var(--text2);margin-top:6px;">연속 달성 ${s}일${isLoggedIn && lv.next ? ' / 목표 '+lv.next+'일' : ''}</div>
+</div>
+<div style="font-size:12px;color:var(--text3);">${isLoggedIn ? lv.desc : ''}</div>
+</div>
 ${isLoggedIn && lv.demoted ? `<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;margin-bottom:10px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>` : ''}
-${isLoggedIn && lv.next ? `<div class="lpb"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>` : ''}
+${isLoggedIn && lv.next ? `<div class="lpb" style="margin-bottom:0;"><div class="lpf" style="width:${Math.min(100,Math.round((s/lv.next)*100))}%;background:${lv.fill};"></div></div>` : ''}
 </div>
 <div class="dp" style="margin-bottom:1.5rem;">
 <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>
