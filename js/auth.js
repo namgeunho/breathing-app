@@ -608,6 +608,16 @@ async function confirmDel(){
 const dateToDelete=selDate;
 delete records[dateToDelete];
 delete memos[dateToDelete];
+// 해당 날짜 tpLog 삭제
+try{
+const logKey=LS+'tpLog';
+const raw=localStorage.getItem(logKey);
+if(raw){
+const tpLog=JSON.parse(raw);
+delete tpLog[dateToDelete];
+localStorage.setItem(logKey,JSON.stringify(tpLog));
+}
+}catch(e){}
 selDate=null;
 save();
 if(curUser){
