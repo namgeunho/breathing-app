@@ -241,14 +241,14 @@
         </div>
       </div>
       <div class="cg" id="calGrid"></div>
-      <div class="dp">
-        <div class="dph">
-          <div class="dpt" id="detailTitle">날짜를 선택해 주세요</div>
+      <div class="graph-day-panel" id="calDetailPanel" style="margin-top:4px;">
+        <div class="gdp-header">
+          <div class="gdp-date" id="detailTitle">날짜를 선택해 주세요</div>
           <button class="xb" id="xBtn" style="display:none;" onclick="askDeleteDay()">&#x2715;</button>
         </div>
-        <div id="detailBody"><div class="em">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div></div>
+        <div id="detailBody"><div class="gdp-empty" style="text-align:left;">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div></div>
+        <div id="detailTPBox" style="display:none;margin-top:14px;"></div>
       </div>
-      <div id="detailTPBox" style="display:none;margin-top:12px;"></div>
     </div>
     <!-- 그래프 뷰 -->
     <div id="graphView" style="display:none;">
