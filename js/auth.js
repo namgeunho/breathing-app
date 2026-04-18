@@ -491,8 +491,8 @@ html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:
 </div>`;
 } else {
 html+=`<div class="gdp-divider"></div><div class="gdp-section-label">감정 · 메모</div>
-<div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
-<div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
+<div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" data-type="pre" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
+<div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" data-type="post" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
 <textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea>
 <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
 ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>`:'<span></span>'}
@@ -593,8 +593,8 @@ const memo=typeof memoData==='string'?memoData:(memoData.text||'');
 const preMood=typeof memoData==='object'?memoData.preMood||'':'';
 const postMood=typeof memoData==='object'?memoData.postMood||'':'';
 let html=`<div class="sl3">감정 · 메모</div>
-<div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn${preMood===e?' sel-emo':''}" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
-<div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn${postMood===e?' sel-emo':''}" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
+<div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn${preMood===e?' sel-emo':''}" data-type="pre" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
+<div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn${postMood===e?' sel-emo':''}" data-type="post" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
 <textarea class="mi" id="memoInput">${eh(memo)}</textarea>
 <div style="display:flex;gap:8px;justify-content:flex-end;">
 <button class="bsm" onclick="renderDB('${key}')">취소</button>
