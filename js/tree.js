@@ -534,6 +534,36 @@ if(levelUp){
 setTimeout(()=>showLevelUpAnim(newStage), 800);
 }
 }
+const SHARE_BONUS_TP = {result:30, invite:50, record:15, column:10};
+function giveShareBonus(type){
+if(!curUser){showToast('로그인하면 공유 보너스 TP를 받을 수 있어요 🌱');return;}
+const key=LS+'shareBonus';
+let data={lastDate:'',sharedTypes:[],totalShareTP:0};
+try{const raw=localStorage.getItem(key);if(raw)data={...data,...JSON.parse(raw)};}catch(e){}
+const td=today();
+if(data.lastDate!==td){data.lastDate=td;data.sharedTypes=[];}
+if(data.sharedTypes.includes(type)){showToast('이미 오늘 공유 보너스를 받았어요 (내일 또 올게요!)');return;}
+const gained=SHARE_BONUS_TP[type]||10;
+const prevStage=treeData.stage;
+treeData.tp+=gained;
+treeData.totalTpEarned+=gained;
+const newStage=getTreeStageFromTP(treeData.tp);
+treeData.stage=newStage;
+if(newStage>prevStage)treeData.stageHistory.push({stage:newStage,date:td});
+saveTree();renderTree();
+data.sharedTypes.push(type);
+data.totalShareTP=(data.totalShareTP||0)+gained;
+try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}
+const labels={result:'훈련 결과를 공유했어요!',invite:'초대 링크를 공유했어요!',record:'기록을 공유했어요!',column:'칼럼을 공유했어요!'};
+showToast(`🌿 ${labels[type]||'공유 완료!'}  +${gained} TP 획득`);
+const st=TREE_STAGES[treeData.stage-1];
+if(st)spawnTreeParticles(st.color);
+if(newStage>prevStage)setTimeout(()=>showLevelUpAnim(newStage),800);
+}
+function getShareBonusTotal(){
+try{const raw=localStorage.getItem(LS+'shareBonus');if(raw)return JSON.parse(raw).totalShareTP||0;}catch(e){}
+return 0;
+}
 function openTreeStory(){
 const body = document.getElementById('treeStoryBody');
 if(!body) return;

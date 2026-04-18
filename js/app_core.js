@@ -201,6 +201,7 @@ const treeNextSt = TREE_STAGES[treeData.stage] || null;
 const treePct = treeNextSt
 ? Math.min(100, Math.round(((treeData.tp - treeSt.tpReq) / (treeNextSt.tpReq - treeSt.tpReq)) * 100))
 : 100;
+const shareTotalTP = getShareBonusTotal();
 const tpFormula = `
 <div class="cfg-group-label" style="margin-top:1.5rem;">TP 계산 방식</div>
 <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.9;">
@@ -210,7 +211,10 @@ const tpFormula = `
 <div><span style="color:var(--text);font-weight:500;">첫 훈련 보너스</span> · 오늘 첫 훈련 시 +5</div>
 <div><span style="color:var(--text);font-weight:500;">감정 개선 보너스</span> · 훈련 전→후 개선 시 단계별 +3~+20</div>
 <div><span style="color:var(--text);font-weight:500;">레벨 보너스</span> · 나의 레벨 × 3</div>
-</div>`;
+<div><span style="color:var(--text);font-weight:500;">공유 보너스</span> · 결과+30 / 초대+50 / 기록+15 / 칼럼+10 (하루 1회)</div>
+</div>
+${shareTotalTP>0?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:10px 14px;background:var(--success-bg);border-radius:10px;border:0.5px solid var(--success-bd);"><span style="font-size:13px;color:var(--success);">📤 공유 보너스 누적</span><span style="font-size:13px;font-weight:600;color:var(--success);">+${shareTotalTP.toLocaleString()} TP</span></div>`:''}
+`;
 sub.innerHTML=back+`
 <div style="font-size:16px;font-weight:700;color:var(--text2);letter-spacing:-0.01em;margin-bottom:0.75rem;">나의 레벨</div>
 <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;">

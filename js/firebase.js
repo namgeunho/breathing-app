@@ -214,7 +214,8 @@ showToast(bm?'북마크에 추가됐어요!':'북마크가 해제됐어요');
 }
 async function shareCol(title,url){
 const text=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿`;
-try{if(navigator.share)await navigator.share({title,text,url});else{await navigator.clipboard.writeText(title+'\n'+text+'\n'+url);showToast('링크가 복사됐어요!');}}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
+try{if(navigator.share)await navigator.share({title,text,url});else{await navigator.clipboard.writeText(title+'\n'+text+'\n'+url);showToast('링크가 복사됐어요!');}
+giveShareBonus('column');}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
 }
 function closeColDetail(){
 document.getElementById('colListView').style.display='block';

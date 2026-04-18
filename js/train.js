@@ -111,11 +111,14 @@ const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
 const file=new File([blob],'호흡훈련.png',{type:'image/png'});
 if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
 await navigator.share({title:'호흡 훈련 완료!',text:shareText,files:[file],url:appUrl});
+giveShareBonus('result');
 } else if(navigator.share){
 await navigator.share({title:'호흡 훈련 완료!',text:shareText,url:appUrl});
+giveShareBonus('result');
 } else {
 await navigator.clipboard.writeText(shareText+'\n'+appUrl);
 showToast('공유 내용이 복사됐어요!');
+giveShareBonus('result');
 }
 }catch(e){
 if(e.name!=='AbortError')showToast('공유를 취소했어요');

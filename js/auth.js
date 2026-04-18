@@ -120,6 +120,7 @@ const text=`들숨과 날숨 사이, 나를 만나는 브레스인\n\n호흡 훈
 try{
 if(navigator.share) await navigator.share({title:'BRETHIN - 호흡 훈련',text,url:appUrl});
 else{ await navigator.clipboard.writeText(text+'\n'+appUrl); showToast('링크가 복사됐어요!'); }
+giveShareBonus('invite');
 }catch(e){ if(e.name!=='AbortError') showToast('공유를 취소했어요'); }
 }
 async function signInGoogle(){
@@ -469,6 +470,7 @@ const text=lines.join('\n');
 try{
 if(navigator.share) await navigator.share({title:'BRETHIN 훈련 기록',text,url:appUrl});
 else{ await navigator.clipboard.writeText(text+'\n'+appUrl); showToast('기록이 복사됐어요!'); }
+giveShareBonus('record');
 }catch(e){ if(e.name!=='AbortError') showToast('공유를 취소했어요'); }
 }
 function saveMemo(key){
