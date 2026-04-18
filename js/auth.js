@@ -567,6 +567,7 @@ if(v||preMood||postMood) memos[key]={text:v,preMood,postMood};
 else delete memos[key];
 save();
 // 감정 개선 보너스 — 오늘 날짜이고 훈련 기록이 있을 때만
+showToast(`key:${key} today:${today()} user:${!!curUser} rec:${!!(records[key]&&records[key].length>0)}`);
 if(key===today()&&curUser&&records[key]&&records[key].length>0){
 const emoVals={'아주나쁨':1,'나쁨':2,'보통':3,'좋음':4,'아주좋음':5};
 const wasImproved=(emoVals[prevPostMood]||0)>(emoVals[prevPreMood]||0);
