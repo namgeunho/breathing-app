@@ -571,6 +571,17 @@ if(st)spawnTreeParticles(st.color);
 if(newStage>prevStage)setTimeout(()=>showLevelUpAnim(newStage),800);
 }
 function getShareBonusTotal(){
+try{
+const raw=localStorage.getItem(LS+'tpLog');
+if(raw){
+const log=JSON.parse(raw);
+let total=0;
+Object.values(log).forEach(entries=>{
+entries.forEach(e=>{if(e.type==='share')total+=e.tp;});
+});
+if(total>0) return total;
+}
+}catch(e){}
 try{const raw=localStorage.getItem(LS+'shareBonus');if(raw)return JSON.parse(raw).totalShareTP||0;}catch(e){}
 return 0;
 }
