@@ -551,6 +551,8 @@ const newStage=getTreeStageFromTP(treeData.tp);
 treeData.stage=newStage;
 if(newStage>prevStage)treeData.stageHistory.push({stage:newStage,date:td});
 saveTree();renderTree();
+clearTimeout(giveShareBonus._t);
+giveShareBonus._t=setTimeout(()=>{if(typeof saveUserData==='function')saveUserData();},2000);
 data.sharedTypes.push(type);
 data.totalShareTP=(data.totalShareTP||0)+gained;
 try{localStorage.setItem(key,JSON.stringify(data));}catch(e){}

@@ -175,6 +175,33 @@ if(d.records) records=d.records;
 if(d.memos) memos=d.memos;
 if(d.presets) presets=d.presets;
 if(d.tree) treeData={...treeData,...d.tree};
+if(d.bookmarks){
+try{
+const local=JSON.parse(localStorage.getItem(LS+'bookmarks')||'[]');
+const merged=[...new Set([...d.bookmarks,...local])];
+localStorage.setItem(LS+'bookmarks',JSON.stringify(merged));
+if(typeof _bookmarks!=='undefined'){_bookmarks.length=0;merged.forEach(v=>_bookmarks.push(v));}
+}catch(e){}
+}
+if(d.tpLog){
+try{
+const local=JSON.parse(localStorage.getItem(LS+'tpLog')||'{}');
+const merged={...d.tpLog};
+Object.keys(local).forEach(k=>{
+if(!merged[k]) merged[k]=local[k];
+else merged[k]=[...new Map([...merged[k],...local[k]].map(e=>JSON.stringify(e)).map((e,_,a)=>[e,JSON.parse(e)])).values()];
+});
+localStorage.setItem(LS+'tpLog',JSON.stringify(merged));
+}catch(e){}
+}
+if(d.shareBonus){
+try{
+const local=JSON.parse(localStorage.getItem(LS+'shareBonus')||'{}');
+const merged={...d.shareBonus};
+if(local.totalShareTP>0) merged.totalShareTP=Math.max(merged.totalShareTP||0,local.totalShareTP||0);
+localStorage.setItem(LS+'shareBonus',JSON.stringify(merged));
+}catch(e){}
+}
 if(d.settings){
 const st=d.settings;
 if(st.theme) { curTheme=st.theme; applyTheme(curTheme); }
@@ -225,6 +252,9 @@ records, memos, userName,
 userPhoto: userPhoto&&!userPhoto.startsWith('http')?'':userPhoto||'',
 presets: presets.map(p=>({...p})),
 maxLv: getMaxAchievedLv(),
+bookmarks: (()=>{try{return JSON.parse(localStorage.getItem(LS+'bookmarks')||'[]')}catch(e){return []}})(),
+tpLog: (()=>{try{return JSON.parse(localStorage.getItem(LS+'tpLog')||'{}')}catch(e){return {}}})(),
+shareBonus: (()=>{try{return JSON.parse(localStorage.getItem(LS+'shareBonus')||'{}')}catch(e){return {}}})(),
 settings:{
 theme: curTheme,
 sfx: curSfx,

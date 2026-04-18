@@ -337,6 +337,8 @@ const td=today();
 if(!tpLog[td])tpLog[td]=[];
 tpLog[td].push({type:'train',label:`${Math.round(lastResult.duration)}분 훈련`,tp:treeResult.gained});
 try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
+clearTimeout(finish._tpSave);
+finish._tpSave=setTimeout(()=>{if(typeof saveUserData==='function')saveUserData();},2000);
 showCC();
 setTimeout(()=>showTreeOnComplete(treeResult), 400);
 } else {

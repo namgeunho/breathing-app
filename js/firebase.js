@@ -69,7 +69,13 @@ let _columns = [];
 let _bookmarks = JSON.parse(localStorage.getItem('breath5_bookmarks')||'[]');
 let colFilter = 'all';
 let colSearchQuery = '';
-function saveBookmarks(){localStorage.setItem('breath5_bookmarks',JSON.stringify(_bookmarks));}
+function saveBookmarks(){
+localStorage.setItem('breath5_bookmarks',JSON.stringify(_bookmarks));
+if(curUser){
+clearTimeout(saveBookmarks._t);
+saveBookmarks._t=setTimeout(()=>{if(typeof saveUserData==='function')saveUserData();},2000);
+}
+}
 function isBookmarked(id){return _bookmarks.includes(id);}
 function toggleBookmark(id){
 if(!curUser){
