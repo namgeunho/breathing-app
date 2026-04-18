@@ -456,11 +456,12 @@ section {
 
 .level-row {
   display: grid;
-  grid-template-columns: 120px 1fr 1fr;
-  padding: 18px 24px;
+  grid-template-columns: minmax(160px, 1.4fr) 100px 1fr;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--bd);
   align-items: center;
   transition: background 0.15s;
+  gap: 8px;
 }
 
 .level-row:last-child { border-bottom: none; }
@@ -541,8 +542,17 @@ section {
 
 @media (max-width: 540px) {
   .voice-item { grid-template-columns: 1fr; gap: 8px; }
-  .level-row { grid-template-columns: 100px 1fr; }
-  .level-row .lv-tree { display: none; }
+  .level-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 4px;
+    padding: 14px 16px;
+  }
+  .level-row.header { grid-template-columns: 1fr 1fr; }
+  .level-row.header span:last-child { display: none; }
+  .lv-badge { grid-column: 1 / -1; font-size: 12px; }
+  .lv-days { font-size: 11px; }
+  .lv-tree { font-size: 11px; color: var(--text2); display: block; }
   .lore-quote { padding: 28px 24px; }
   .lore-quote::before { font-size: 60px; }
 }
