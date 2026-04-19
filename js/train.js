@@ -104,7 +104,8 @@ async function shareResult(){
 const card=document.getElementById('completeCard');
 const appUrl=window.location.href.split('?')[0];
 const r=lastResult;
-const shareText=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿`;
+const introUrl=appUrl.replace('index.html','intro.html').replace(/\/[^/]*$/, '/intro.html');
+const shareText=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿\n\n앱 소개 보기 👉 ${introUrl}`;
 try{
 const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
 const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
