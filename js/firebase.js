@@ -242,7 +242,42 @@ document.getElementById('colListView').style.display='block';
 document.getElementById('colDetailView').style.display='none';
 renderColList();
 }
+let _columnistName='';
+let columnistPage=1;
+function renderColumnistList(){
+const cols=_columns.filter(c=>c.columnistSnap&&c.columnistSnap.name===_columnistName);
+const visible=cols.slice(0,columnistPage*COL_PAGE_SIZE);
+const hasMore=visible.length<cols.length;
+const listHtml=cols.length?visible.map(c=>{
+const idx=_columns.indexOf(c);
+const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="" onerror="this.outerHTML='<div class=\'col-thumb-empty\'><span class=\'col-thumb-brand\'>BRETHIN</span></div>'">`:`<div class="col-thumb-empty"><span class="col-thumb-brand">BRETHIN</span></div>`;
+const excerpt=(c.content||'').replace(/\[img:[^\]]+\]/g,'').replace(/https?:\/\/\S+/g,'').trim().substring(0,120);
+return `<div class="col-card" onclick="showColDetail(${idx});document.getElementById('colColumnistView').style.display='none';document.getElementById('colDetailView').style.display='block';">
+${thumb}
+<div class="col-info">
+${c.category?`<div class="col-cat">${eh(c.category)}</div>`:''}
+<div class="col-title">${eh(c.title)}</div>
+<div class="col-excerpt">${eh(excerpt)}</div>
+<div class="col-meta">
+<span class="col-date">${fmtDate(c.createdAt)}</span>
+<span class="col-views"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>${c.views||0}</span>
+</div>
+</div>
+</div>`;
+}).join('')+(hasMore?`<button onclick="loadMoreColumnist()" style="width:100%;padding:12px;margin-top:4px;font-size:13px;font-weight:500;border-radius:10px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;">더보기 (${cols.length-visible.length}개 남음)</button>`:'')`:`<div class="nb"><div style="font-size:13px;color:var(--text2);">등록된 칼럼이 없습니다</div></div>`;
+document.getElementById('colColumnistList').innerHTML=listHtml;
+}
+function loadMoreColumnist(){
+const cols=_columns.filter(c=>c.columnistSnap&&c.columnistSnap.name===_columnistName);
+const prevCount=columnistPage*COL_PAGE_SIZE;
+columnistPage++;
+renderColumnistList();
+const cards=document.getElementById('colColumnistList').querySelectorAll('.col-card');
+if(cards[prevCount])cards[prevCount].scrollIntoView({behavior:'smooth',block:'start'});
+}
 function showColumnistPage(name){
+_columnistName=name;
+columnistPage=1;
 const cols=_columns.filter(c=>c.columnistSnap&&c.columnistSnap.name===name);
 const cs=cols.length?cols[0].columnistSnap:null;
 if(!cs)return;
@@ -262,25 +297,11 @@ ${cs.youtube?`<a href="${eh(cs.youtube)}" target="_blank" style="font-size:12px;
 </div>
 </div>
 </div>
-</div>`;
-const listHtml=cols.length?cols.map(c=>{
-const idx=_columns.indexOf(c);
-const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="" onerror="this.outerHTML='<div class=\\'col-thumb-empty\\'><span class=\\'col-thumb-brand\\'>BRETHIN</span></div>'">`:`<div class="col-thumb-empty"><span class="col-thumb-brand">BRETHIN</span></div>`;
-const excerpt=(c.content||'').replace(/\[img:[^\]]+\]/g,'').replace(/https?:\/\/\S+/g,'').trim().substring(0,120);
-return `<div class="col-card" onclick="showColDetail(${idx});document.getElementById('colColumnistView').style.display='none';document.getElementById('colDetailView').style.display='block';">
-${thumb}
-<div class="col-info">
-${c.category?`<div class="col-cat">${eh(c.category)}</div>`:''}
-<div class="col-title">${eh(c.title)}</div>
-<div class="col-excerpt">${eh(excerpt)}</div>
-<div class="col-meta">
-<span class="col-date">${fmtDate(c.createdAt)}</span>
-<span class="col-views"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>${c.views||0}</span>
 </div>
-</div>
-</div>`;
-}).join(''):`<div class="nb"><div style="font-size:13px;color:var(--text2);">등록된 칼럼이 없습니다</div></div>`;
-document.getElementById('colColumnistContent').innerHTML=profileHtml+`<div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.04em;margin-bottom:10px;">게시된 칼럼 ${cols.length}편</div>`+listHtml;
+<div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.04em;margin-bottom:10px;">게시된 칼럼 ${cols.length}편</div>
+<div id="colColumnistList"></div>`;
+document.getElementById('colColumnistContent').innerHTML=profileHtml;
+renderColumnistList();
 document.getElementById('colDetailView').style.display='none';
 document.getElementById('colListView').style.display='none';
 document.getElementById('colColumnistView').style.display='block';
