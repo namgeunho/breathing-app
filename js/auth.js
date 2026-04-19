@@ -202,7 +202,7 @@ const serverMax=d.maxLv;
 const merged=Math.max(localMax,serverMax);
 if(merged>0) localStorage.setItem(LS+'maxLv',merged);
 }
-userName=d.userName||curUser.displayName||'사용자';
+userName=d.userName||'사용자';
 userPhoto=d.userPhoto||curUser.photoURL||null;
 save();
 } else {
