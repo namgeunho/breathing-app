@@ -712,6 +712,7 @@ async function releaseWakeLock(){if(wakeLock){try{await wakeLock.release();}catc
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&running)requestWakeLock();});
 load();
 loadTree();
+checkTreeDemotion();
 applyTheme(curTheme);
 document.getElementById('modeProgram').className='mb'+(curMode==='program'?' active':'');
 document.getElementById('modeManual').className='mb'+(curMode==='manual'?' active':'');

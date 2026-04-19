@@ -287,6 +287,63 @@ db.collection('users').doc(curUser.uid).set({tree:treeData},{merge:true}).catch(
 }, 2000);
 }
 }
+
+// 7일 이상 훈련 없을 경우 단계 강등 + TP 50% 차감 (1회 호출당 1번만 처리)
+function checkTreeDemotion(){
+if(!treeData.lastDate || treeData.stage <= 1) return null;
+const diff = Math.floor((new Date(today()) - new Date(treeData.lastDate)) / 86400000);
+if(diff < 7) return null;
+// 이미 이 lastDate 기준으로 강등을 적용했으면 스킵
+if(treeData.lastDemotionFor === treeData.lastDate) return null;
+const demoteCount = Math.floor(diff / 7);
+const prevStage = treeData.stage;
+const prevTP = treeData.tp;
+const newStage = Math.max(1, prevStage - demoteCount);
+if(newStage >= prevStage) return null;
+const newTP = Math.floor(prevTP * 0.5);
+const lostTP = prevTP - newTP;
+treeData.stage = newStage;
+treeData.tp = newTP;
+treeData.stageHistory.push({stage:newStage, date:today(), demoted:true, lostTP, from:prevStage});
+treeData.lastDemotionFor = treeData.lastDate; // 같은 lastDate로 중복 강등 방지
+saveTree();
+const info = {prevStage, newStage, prevTP, newTP, lostTP, diffDays: diff};
+// 팝업 노출 (DOM 준비 후)
+setTimeout(()=>showDemotionAnim(info), 300);
+return info;
+}
+
+function showDemotionAnim(info){
+if(!info) return;
+const prev = TREE_STAGES[info.prevStage-1];
+const next = TREE_STAGES[info.newStage-1];
+if(!prev || !next) return;
+const overlay = document.createElement('div');
+overlay.className = 'tree-levelup-overlay';
+overlay.style.cursor = 'pointer';
+overlay.innerHTML = `
+<div class="tree-levelup-bg" style="background:radial-gradient(ellipse at center,#8b4a4a33 0%,#5a2a2a11 50%,transparent 100%);"></div>
+<div class="tree-levelup-text">
+<div class="tree-levelup-name" style="color:#c88080;font-size:0.85em;">🥀 숨나무가 시들었어요</div>
+<div class="tree-levelup-sub" style="color:#c88080aa;margin-top:10px;">${info.diffDays}일 동안 훈련이 없었어요</div>
+<div class="tree-levelup-sub" style="color:#e0c080cc;margin-top:16px;font-size:0.95em;">${prev.name} → <span style="color:#ffd080;">${next.name}</span></div>
+<div class="tree-levelup-sub" style="color:#c88080aa;margin-top:8px;font-size:0.85em;">TP ${info.prevTP.toLocaleString()} → ${info.newTP.toLocaleString()} (−${info.lostTP.toLocaleString()})</div>
+</div>
+<div class="tree-levelup-lore" style="color:#c88080aa;">"다시 함께 키워보아요 🌱"</div>
+`;
+overlay.addEventListener('click', ()=>{
+overlay.style.opacity='0';
+overlay.style.transition='opacity 0.3s';
+setTimeout(()=>overlay.remove(), 300);
+});
+document.body.appendChild(overlay);
+setTimeout(()=>{
+if(!overlay.parentNode) return;
+overlay.style.opacity='0';
+overlay.style.transition='opacity 0.4s';
+setTimeout(()=>overlay.remove(), 400);
+}, 4500);
+}
 function getTreeHealth(){
 if(!treeData.lastDate) return 'seed';
 const diff = Math.floor((new Date(today()) - new Date(treeData.lastDate)) / 86400000);
@@ -296,9 +353,11 @@ if(diff <= 6) return 'caution';
 if(diff <= 29) return 'wilt';
 return 'dormant';
 }
-function getTreeStageFromTP(tp){
+function getTreeStageFromTP(tp, streak){
+const s = (typeof streak === 'number') ? streak : calcStreak();
 for(let i=TREE_STAGES.length-1;i>=0;i--){
-if(tp >= TREE_STAGES[i].tpReq) return TREE_STAGES[i].id;
+const st = TREE_STAGES[i];
+if(tp >= st.tpReq && s >= (st.reqDay||0)) return st.id;
 }
 return 1;
 }
@@ -330,6 +389,8 @@ const total = Math.max(1, Math.floor(rawTotal));
 return {total, items};
 }
 function updateTreeAfterTrain(durationMin, preMood, postMood){
+// 훈련 전 강등 체크 (TP 50% 차감 + 단계 하락)
+const demotion = checkTreeDemotion();
 const prevStage = treeData.stage;
 const detail = calcTPDetail(durationMin, preMood, postMood);
 const gained = detail.total;
@@ -337,7 +398,8 @@ treeData.tp += gained;
 treeData.totalTpEarned += gained;
 treeData.lastDate = today();
 if(!treeData.bornAt) treeData.bornAt = today();
-const newStage = getTreeStageFromTP(treeData.tp);
+const streak = calcStreak();
+const newStage = getTreeStageFromTP(treeData.tp, streak);
 treeData.stage = newStage;
 treeData.health = getTreeHealth();
 if(newStage > prevStage){
@@ -345,7 +407,7 @@ treeData.stageHistory.push({stage:newStage, date:today()});
 }
 saveTree();
 renderTree();
-return {gained, tpItems: detail.items, prevStage, newStage, levelUp: newStage > prevStage};
+return {gained, tpItems: detail.items, prevStage, newStage, levelUp: newStage > prevStage, demotion};
 }
 function pickTreeMsg(prevStage, newStage, preMood, postMood, levelUp){
 const streak = calcStreak();
@@ -791,7 +853,7 @@ const gained=SHARE_BONUS_TP[type]||10;
 const prevStage=treeData.stage;
 treeData.tp+=gained;
 treeData.totalTpEarned+=gained;
-const newStage=getTreeStageFromTP(treeData.tp);
+const newStage=getTreeStageFromTP(treeData.tp, calcStreak());
 treeData.stage=newStage;
 if(newStage>prevStage)treeData.stageHistory.push({stage:newStage,date:td});
 saveTree();renderTree();
