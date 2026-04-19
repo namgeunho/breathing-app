@@ -69,6 +69,8 @@ let _columns = [];
 let _bookmarks = JSON.parse(localStorage.getItem('breath5_bookmarks')||'[]');
 let colFilter = 'all';
 let colSearchQuery = '';
+let colPage = 1;
+const COL_PAGE_SIZE = 8;
 function saveBookmarks(){
 localStorage.setItem('breath5_bookmarks',JSON.stringify(_bookmarks));
 if(curUser){
@@ -88,6 +90,7 @@ saveBookmarks();
 }
 function setColFilter(f){
 colFilter=f;
+colPage=1;
 document.querySelectorAll('.col-tb-btn').forEach(b=>b.classList.remove('act'));
 const btn=document.getElementById(f==='all'?'colBtnAll':'colBtnBookmark');
 if(btn)btn.classList.add('act');
@@ -100,6 +103,7 @@ setTimeout(()=>document.getElementById('colSearchInput').focus(),50);
 }
 function closeSearch(){
 colSearchQuery='';
+colPage=1;
 document.getElementById('colSearchWrap').style.display='none';
 document.getElementById('colToolbarBtns').style.display='flex';
 document.getElementById('colSearchInput').value='';
@@ -107,6 +111,11 @@ renderColList();
 }
 function filterColumns(){
 colSearchQuery=document.getElementById('colSearchInput').value.trim().toLowerCase();
+colPage=1;
+renderColList();
+}
+function loadMoreCols(){
+colPage++;
 renderColList();
 }
 function renderColList(){
@@ -118,7 +127,9 @@ if(!cols.length){
 list.innerHTML=`<div class="nb"><div style="font-size:28px;margin-bottom:10px;">✍️</div><div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">${colFilter==='bookmark'?'북마크된 칼럼이 없습니다':'등록된 칼럼이 없습니다'}</div></div>`;
 return;
 }
-list.innerHTML=cols.map(c=>{
+const visible=cols.slice(0,colPage*COL_PAGE_SIZE);
+const hasMore=visible.length<cols.length;
+list.innerHTML=visible.map(c=>{
 const idx=_columns.indexOf(c);
 const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="" onerror="this.outerHTML='<div class=\'col-thumb-empty\'><span class=\'col-thumb-brand\'>BRETHIN</span></div>'">`:`<div class="col-thumb-empty"><span class="col-thumb-brand">BRETHIN</span></div>`;
 const excerpt=(c.content||'').replace(/\[img:[^\]]+\]/g,'').replace(/https?:\/\/\S+/g,'').trim().substring(0,120);
@@ -136,7 +147,7 @@ ${bm?`<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" stroke
 </div>
 </div>
 </div>`;
-}).join('');
+}).join('')+(hasMore?`<button onclick="loadMoreCols()" style="width:100%;padding:12px;margin-top:4px;font-size:13px;font-weight:500;border-radius:10px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;">더보기 (${cols.length-visible.length}개 남음)</button>`:'');
 }
 async function loadColumns() {
 const spinner=document.getElementById('colSpinner');
