@@ -224,7 +224,7 @@ if(curPage==='config') renderConfigMain();
 async function saveUserData(){
 if(!curUser) return;
 try{
-// tpLog 중복 제거
+// tpLog 중복 제거 (완전 동일한 항목만 제거, 같은 날 여러 번 훈련은 유지)
 let tpLog={};
 try{
 const raw=localStorage.getItem(LS+'tpLog');
@@ -232,8 +232,8 @@ if(raw){
 const log=JSON.parse(raw);
 Object.keys(log).forEach(date=>{
 const seen=new Set();
-tpLog[date]=log[date].filter(e=>{
-const k=e.type+'|'+e.label+'|'+e.tp;
+tpLog[date]=log[date].filter((e,i)=>{
+const k=e.type+'|'+e.label+'|'+e.tp+'|'+i;
 if(seen.has(k)) return false;
 seen.add(k);
 return true;
