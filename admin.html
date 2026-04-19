@@ -296,14 +296,12 @@ tr:hover td{background:var(--bg);}
 
       <!-- 칼럼 -->
       <div id="columnsPage" class="page-section">
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;">
-          <button class="btn btn-outline" style="width:100%;padding:10px;" onclick="showColumnistsView()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            칼럼리스트 관리
-          </button>
-          <div style="display:flex;justify-content:flex-end;">
-            <button class="btn btn-primary btn-sm" onclick="openColumnModal()">+ 새 칼럼</button>
-          </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">
+          <button class="btn btn-primary" style="padding:14px;font-size:15px;font-weight:600;" onclick="openColumnModal()">새로운 칼럼 등록</button>
+          <button class="btn" style="padding:14px;font-size:15px;font-weight:600;background:#6c757d;color:#fff;" onclick="showColumnistsView()">칼럼 리스트 등록</button>
+        </div>
+        <div style="margin-bottom:10px;">
+          <input id="colSearchInput" type="text" placeholder="제목 또는 칼럼리스트명 검색..." oninput="renderColumnTable()" style="width:100%;padding:9px 12px;font-size:13px;border:1px solid var(--bd2);border-radius:6px;font-family:inherit;outline:none;">
         </div>
         <div class="card">
           <div class="card-body table-wrap" id="columnTableWrap">
@@ -314,12 +312,9 @@ tr:hover td{background:var(--bg);}
 
       <!-- 칼럼리스트 -->
       <div id="columnistsPage" class="page-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-          <button class="btn btn-outline btn-sm" onclick="showPage('columns',document.querySelector('.nav-item[onclick*=columns]'))">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><polyline points="15 18 9 12 15 6"/></svg>
-            칼럼 관리로
-          </button>
-          <button class="btn btn-primary btn-sm" onclick="openColumnistModal()">+ 새 칼럼리스트 등록</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">
+          <button class="btn btn-primary" style="padding:14px;font-size:15px;font-weight:600;" onclick="openColumnistModal()">새로운 칼럼리스트 등록</button>
+          <button class="btn" style="padding:14px;font-size:15px;font-weight:600;background:#6c757d;color:#fff;" onclick="showPage('columns',document.querySelector('.nav-item[onclick*=columns]'))">칼럼 관리로 돌아가기</button>
         </div>
         <div class="card">
           <div class="card-body" id="columnistListWrap">
@@ -973,8 +968,9 @@ async function loadColumnists() {
       wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">등록된 칼럼리스트가 없습니다</div></div>';
       return;
     }
-    wrap.innerHTML = _columnists.map(c=>`
+    wrap.innerHTML = _columnists.map((c,i)=>`
       <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bg3,#f1f3f5);">
+        <div style="width:28px;text-align:center;font-size:13px;color:var(--text2);flex-shrink:0;">${i+1}</div>
         <div style="width:52px;height:52px;border-radius:50%;background:var(--bg3,#f1f3f5);flex-shrink:0;overflow:hidden;border:1px solid var(--bd);">
           ${c.photoUrl?`<img src="${c.photoUrl}" style="width:100%;height:100%;object-fit:cover;">`:
           `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">👤</div>`}
@@ -1094,24 +1090,49 @@ async function loadColumnistSelect(selectedId) {
 }
 
 /* ── 칼럼 관리 (칼럼리스트 연동) ── */
+let _allColumns = [];
+let adminColPage = 1;
+const ADMIN_COL_PAGE_SIZE = 10;
+
+function renderColumnTable() {
+  const wrap = document.getElementById('columnTableWrap');
+  const q = (document.getElementById('colSearchInput')||{value:''}).value.trim().toLowerCase();
+  let cols = _allColumns;
+  if(q) cols = cols.filter(({d,v,cInfo})=>
+    (v.title||'').toLowerCase().includes(q) ||
+    (cInfo&&cInfo.name||'').toLowerCase().includes(q)
+  );
+  if(!cols.length){
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">검색 결과가 없습니다</div></div>';
+    return;
+  }
+  const visible = cols.slice(0, adminColPage * ADMIN_COL_PAGE_SIZE);
+  const hasMore = visible.length < cols.length;
+  wrap.innerHTML = `<table><thead><tr><th style="width:40px;">#</th><th>제목</th><th>칼럼리스트</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${visible.map(({d,v,cInfo},i)=>`<tr>
+    <td style="color:var(--text2);font-size:13px;text-align:center;">${i+1}</td>
+    <td style="max-width:220px;"><div style="font-weight:500;">${eh(v.title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(v.subtitle||'')}</div></td>
+    <td style="font-size:13px;">${cInfo?`<div style="display:flex;align-items:center;gap:6px;">${cInfo.photoUrl?`<img src="${cInfo.photoUrl}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">`:''}<span>${eh(cInfo.name)}</span></div>`:'<span style="color:var(--text2);font-size:12px;">—</span>'}</td>
+    <td><span class="badge badge-gray">${eh(v.category||'일반')}</span></td>
+    <td style="color:var(--text2);font-size:13px;">${fmtDate(v.createdAt)}</td>
+    <td><div style="display:flex;gap:6px;">
+      <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
+    </div></td></tr>`).join('')}</tbody></table>` +
+    (hasMore ? `<div style="text-align:center;margin-top:12px;"><button class="btn btn-outline" onclick="adminColPage++;renderColumnTable()">더보기 (${cols.length - visible.length}개 남음)</button></div>` : '');
+}
+
 function loadColumns() {
   const wrap=document.getElementById('columnTableWrap');
   wrap.innerHTML='<div class="loading">불러오는 중...</div>';
+  adminColPage=1;
   db.collection('columns').orderBy('createdAt','desc').get().then(snap=>{
-    if (snap.empty){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">등록된 칼럼이 없습니다</div></div>';return;}
-    wrap.innerHTML=`<table><thead><tr><th>제목</th><th>칼럼리스트</th><th>카테고리</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>{
+    if(snap.empty){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">✍️</div><div class="empty-text">등록된 칼럼이 없습니다</div></div>';return;}
+    _allColumns = snap.docs.map(d=>{
       const v=d.data();
       const cInfo = v.columnistId ? (_columnists.find(c=>c.id===v.columnistId)||null) : null;
-      return `<tr>
-        <td style="max-width:220px;"><div style="font-weight:500;">${eh(v.title)}</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">${eh(v.subtitle||'')}</div></td>
-        <td style="font-size:13px;">${cInfo?`<div style="display:flex;align-items:center;gap:6px;">${cInfo.photoUrl?`<img src="${cInfo.photoUrl}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">`:''}<span>${eh(cInfo.name)}</span></div>`:'<span style="color:var(--text2);font-size:12px;">—</span>'}</td>
-        <td><span class="badge badge-gray">${eh(v.category||'일반')}</span></td>
-        <td style="color:var(--text2);font-size:13px;">${fmtDate(v.createdAt)}</td>
-        <td><div style="display:flex;gap:6px;">
-          <button class="btn btn-outline btn-sm" onclick="editColumn('${d.id}')">수정</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteColumn('${d.id}')">삭제</button>
-        </div></td></tr>`;
-    }).join('')}</tbody></table>`;
+      return {d,v,cInfo};
+    });
+    renderColumnTable();
   }).catch(()=>{wrap.innerHTML='<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>';});
 }
 
