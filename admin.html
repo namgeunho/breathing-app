@@ -421,6 +421,14 @@ tr:hover td{background:var(--bg);}
           <option value="true">중요 (상단 고정)</option>
         </select>
       </div>
+      <div class="form-group">
+        <label class="form-label">팝업 노출</label>
+        <select class="form-select" id="noticePopup">
+          <option value="false">사용 안 함</option>
+          <option value="true">앱 접속 시 팝업으로 표시</option>
+        </select>
+        <div class="form-hint">🔔 팝업을 켜면 사용자가 앱을 열 때 자동으로 공지가 표시됩니다. 사용자는 "오늘 하루 보지 않기"를 선택할 수 있습니다. 여러 팝업 중 중요 공지가 우선, 그다음 최신순으로 1개만 노출됩니다.</div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline btn-sm" onclick="closeModal('noticeModal')">취소</button>
@@ -820,9 +828,10 @@ function loadNotices() {
   wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
   db.collection('notices').orderBy('createdAt','desc').get().then(snap => {
     if (snap.empty) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📢</div><div class="empty-text">등록된 공지사항이 없습니다</div></div>'; return; }
-    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>구분</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`<tr>
+    wrap.innerHTML = `<table><thead><tr><th>제목</th><th>구분</th><th>팝업</th><th>등록일</th><th>관리</th></tr></thead><tbody>${snap.docs.map(d=>`<tr>
       <td style="font-weight:500;max-width:300px;">${eh(d.data().title)}</td>
       <td>${d.data().pinned?'<span class="badge badge-blue">중요</span>':'<span class="badge badge-gray">일반</span>'}</td>
+      <td>${d.data().popup?'<span class="badge badge-blue">🔔 팝업중</span>':'<span class="badge badge-gray">—</span>'}</td>
       <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
       <td><div style="display:flex;gap:6px;">
         <button class="btn btn-outline btn-sm" onclick="editNotice('${d.id}')">수정</button>
@@ -837,6 +846,7 @@ function openNoticeModal() {
   document.getElementById('noticeTitle').value = '';
   document.getElementById('noticeContent').value = '';
   document.getElementById('noticePinned').value = 'false';
+  document.getElementById('noticePopup').value = 'false';
   document.getElementById('noticeModal').classList.add('open');
 }
 
@@ -848,6 +858,7 @@ function editNotice(id) {
     document.getElementById('noticeTitle').value = d.data().title||'';
     document.getElementById('noticeContent').value = d.data().content||'';
     document.getElementById('noticePinned').value = String(d.data().pinned||false);
+    document.getElementById('noticePopup').value = String(d.data().popup||false);
     document.getElementById('noticeModal').classList.add('open');
   });
 }
@@ -856,8 +867,9 @@ function saveNotice() {
   const title = document.getElementById('noticeTitle').value.trim();
   const content = document.getElementById('noticeContent').value.trim();
   const pinned = document.getElementById('noticePinned').value === 'true';
+  const popup = document.getElementById('noticePopup').value === 'true';
   if (!title||!content) { alert('제목과 내용을 입력하세요.'); return; }
-  const data = { title, content, pinned };
+  const data = { title, content, pinned, popup };
   const p = editingId
     ? db.collection('notices').doc(editingId).update({...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp()})
     : db.collection('notices').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
