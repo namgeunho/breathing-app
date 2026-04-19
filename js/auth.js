@@ -460,18 +460,44 @@ const memoData=memos[key]||{};
 const memo=typeof memoData==='string'?memoData:(memoData.text||'');
 const preMood=typeof memoData==='object'?memoData.preMood||'':'';
 const postMood=typeof memoData==='object'?memoData.postMood||'':'';
+const tpEntries=getDayTPLog(key);
 let html='';
+// 1. 훈련 기록 — 접기/펼치기 박스
 if(recs.length>0){
 const total=recs.reduce((s,r)=>s+r.duration,0);
+const recId='recBox_'+key.replace(/-/g,'');
 html+=`<div class="gdp-section-label">훈련 기록</div>`;
+html+=`<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;">`;
+html+=`<div onclick="var d=document.getElementById('${recId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">`;
+html+=`<span style="font-size:13px;font-weight:600;color:var(--text);">총 훈련시간</span>`;
+html+=`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13px;font-weight:600;color:var(--info);">총 ${Math.round(total)}분 훈련</span><span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span></div>`;
+html+=`</div>`;
+html+=`<div id="${recId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 0 4px;">`;
 recs.forEach((r,i)=>{
 const lv=r.level?`<span class="bg bga" style="font-size:10px;padding:1px 5px;margin-left:4px;">${r.level}</span>`:'';
-html+=`<div class="gdp-rec"><div class="gdp-rec-left"><span class="gdp-rec-num">${i+1}회차${lv}</span><span class="gdp-rec-pattern">들숨${r.inhale}·날숨${r.exhale}</span></div><div class="gdp-rec-right"><span class="bg bbl" style="font-size:11px;">${r.duration}분</span><span class="bg bgn" style="font-size:11px;">${r.cycles}사이클</span></div></div>`;
+html+=`<div class="gdp-rec" style="padding:7px 16px;"><div class="gdp-rec-left"><span class="gdp-rec-num">${i+1}회차</span>${lv}<span class="gdp-rec-pattern">들숨${r.inhale}·날숨${r.exhale}</span></div><div class="gdp-rec-right"><span class="bg bbl" style="font-size:11px;">${r.duration}분</span><span class="bg bgn" style="font-size:11px;">${r.cycles}사이클</span></div></div>`;
 });
-html+=`<div class="gdp-total">총 ${Math.round(total)}분 훈련</div>`;
-} else { html+=`<div class="gdp-empty">훈련 기록이 없어요</div>`; }
+html+=`</div></div>`;
+} else {
+html+=`<div class="gdp-empty">훈련 기록이 없어요</div>`;
+}
+// 2. 오늘 적립 TP — 훈련기록 바로 아래
+if(tpEntries.length>0){
+const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
+const tpId='tpBox_'+key.replace(/-/g,'');
+html+=`<div class="gdp-section-label">오늘 적립 TP</div>`;
+html+=`<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;">`;
+html+=`<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">`;
+html+=`<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>`;
+html+=`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span><span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span></div>`;
+html+=`</div>`;
+html+=`<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">`;
+tpEntries.forEach(e=>{html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;});
+html+=`</div></div>`;
+}
+// 3. 감정 · 메모 (구분선 제거)
 if(memo||preMood||postMood){
-html+=`<div class="gdp-divider"></div><div class="gdp-section-label">감정 · 메모</div>`;
+html+=`<div class="gdp-section-label">감정 · 메모</div>`;
 if(preMood||postMood){
 html+=`<div class="gdp-mood">`;
 if(preMood) html+=`<span class="gdp-mood-item">훈련 전 <strong>${preMood}</strong></span>`;
@@ -485,7 +511,7 @@ html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:
 <div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemo('${key}')">수정</button><button class="bsm bdng" onclick="delMemo('${key}')">삭제</button></div>
 </div>`;
 } else {
-html+=`<div class="gdp-divider"></div><div class="gdp-section-label">감정 · 메모</div>
+html+=`<div class="gdp-section-label">감정 · 메모</div>
 <div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" data-type="pre" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
 <div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" data-type="post" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
 <textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea>
@@ -494,33 +520,10 @@ ${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg w
 <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
 </div>`;
 }
-// body 먼저 렌더링
 body.innerHTML=html;
-// TP 적립 내역 — body 렌더링 후에 처리
+// detailTPBox 숨김 (TP는 body 안으로 통합)
 const tpBox=document.getElementById('detailTPBox');
-const tpEntries=getDayTPLog(key);
-if(tpEntries.length>0&&tpBox){
-const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
-const tpId='tpBox_'+key.replace(/-/g,'');
-tpBox.style.display='block';
-tpBox.innerHTML=`
-<div class="gdp-section-label" style="margin-bottom:8px;">오늘 적립 TP</div>
-<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
-<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">
-<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>
-<div style="display:flex;align-items:center;gap:8px;">
-<span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
-<span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span>
-</div>
-</div>
-<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">
-${tpEntries.map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`).join('')}
-</div>
-</div>`;
-} else if(tpBox){
-tpBox.style.display='none';
-tpBox.innerHTML='';
-}
+if(tpBox){tpBox.style.display='none';tpBox.innerHTML='';}
 }
 function selEmo(btn,type){
 const group=btn.closest('.emotion-btns');
