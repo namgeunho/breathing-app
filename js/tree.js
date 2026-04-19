@@ -642,7 +642,7 @@ return `
 <div class="tsc-locked">
 <div class="tsc-locked-inner">
 <div class="tsc-lock-icon">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5">
 <rect x="3" y="11" width="18" height="11" rx="2"/>
 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
 </svg>
@@ -651,8 +651,8 @@ return `
 <div class="tsc-lock-name">${st.name}</div>
 <div class="tsc-lock-req">${needText}</div>
 <div style="display:flex;gap:8px;margin-top:4px;">
-<span style="font-size:10px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;">📅 연속 ${st.reqDay}일+</span>
-<span style="font-size:10px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;">⏱ ${st.reqMin}분+</span>
+<span style="font-size:10px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;">📅 연속 ${st.reqDay}일+</span>
+<span style="font-size:10px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;">⏱ ${st.reqMin}분+</span>
 </div>
 </div>
 </div>
