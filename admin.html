@@ -224,6 +224,10 @@ tr:hover td{background:var(--bg);}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           이용가이드
         </div>
+        <div class="nav-item" onclick="showPage('members',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          회원 관리
+        </div>
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -359,6 +363,19 @@ tr:hover td{background:var(--bg);}
       </div>
 
       <!-- 계정 설정 -->
+      <!-- 회원 관리 -->
+      <div id="membersPage" class="page-section">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+          <input id="memberSearchInput" type="text" placeholder="닉네임 또는 이메일 검색..." oninput="renderMemberTable()" style="flex:1;padding:9px 12px;font-size:13px;border:1px solid var(--bd2);border-radius:6px;font-family:inherit;outline:none;">
+          <div style="font-size:13px;color:var(--text2);white-space:nowrap;" id="memberCount"></div>
+        </div>
+        <div class="card">
+          <div class="card-body table-wrap" id="memberTableWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
       <div id="settingsPage" class="page-section">
         <div class="card">
           <div class="card-header"><div class="card-title">비밀번호 변경</div></div>
@@ -740,7 +757,7 @@ function changePassword() {
 }
 
 /* ── 페이지 이동 ── */
-const pageTitles = { dashboard:'대시보드', notices:'공지사항', banners:'배너 관리', columns:'칼럼 관리', columnists:'칼럼리스트', sounds:'사운드 관리', guide:'이용가이드', settings:'계정 설정' };
+const pageTitles = { dashboard:'대시보드', notices:'공지사항', banners:'배너 관리', columns:'칼럼 관리', columnists:'칼럼리스트', sounds:'사운드 관리', guide:'이용가이드', settings:'계정 설정', members:'회원 관리' };
 function showPage(id, el) {
   document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -754,6 +771,7 @@ function showPage(id, el) {
   if (id==='columnists')  loadColumnists();
   if (id==='sounds')      loadSoundsAdmin();
   if (id==='guide')       loadGuideAdmin();
+  if (id==='members')     loadMembers();
 }
 
 // 칼럼리스트 관리 화면으로 이동 (칼럼 관리 메뉴 활성 유지)
@@ -1310,6 +1328,70 @@ function deleteSound(id,name) {
 }
 
 /* ── 이용가이드 ── */
+/* ── 회원 관리 ── */
+let _allMembers = [];
+const MEMBER_PAGE_SIZE = 20;
+let memberPage = 1;
+
+const STAGE_NAMES = ['숨씨앗','빛새싹','정령묘목','달빛성목','황금신수','은하수목','영원수'];
+
+function renderMemberTable() {
+  const wrap = document.getElementById('memberTableWrap');
+  const q = (document.getElementById('memberSearchInput')||{value:''}).value.trim().toLowerCase();
+  let members = _allMembers;
+  if(q) members = members.filter(m =>
+    (m.nickname||'').toLowerCase().includes(q) ||
+    (m.email||'').toLowerCase().includes(q)
+  );
+  document.getElementById('memberCount').textContent = `총 ${members.length}명`;
+  if(!members.length){
+    wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">검색 결과가 없습니다</div></div>';
+    return;
+  }
+  const visible = members.slice(0, memberPage * MEMBER_PAGE_SIZE);
+  const hasMore = visible.length < members.length;
+  wrap.innerHTML = `<table><thead><tr>
+    <th style="width:40px;">#</th>
+    <th>닉네임</th>
+    <th>이메일</th>
+    <th>숨나무 등급</th>
+    <th>TP</th>
+    <th>연속 훈련</th>
+    <th>가입일</th>
+  </tr></thead><tbody>${visible.map(({m,id},i) => `<tr>
+    <td style="color:var(--text2);font-size:13px;text-align:center;">${i+1}</td>
+    <td style="font-weight:500;">${eh(m.nickname||'(없음)')}</td>
+    <td style="font-size:12px;color:var(--text2);">${eh(m.email||'—')}</td>
+    <td><span class="badge badge-gray">${STAGE_NAMES[(m.tree?.stage||1)-1]||'숨씨앗'}</span></td>
+    <td style="font-size:13px;font-weight:500;">${(m.tree?.tp||0).toLocaleString()}</td>
+    <td style="font-size:13px;color:var(--text2);">${m.streak||0}일</td>
+    <td style="font-size:12px;color:var(--text2);">${m.createdAt?fmtDate(m.createdAt):'—'}</td>
+  </tr>`).join('')}</tbody></table>` +
+  (hasMore ? `<div style="text-align:center;margin-top:12px;"><button class="btn btn-outline" onclick="memberPage++;renderMemberTable()">더보기 (${members.length-visible.length}명 남음)</button></div>` : '');
+}
+
+async function loadMembers() {
+  const wrap = document.getElementById('memberTableWrap');
+  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+  memberPage = 1;
+  try {
+    const snap = await db.collection('users').orderBy('createdAt','desc').get();
+    _allMembers = snap.docs.map(d => ({id:d.id, m:d.data()}));
+    document.getElementById('memberCount').textContent = `총 ${_allMembers.length}명`;
+    renderMemberTable();
+  } catch(e) {
+    // createdAt 필드 없는 경우 정렬 없이 재시도
+    try {
+      const snap2 = await db.collection('users').get();
+      _allMembers = snap2.docs.map(d => ({id:d.id, m:d.data()}));
+      document.getElementById('memberCount').textContent = `총 ${_allMembers.length}명`;
+      renderMemberTable();
+    } catch(e2) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패: '+e2.message+'</div></div>';
+    }
+  }
+}
+
 function loadGuideAdmin() {
   db.collection('guide').limit(1).get().then(snap=>{
     if(!snap.empty){_guideDocId=snap.docs[0].id;document.getElementById('guideContent').value=snap.docs[0].data().content||'';}
