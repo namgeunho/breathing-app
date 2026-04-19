@@ -21,6 +21,8 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/tree.css">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body data-theme="black">
 <!-- 인앱 브라우저 안내 배너 -->
@@ -190,15 +192,31 @@
       </div>
     </div>
     <div id="completeArea" style="display:none;">
-      <div class="kd" id="completeCard">
-        <div class="kt">호흡 훈련 완료</div>
-        <div class="km" id="cc-date"></div>
-        <div class="ks" id="cc-time"></div>
-        <div class="kst">
-          <div class="ki"><div class="kn" id="cc-duration"></div><div class="kl">훈련 시간</div></div>
-          <div class="ki"><div class="kn" id="cc-cycles"></div><div class="kl">완료 횟수</div></div>
+      <div class="cc-card" id="completeCard">
+        <canvas class="cc-canvas" id="ccCanvas" width="480" height="480"></canvas>
+        <div class="cc-date-area"><span class="cc-date-text" id="cc-datetime"></span></div>
+        <div class="cc-msg-area">
+          <div class="cc-complete">호흡 훈련 완료</div>
+          <div class="cc-sub">오늘도 수고했어요</div>
         </div>
-        <div class="kp" id="cc-pattern"></div>
+        <div class="cc-stats-area">
+          <div class="cc-stat-item">
+            <div class="cc-stat-val"><span id="cc-duration"></span><span class="cc-stat-unit">분</span></div>
+            <div class="cc-stat-lbl">훈련 시간</div>
+          </div>
+          <div class="cc-stat-sep"></div>
+          <div class="cc-stat-item">
+            <div class="cc-stat-val"><span id="cc-cycles"></span><span class="cc-stat-unit">회</span></div>
+            <div class="cc-stat-lbl">완료 횟수</div>
+          </div>
+        </div>
+        <div class="cc-pattern-area">
+          <div class="cc-pattern-row"><span class="cc-pattern-text" id="cc-pattern"></span></div>
+        </div>
+        <div class="cc-brand-area">
+          <div class="cc-brand-name">BRETHIN</div>
+          <div class="cc-brand-sub">들숨과 날숨 사이, 나를 만나는 브레스인</div>
+        </div>
       </div>
       <div class="br">
         <button class="bshr" onclick="shareResult()">
