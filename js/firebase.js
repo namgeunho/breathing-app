@@ -97,6 +97,8 @@ overlay.innerHTML = `
 #popupNoticeBox .pn-btn-primary:hover{opacity:.9;}
 #popupNoticeBox .pn-btn-outline{background:transparent;color:var(--text2,#888);border:1px solid var(--bg3,#333);}
 #popupNoticeBox .pn-btn-outline:hover{background:var(--bg2,#1a1a1a);}
+#popupNoticeBox .pn-btn-confirm{background:transparent;color:var(--text,#eee);border:1px solid var(--bg3,#333);}
+#popupNoticeBox .pn-btn-confirm:hover{background:var(--bg2,#1a1a1a);}
 </style>
 <div id="popupNoticeBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
 <div style="padding:22px 22px 16px;overflow-y:auto;flex:1;">
@@ -108,7 +110,7 @@ ${imageHtml}
 <div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);flex-wrap:wrap;">
 ${linkBtnHtml ? `<div style="display:flex;width:100%;margin-bottom:4px;">${linkBtnHtml}</div>` : ''}
 <button class="pn-btn pn-btn-outline" id="popupNoticeDismiss">오늘 하루 보지 않기</button>
-<button class="pn-btn pn-btn-primary" id="popupNoticeClose">확인</button>
+<button class="pn-btn pn-btn-confirm" id="popupNoticeClose">확인</button>
 </div>
 </div>
 `;
