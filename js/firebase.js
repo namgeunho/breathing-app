@@ -115,8 +115,11 @@ colPage=1;
 renderColList();
 }
 function loadMoreCols(){
+const prevCount=(colPage-1)*COL_PAGE_SIZE;
 colPage++;
 renderColList();
+const cards=document.getElementById('colList').querySelectorAll('.col-card');
+if(cards[prevCount])cards[prevCount].scrollIntoView({behavior:'smooth',block:'start'});
 }
 function renderColList(){
 const list=document.getElementById('colList');
