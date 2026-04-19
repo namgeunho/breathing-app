@@ -85,6 +85,9 @@ const overlay = document.createElement('div');
 overlay.id = 'popupNoticeOverlay';
 overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:popupFadeIn .3s;';
 const contentHtml = typeof renderContent === 'function' ? renderContent(target.content||'') : (target.content||'').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+const imageHtml = target.imageUrl ? `<div style="margin:-6px -22px 14px;"><img src="${target.imageUrl}" style="width:100%;display:block;max-height:280px;object-fit:cover;"></div>` : '';
+const linkLabel = (target.linkLabel && target.linkLabel.trim()) ? target.linkLabel.replace(/</g,'&lt;') : '자세히 보기 →';
+const linkBtnHtml = target.linkUrl ? `<a href="${target.linkUrl}" target="_blank" rel="noopener" class="pn-btn pn-btn-primary" style="text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;">${linkLabel}</a>` : '';
 overlay.innerHTML = `
 <style>
 @keyframes popupFadeIn{from{opacity:0}to{opacity:1}}
@@ -95,13 +98,15 @@ overlay.innerHTML = `
 #popupNoticeBox .pn-btn-outline{background:transparent;color:var(--text2,#888);border:1px solid var(--bg3,#333);}
 #popupNoticeBox .pn-btn-outline:hover{background:var(--bg2,#1a1a1a);}
 </style>
-<div id="popupNoticeBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;animation:popupSlideUp .35s;">
-<div style="padding:22px 22px 16px;">
+<div id="popupNoticeBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
+<div style="padding:22px 22px 16px;overflow-y:auto;flex:1;">
 ${target.pinned?'<div style="color:#d4a84b;font-size:12px;font-weight:500;margin-bottom:8px;">📌 중요 공지</div>':'<div style="color:var(--text2,#888);font-size:12px;margin-bottom:8px;">🔔 공지사항</div>'}
 <div style="font-size:17px;font-weight:600;color:var(--text,#eee);margin-bottom:14px;line-height:1.4;">${(target.title||'').replace(/</g,'&lt;')}</div>
+${imageHtml}
 <div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">${contentHtml}</div>
 </div>
-<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);margin-top:4px;">
+<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);flex-wrap:wrap;">
+${linkBtnHtml ? `<div style="display:flex;width:100%;margin-bottom:4px;">${linkBtnHtml}</div>` : ''}
 <button class="pn-btn pn-btn-outline" id="popupNoticeDismiss">오늘 하루 보지 않기</button>
 <button class="pn-btn pn-btn-primary" id="popupNoticeClose">확인</button>
 </div>

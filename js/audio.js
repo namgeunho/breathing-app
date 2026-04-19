@@ -126,11 +126,16 @@ function showNoticeDetail(idx){
 const n=_notices[idx];
 const sub=document.getElementById('configSub');
 const back=`<button class="cbk" onclick="showSub('notice')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10,3 4,8 10,13"/></svg> 공지사항</button>`;
+const imgHtml = n.imageUrl ? `<div style="margin:0 -1rem 1rem;"><img src="${n.imageUrl}" style="width:100%;display:block;max-height:300px;object-fit:cover;border-radius:8px;"></div>` : '';
+const linkLabel = (n.linkLabel && n.linkLabel.trim()) ? eh(n.linkLabel) : '자세히 보기 →';
+const linkHtml = n.linkUrl ? `<div style="margin-top:1.5rem;"><a href="${n.linkUrl}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 20px;background:var(--accent,#d4a84b);color:#fff;text-decoration:none;border-radius:10px;font-size:14px;font-weight:500;">${linkLabel}</a></div>` : '';
 sub.innerHTML=back+`
 ${n.pinned?'<div class="notice-pin" style="margin-bottom:10px;">📌 중요</div>':''}
 <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">${eh(n.title)}</div>
 <div style="font-size:12px;color:var(--text3);margin-bottom:1.5rem;">${fmtDate(n.createdAt)}</div>
-<div class="notice-body" style="line-height:1.8;">${renderContent(n.content)}</div>`;
+${imgHtml}
+<div class="notice-body" style="line-height:1.8;">${renderContent(n.content)}</div>
+${linkHtml}`;
 }
 function setMode(mode){
 curMode=mode;
