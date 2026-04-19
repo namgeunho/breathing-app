@@ -78,10 +78,9 @@ return calcTPDetail(durationMin, preMood, postMood).total;
 function calcTPDetail(durationMin, preMood, postMood){
 const streak = calcStreak();
 const lv = calcLv(streak);
-const curStage = treeData.stage || 1;
 const items = [];
-const base = Math.round(durationMin * 1.5);
-items.push({type:'train_base', label:`${Math.round(durationMin)}분 훈련`, tp: base});
+const base = Math.floor(durationMin * 1.5);
+items.push({type:'train_base', label:`${Math.floor(durationMin)}분 훈련`, tp: base});
 let timeBonus = 0;
 if(durationMin >= 25) timeBonus = 50;
 else if(durationMin >= 20) timeBonus = 35;
@@ -90,19 +89,14 @@ else if(durationMin >= 10) timeBonus = 12;
 else if(durationMin >= 5) timeBonus = 5;
 else if(durationMin >= 3) timeBonus = 2;
 if(timeBonus > 0) items.push({type:'train_time', label:'훈련 시간 보너스', tp: timeBonus});
-const streakBonus = Math.round(Math.min(streak * 0.3, 20));
+const streakBonus = Math.floor(Math.min(streak * 0.3, 20));
 if(streakBonus > 0) items.push({type:'train_streak', label:`연속 ${streak}일 보너스`, tp: streakBonus});
 const todayRecs = records[today()] || [];
 if(todayRecs.length <= 1) items.push({type:'train_first', label:'오늘 첫 훈련 보너스', tp: 5});
-const emoVals = {'아주나쁨':1,'나쁨':2,'보통':3,'좋음':4,'아주좋음':5};
-if(preMood && postMood && (emoVals[postMood]||0) > (emoVals[preMood]||0)){
-const emoBonuses = [3, 3, 5, 8, 12, 15, 20];
-items.push({type:'train_mood', label:'감정 개선 보너스', tp: emoBonuses[curStage-1]||3});
-}
 const lvBonus = lv.lv * 3;
 if(lvBonus > 0) items.push({type:'train_lv', label:`레벨 ${lv.lv} 보너스`, tp: lvBonus});
 const rawTotal = items.reduce((s,e)=>s+e.tp, 0);
-const total = Math.max(1, Math.round(rawTotal));
+const total = Math.max(1, Math.floor(rawTotal));
 return {total, items};
 }
 function updateTreeAfterTrain(durationMin, preMood, postMood){
