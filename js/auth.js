@@ -202,13 +202,8 @@ const serverMax=d.maxLv;
 const merged=Math.max(localMax,serverMax);
 if(merged>0) localStorage.setItem(LS+'maxLv',merged);
 }
-if(!userName||userName==='사용자'){
 userName=d.userName||curUser.displayName||'사용자';
-}
-if(!userPhoto){
-userPhoto=d.userPhoto||null;
-if(!userPhoto&&curUser.photoURL) userPhoto=curUser.photoURL;
-}
+userPhoto=d.userPhoto||curUser.photoURL||null;
 save();
 } else {
 await ref.set({
