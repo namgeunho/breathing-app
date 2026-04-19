@@ -11,12 +11,12 @@ showToast('로그인 중 오류가 발생했어요.');
 }
 }
 });
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(async user=>{
 curUser=user;
 if(user){
 if(!userName||userName==='사용자') userName=user.displayName||'사용자';
 if(!userPhoto&&user.photoURL) userPhoto=user.photoURL;
-syncUserData();
+await syncUserData();
 if(curPage==='calendar') showPage('calendar',null);
 }
 try{
