@@ -265,7 +265,7 @@ ${c.category?`<div class="col-cat">${eh(c.category)}</div>`:''}
 </div>
 </div>
 </div>`;
-}).join('')+(hasMore?`<button onclick="loadMoreColumnist()" style="width:100%;padding:12px;margin-top:4px;font-size:13px;font-weight:500;border-radius:10px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;">더보기 (${cols.length-visible.length}개 남음)</button>`:'')`:`<div class="nb"><div style="font-size:13px;color:var(--text2);">등록된 칼럼이 없습니다</div></div>`;
+}).join('')+(hasMore?`<button onclick="loadMoreColumnist()" style="width:100%;padding:12px;margin-top:4px;font-size:13px;font-weight:500;border-radius:10px;border:0.5px solid var(--bd2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;">더보기 (${cols.length-visible.length}개 남음)</button>`:''):`<div class="nb"><div style="font-size:13px;color:var(--text2);">등록된 칼럼이 없습니다</div></div>`;
 document.getElementById('colColumnistList').innerHTML=listHtml;
 }
 function loadMoreColumnist(){
