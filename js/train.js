@@ -101,21 +101,12 @@ document.getElementById('circle').style.background=dGrad;
 function toggleScreenOff(){screenOff=!screenOff;const btn=document.getElementById('screenOffBtn');if(screenOff){btn.className='ib ascr';if(running)document.getElementById('blackScreen').classList.add('active');}else{btn.className='ib';document.getElementById('blackScreen').classList.remove('active');}}
 function exitBlackScreen(){screenOff=false;document.getElementById('screenOffBtn').className='ib';document.getElementById('blackScreen').classList.remove('active');}
 async function shareResult(){
-const card=document.getElementById('completeCard');
 const appUrl=window.location.href.split('?')[0];
-const r=lastResult;
 const introUrl=appUrl.endsWith('index.html')?appUrl.replace('index.html','intro.html'):appUrl.replace(/\/[^\/]*$/,'/intro.html');
 const shareText=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿`;
 try{
-const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
-const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-const file=new File([blob],'호흡훈련.png',{type:'image/png'});
-if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-await navigator.share({title:'호흡 훈련 완료!',text:shareText,files:[file],url:introUrl});
-try{await navigator.clipboard.writeText(introUrl);showToast('이미지 공유 완료! 링크도 복사됐어요 📋');}catch(e){showToast('공유 완료!');}
-giveShareBonus('result');
-} else if(navigator.share){
-await navigator.share({title:'호흡 훈련 완료!',text:shareText,url:introUrl});
+if(navigator.share){
+await navigator.share({title:'BRETHIN - 호흡 훈련',text:shareText,url:introUrl});
 giveShareBonus('result');
 } else {
 await navigator.clipboard.writeText(shareText+'\n'+introUrl);
@@ -124,6 +115,43 @@ giveShareBonus('result');
 }
 }catch(e){
 if(e.name!=='AbortError')showToast('공유를 취소했어요');
+}
+}
+async function saveResultImage(){
+const card=document.getElementById('completeCard');
+if(!card){showToast('저장할 이미지를 찾을 수 없어요');return;}
+const now=new Date();
+const dateStr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+const filename=`BRETHIN_호흡훈련_${dateStr}.png`;
+showToast('이미지를 만들고 있어요...');
+try{
+const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
+const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+if(!blob){showToast('이미지 생성에 실패했어요');return;}
+const file=new File([blob],filename,{type:'image/png'});
+// iOS Safari는 download 속성 제한 → 공유 시트로 "사진에 저장" 유도
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if(isIOS && navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+try{
+await navigator.share({files:[file],title:'BRETHIN 호흡 훈련'});
+showToast('이미지가 저장됐어요 📸');
+}catch(e){
+if(e.name!=='AbortError')showToast('저장을 취소했어요');
+}
+return;
+}
+// 일반 케이스: <a download>로 즉시 다운로드
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download=filename;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+showToast('이미지가 저장됐어요 📸');
+}catch(e){
+showToast('이미지 저장에 실패했어요');
 }
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
