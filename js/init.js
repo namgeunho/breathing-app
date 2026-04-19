@@ -1,3 +1,5 @@
+// 기존 localStorage rec/memo 잔여 데이터 정리 (서버 전용으로 전환)
+(function(){try{localStorage.removeItem('breath5_rec');localStorage.removeItem('breath5_memo');}catch(e){}})();
 auth.getRedirectResult().then(result=>{
 if(result && result.user){
 closeAuthModal();
