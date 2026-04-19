@@ -415,6 +415,29 @@ tr:hover td{background:var(--bg);}
         <div class="form-hint">📷 이미지 삽입: 본문에 <strong>[img:이미지URL]</strong> 형식으로 입력하면 앱에서 이미지로 표시됩니다.<br>예) [img:https://example.com/photo.jpg]</div>
       </div>
       <div class="form-group">
+        <label class="form-label">대표이미지</label>
+        <div class="img-upload-area" id="noticeImageArea" onclick="document.getElementById('noticeImageFile').click()">
+          <img id="noticePreviewImg" class="img-preview" style="display:none;">
+          <div id="noticeUploadPlaceholder">
+            <div class="img-upload-icon">🖼️</div>
+            <div class="img-upload-text">클릭하여 이미지 선택 (선택사항)</div>
+            <div class="img-upload-hint">JPG, PNG (최대 2MB) — 공지 상단/팝업에 표시됩니다</div>
+          </div>
+        </div>
+        <input type="file" id="noticeImageFile" accept="image/*" style="display:none;" onchange="previewNoticeImage(event)">
+        <button type="button" class="btn btn-outline btn-sm" id="noticeImageClearBtn" style="margin-top:8px;display:none;" onclick="clearNoticeImage()">이미지 제거</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">링크주소</label>
+        <input class="form-input" id="noticeLinkUrl" placeholder="https://example.com (선택사항)">
+        <div class="form-hint">🔗 입력하면 공지 하단에 버튼이 표시되며 클릭 시 새 창으로 이동합니다.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">링크 버튼 텍스트</label>
+        <input class="form-input" id="noticeLinkLabel" placeholder="자세히 보기" maxlength="20">
+        <div class="form-hint">버튼에 표시할 문구 (기본값: "자세히 보기 →"). 링크주소를 입력한 경우에만 노출됩니다.</div>
+      </div>
+      <div class="form-group">
         <label class="form-label">중요 공지 여부</label>
         <select class="form-select" id="noticePinned">
           <option value="false">일반</option>
@@ -840,6 +863,46 @@ function loadNotices() {
   }).catch(() => { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>'; });
 }
 
+let noticeImageFile = null;
+let noticeImageData = null;
+let noticeImagePath = '';
+
+function previewNoticeImage(e) {
+  const file = e.target.files[0]; if(!file) return;
+  if(file.size > 2*1024*1024){ alert('이미지는 2MB 이하로 업로드해주세요.'); e.target.value=''; return; }
+  noticeImageFile = file;
+  const r = new FileReader();
+  r.onload = ev => {
+    noticeImageData = ev.target.result;
+    document.getElementById('noticePreviewImg').src = noticeImageData;
+    document.getElementById('noticePreviewImg').style.display = 'block';
+    document.getElementById('noticeUploadPlaceholder').style.display = 'none';
+    document.getElementById('noticeImageClearBtn').style.display = 'inline-block';
+  };
+  r.readAsDataURL(file);
+}
+
+function clearNoticeImage() {
+  noticeImageFile = null;
+  noticeImageData = '';  // 빈 문자열 = "이미지 제거하겠다"는 의도 표시
+  document.getElementById('noticeImageFile').value = '';
+  document.getElementById('noticePreviewImg').src = '';
+  document.getElementById('noticePreviewImg').style.display = 'none';
+  document.getElementById('noticeUploadPlaceholder').style.display = 'block';
+  document.getElementById('noticeImageClearBtn').style.display = 'none';
+}
+
+function resetNoticeImageState() {
+  noticeImageFile = null;
+  noticeImageData = null;
+  noticeImagePath = '';
+  document.getElementById('noticeImageFile').value = '';
+  document.getElementById('noticePreviewImg').src = '';
+  document.getElementById('noticePreviewImg').style.display = 'none';
+  document.getElementById('noticeUploadPlaceholder').style.display = 'block';
+  document.getElementById('noticeImageClearBtn').style.display = 'none';
+}
+
 function openNoticeModal() {
   editingId = null;
   document.getElementById('noticeModalTitle').textContent = '새 공지사항';
@@ -847,6 +910,9 @@ function openNoticeModal() {
   document.getElementById('noticeContent').value = '';
   document.getElementById('noticePinned').value = 'false';
   document.getElementById('noticePopup').value = 'false';
+  document.getElementById('noticeLinkUrl').value = '';
+  document.getElementById('noticeLinkLabel').value = '';
+  resetNoticeImageState();
   document.getElementById('noticeModal').classList.add('open');
 }
 
@@ -854,11 +920,22 @@ function editNotice(id) {
   editingId = id;
   db.collection('notices').doc(id).get().then(d => {
     if (!d.exists) return;
+    const data = d.data();
     document.getElementById('noticeModalTitle').textContent = '공지사항 수정';
-    document.getElementById('noticeTitle').value = d.data().title||'';
-    document.getElementById('noticeContent').value = d.data().content||'';
-    document.getElementById('noticePinned').value = String(d.data().pinned||false);
-    document.getElementById('noticePopup').value = String(d.data().popup||false);
+    document.getElementById('noticeTitle').value = data.title||'';
+    document.getElementById('noticeContent').value = data.content||'';
+    document.getElementById('noticePinned').value = String(data.pinned||false);
+    document.getElementById('noticePopup').value = String(data.popup||false);
+    document.getElementById('noticeLinkUrl').value = data.linkUrl||'';
+    document.getElementById('noticeLinkLabel').value = data.linkLabel||'';
+    resetNoticeImageState();
+    noticeImagePath = data.imagePath || '';
+    if (data.imageUrl) {
+      document.getElementById('noticePreviewImg').src = data.imageUrl;
+      document.getElementById('noticePreviewImg').style.display = 'block';
+      document.getElementById('noticeUploadPlaceholder').style.display = 'none';
+      document.getElementById('noticeImageClearBtn').style.display = 'inline-block';
+    }
     document.getElementById('noticeModal').classList.add('open');
   });
 }
@@ -868,18 +945,68 @@ function saveNotice() {
   const content = document.getElementById('noticeContent').value.trim();
   const pinned = document.getElementById('noticePinned').value === 'true';
   const popup = document.getElementById('noticePopup').value === 'true';
-  if (!title||!content) { alert('제목과 내용을 입력하세요.'); return; }
-  const data = { title, content, pinned, popup };
-  const p = editingId
-    ? db.collection('notices').doc(editingId).update({...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp()})
-    : db.collection('notices').add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-  p.then(() => { showAlert(editingId?'수정됐습니다!':'등록됐습니다!'); closeModal('noticeModal'); loadNotices(); loadDashboard(); })
-   .catch(e => alert('저장 실패: '+e.message));
+  const linkUrl = document.getElementById('noticeLinkUrl').value.trim();
+  const linkLabel = document.getElementById('noticeLinkLabel').value.trim();
+  if (!title || !content) { alert('제목과 내용을 입력하세요.'); return; }
+  if (linkUrl && !/^https?:\/\//i.test(linkUrl)) { alert('링크주소는 http:// 또는 https:// 로 시작해야 합니다.'); return; }
+
+  const baseData = { title, content, pinned, popup, linkUrl, linkLabel };
+
+  const finish = () => {
+    showAlert(editingId ? '수정됐습니다!' : '등록됐습니다!');
+    closeModal('noticeModal');
+    loadNotices();
+    loadDashboard();
+  };
+
+  const doSave = (imageUrl, imagePath) => {
+    const data = { ...baseData };
+    // 이미지 처리: 새 파일 업로드 / 기존 제거 / 변경 없음 3가지 케이스
+    if (imageUrl !== undefined) { data.imageUrl = imageUrl; data.imagePath = imagePath || ''; }
+    if (editingId) {
+      return db.collection('notices').doc(editingId).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    } else {
+      return db.collection('notices').add({ ...data, imageUrl: imageUrl||'', imagePath: imagePath||'', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+  };
+
+  // 이미지 업로드 / 교체 / 제거 / 유지
+  const hasNewFile = !!noticeImageFile;
+  const removedExisting = (noticeImageData === '' && !noticeImageFile); // clear 버튼 눌러서 제거됨
+  const oldImagePath = noticeImagePath;
+
+  const uploadNew = () => {
+    const sRef = storage.ref(`notices/${Date.now()}_${noticeImageFile.name}`);
+    return sRef.put(noticeImageFile)
+      .then(() => sRef.getDownloadURL())
+      .then(dlUrl => {
+        // 기존 이미지가 있었다면 삭제
+        if (oldImagePath) { try { storage.ref(oldImagePath).delete(); } catch(e){} }
+        return doSave(dlUrl, sRef.fullPath);
+      });
+  };
+
+  const deleteOldOnly = () => {
+    if (oldImagePath) { try { storage.ref(oldImagePath).delete(); } catch(e){} }
+    return doSave('', '');
+  };
+
+  const p = hasNewFile ? uploadNew()
+          : removedExisting ? deleteOldOnly()
+          : (editingId ? db.collection('notices').doc(editingId).update({ ...baseData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+                       : db.collection('notices').add({ ...baseData, imageUrl:'', imagePath:'', createdAt: firebase.firestore.FieldValue.serverTimestamp() }));
+
+  p.then(finish).catch(e => alert('저장 실패: ' + e.message));
 }
 
 function deleteNotice(id) {
   if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
-  db.collection('notices').doc(id).delete().then(() => { showAlert('삭제됐습니다.'); loadNotices(); loadDashboard(); });
+  db.collection('notices').doc(id).get().then(d => {
+    const imagePath = d.exists ? (d.data().imagePath || '') : '';
+    return db.collection('notices').doc(id).delete().then(() => {
+      if (imagePath) { try { storage.ref(imagePath).delete(); } catch(e){} }
+    });
+  }).then(() => { showAlert('삭제됐습니다.'); loadNotices(); loadDashboard(); });
 }
 
 /* ── 배너 ── */
