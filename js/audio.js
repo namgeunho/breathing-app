@@ -371,40 +371,17 @@ if(canvas){
 const ctx=canvas.getContext('2d');
 const w=canvas.width,h=canvas.height,cx=w/2,cy=h/2;
 ctx.clearRect(0,0,w,h);
-// 황금빛 외곽 (넓게)
-const g1=ctx.createRadialGradient(cx,cy,0,cx,cy,w*0.72);
-g1.addColorStop(0,'rgba(255,210,30,0.0)');
-g1.addColorStop(0.08,'rgba(255,210,30,0.0)');
-g1.addColorStop(0.25,'rgba(220,170,15,0.12)');
-g1.addColorStop(0.55,'rgba(180,130,8,0.07)');
-g1.addColorStop(0.8,'rgba(130,90,5,0.03)');
-g1.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g1;ctx.fillRect(0,0,w,h);
-// 황금빛 코어 (강하게)
-const g2=ctx.createRadialGradient(cx,cy,0,cx,cy,w*0.165);
-g2.addColorStop(0,'rgba(255,245,160,0.55)');
-g2.addColorStop(0.3,'rgba(255,220,80,0.32)');
-g2.addColorStop(0.65,'rgba(255,190,30,0.14)');
-g2.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g2;ctx.fillRect(0,0,w,h);
-// 황금빛 중간 연결
-const g3=ctx.createRadialGradient(cx,cy,0,cx,cy,w*0.36);
-g3.addColorStop(0,'rgba(0,0,0,0)');
-g3.addColorStop(0.15,'rgba(255,215,50,0.18)');
-g3.addColorStop(0.5,'rgba(240,180,20,0.09)');
-g3.addColorStop(1,'rgba(0,0,0,0)');
-ctx.fillStyle=g3;ctx.fillRect(0,0,w,h);
 // 별
 const rng=(a,b)=>Math.random()*(b-a)+a;
 for(let i=0;i<70;i++){
-const x=rng(0,w),y=rng(0,h),r=rng(0.2,1.0),a=rng(0.12,0.45);
+const x=rng(0,w),y=rng(0,h),r=rng(0.3,1.2),a=rng(0.25,0.65);
 ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
 ctx.fillStyle=`rgba(255,255,255,${a.toFixed(2)})`;ctx.fill();
 }
 // 큰 별 4개
-[{x:w*0.12,y:h*0.07,r:1.5,a:0.65},{x:w*0.88,y:h*0.05,r:1.4,a:0.6},{x:w*0.14,y:h*0.39,r:1.3,a:0.55},{x:w*0.85,y:h*0.31,r:1.4,a:0.58}].forEach(s=>{
-const len=s.r*4.5;
-ctx.save();ctx.globalAlpha=s.a*0.35;ctx.strokeStyle='#fff';ctx.lineWidth=0.4;
+[{x:w*0.12,y:h*0.07,r:1.7,a:0.82},{x:w*0.88,y:h*0.05,r:1.6,a:0.78},{x:w*0.14,y:h*0.39,r:1.5,a:0.72},{x:w*0.85,y:h*0.31,r:1.6,a:0.75}].forEach(s=>{
+const len=s.r*5;
+ctx.save();ctx.globalAlpha=s.a*0.45;ctx.strokeStyle='#fff';ctx.lineWidth=0.5;
 ctx.beginPath();ctx.moveTo(s.x-len,s.y);ctx.lineTo(s.x+len,s.y);ctx.stroke();
 ctx.beginPath();ctx.moveTo(s.x,s.y-len);ctx.lineTo(s.x,s.y+len);ctx.stroke();
 ctx.restore();
