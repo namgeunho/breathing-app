@@ -360,5 +360,5 @@ function closeSub(){document.getElementById('configMain').style.display='block';
 function triggerPhoto(){document.getElementById('photoFileInput').click();}
 function handlePhotoUpload(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{userPhoto=ev.target.result;save();renderUserBar();const p=document.getElementById('ppv');if(p)p.innerHTML=`<img src="${userPhoto}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">`;};r.readAsDataURL(f);e.target.value='';}
 function deletePhoto(){userPhoto=null;save();renderUserBar();}
-function saveName(){const i=document.getElementById('nameInput');if(!i)return;const v=i.value.trim();if(v){userName=v;save();renderUserBar();closeSub();}}
+function saveName(){const i=document.getElementById('nameInput');if(!i)return;const v=i.value.trim();if(v){userName=v;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();closeSub();}}
 async function triggerInstall(){if(!deferredInstall)return;deferredInstall.prompt();const r=await deferredInstall.userChoice;if(r.outcome==='accepted')deferredInstall=null;}
