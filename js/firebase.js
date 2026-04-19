@@ -70,7 +70,7 @@ let _bookmarks = JSON.parse(localStorage.getItem('breath5_bookmarks')||'[]');
 let colFilter = 'all';
 let colSearchQuery = '';
 let colPage = 1;
-const COL_PAGE_SIZE = 8;
+const COL_PAGE_SIZE = 4;
 function saveBookmarks(){
 localStorage.setItem('breath5_bookmarks',JSON.stringify(_bookmarks));
 if(curUser){
