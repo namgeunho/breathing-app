@@ -411,6 +411,12 @@ const pct = treeData.stage===7 ? 100 : Math.min(100, Math.round(((treeData.tp-pr
 const tpText = treeData.stage===7
 ? `${treeData.tp.toLocaleString()} TP · 전설`
 : `${treeData.tp.toLocaleString()} / ${nextTP.toLocaleString()} TP`;
+const nextSt = TREE_STAGES[treeData.stage] || null;
+const streak = calcStreak();
+const streakText = (treeData.stage!==7 && nextSt && nextSt.reqDay>0)
+? ` · 연속 ${streak}일 / ${nextSt.reqDay}일 필요`
+: '';
+const labelHtml = `<div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tpText}<span style="color:var(--text3);">${streakText}</span></div>`;
 const healthIcons = {healthy:'🌿',good:'🌱',caution:'🍂',wilt:'🥀',dormant:'❄️',seed:'🌱'};
 const icon = healthIcons[h] || '🌱';
 if(treeOpen){
@@ -424,7 +430,7 @@ const labelEl = document.getElementById('treeTPLabel');
 const fillEl = document.getElementById('treeTPFill');
 const iconEl = document.getElementById('treeHealthIcon');
 if(nameEl){ nameEl.textContent = st.name; nameEl.style.color = st.color; }
-if(labelEl) labelEl.textContent = tpText;
+if(labelEl) labelEl.innerHTML = labelHtml;
 if(fillEl){ fillEl.style.width = pct+'%'; fillEl.style.background = st.color; }
 if(iconEl) iconEl.textContent = icon;
 } else {
@@ -438,7 +444,7 @@ const cLabel = document.getElementById('treeCollapsedLabel');
 const cFill = document.getElementById('treeCollapsedFill');
 if(cIcon) cIcon.innerHTML = getTreeSVG(treeData.stage, null, 28);
 if(cName){ cName.textContent = st.name; cName.style.color = st.color; }
-if(cLabel) cLabel.textContent = tpText;
+if(cLabel) cLabel.innerHTML = labelHtml;
 if(cFill){ cFill.style.width = pct+'%'; cFill.style.background = st.color; }
 }
 } else {
