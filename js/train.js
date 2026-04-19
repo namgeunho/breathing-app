@@ -112,6 +112,7 @@ const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
 const file=new File([blob],'호흡훈련.png',{type:'image/png'});
 if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
 await navigator.share({title:'호흡 훈련 완료!',text:shareText,files:[file],url:introUrl});
+try{await navigator.clipboard.writeText(introUrl);showToast('이미지 공유 완료! 링크도 복사됐어요 📋');}catch(e){showToast('공유 완료!');}
 giveShareBonus('result');
 } else if(navigator.share){
 await navigator.share({title:'호흡 훈련 완료!',text:shareText,url:introUrl});
