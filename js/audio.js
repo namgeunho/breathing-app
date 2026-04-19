@@ -326,13 +326,13 @@ logEvent('training_complete',{mode:curMode,preset:nm||'manual',duration_min:last
 if(curUser){
 saveRec();
 const treeResult=updateTreeAfterTrain(lastResult.duration,'','');
-// TP 로그 기록
+// TP 로그 기록 (항목별 분리)
 const logKey=LS+'tpLog';
 let tpLog={};
 try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
 const td=today();
 if(!tpLog[td])tpLog[td]=[];
-tpLog[td].push({type:'train',label:`${Math.round(lastResult.duration)}분 훈련`,tp:treeResult.gained});
+(treeResult.tpItems||[{type:'train',label:`${Math.round(lastResult.duration)}분 훈련`,tp:treeResult.gained}]).forEach(item=>{tpLog[td].push(item);});
 try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 clearTimeout(finish._tpSave);
 finish._tpSave=setTimeout(()=>{if(typeof saveUserData==='function')saveUserData();},2000);
