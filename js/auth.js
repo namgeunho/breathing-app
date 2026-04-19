@@ -433,8 +433,8 @@ function editMemoFromGraph(key){
 setCalView('calendar');
 setTimeout(()=>{selD(key);editMemo(key);}, 150);
 }
-function delMemoFromGraph(key){
-delMemo(key);
+async function delMemoFromGraph(key){
+await delMemo(key);
 renderGraphDayPanel(key);
 }
 function renderDB(key){
@@ -639,10 +639,14 @@ let html=`<div class="sl3">감정 · 메모</div>
 document.getElementById('detailBody').innerHTML=html;
 }
 async function delMemo(key){
-// 감정 개선 보너스 회수
+// 감정 개선 보너스 회수 (localStorage + Firebase 병합)
 const logKey=LS+'tpLog';
 let tpLog={};
 try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+// Firebase에도 없으면 서버에서 가져옴
+if(curUser&&!tpLog[key]){
+try{const snap=await db.collection('users').doc(curUser.uid).get();if(snap.exists&&snap.data().tpLog)tpLog=snap.data().tpLog;}catch(e){}
+}
 if(tpLog[key]){
 const moodItems=tpLog[key].filter(e=>e.type==='mood');
 moodItems.forEach(e=>{treeData.tp=Math.max(0,treeData.tp-e.tp);treeData.totalTpEarned=Math.max(0,treeData.totalTpEarned-e.tp);});
