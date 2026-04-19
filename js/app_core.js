@@ -285,7 +285,8 @@ ${isLoggedIn ? `
 <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;">
 <div style="height:100%;width:${treePct}%;background:${treeSt.color};border-radius:2px;transition:width .6s;"></div>
 </div>
-${treeNextSt ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>` : ''}
+${treeNextSt ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+)</div>` : ''}
+${treeNextSt && treeData.tp >= treeNextSt.tpReq && s < (treeNextSt.reqDay||0) ? `<div style="font-size:12px;color:var(--warning);background:var(--warning-bg);padding:8px 12px;border-radius:8px;margin-top:8px;">⏳ TP 충족! 연속 ${(treeNextSt.reqDay||0)-s}일 더 훈련하면 ${treeNextSt.name}으로 성장해요</div>` : ''}
 </div>
 ${tpAccumHtml}
 <div class="dp">

@@ -702,7 +702,11 @@ const streak = calcStreak();
 const streakText = (treeData.stage!==7 && nextSt && nextSt.reqDay>0)
 ? ` · 연속 ${streak}일 / ${nextSt.reqDay}일 필요`
 : '';
-const labelHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--text2);white-space:nowrap;">${tpText}</span>${streakText ? `<span style="font-size:11px;color:var(--text2);white-space:nowrap;">${streakText.replace(' · ','')}</span>` : ''}</div>`;
+// TP는 충족했는데 연속일이 부족한 경우 (게이지 100%지만 레벨업 불가) 안내 강조
+const tpReady = (treeData.stage!==7 && nextSt && treeData.tp >= nextSt.tpReq);
+const streakLack = tpReady && streak < (nextSt.reqDay||0);
+const streakColor = streakLack ? 'var(--warning,#BA7517)' : 'var(--text2)';
+const labelHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--text2);white-space:nowrap;">${tpText}</span>${streakText ? `<span style="font-size:11px;color:${streakColor};white-space:nowrap;font-weight:${streakLack?'600':'400'};">${streakLack?'⏳ ':''}${streakText.replace(' · ','')}</span>` : ''}</div>`;
 const healthIcons = {healthy:'🌿',good:'🌱',caution:'🍂',wilt:'🥀',dormant:'❄️',seed:'🌱'};
 const icon = healthIcons[h] || '🌱';
 if(treeOpen){
@@ -917,7 +921,6 @@ const isCur = stageNum === curStage;
 const reqInfo = stageNum === 1 ? '' :
 `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;margin-bottom:2px;">
 <span style="font-size:10px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">📅 연속 ${st.reqDay}일+</span>
-<span style="font-size:10px;color:rgba(255,255,255,.35);font-family:'JetBrains Mono',monospace;">⏱ 1회 ${st.reqMin}분+</span>
 </div>`;
 return `
 <div class="tsc" style="${isCur ? 'border-color:'+st.color+'44;box-shadow:0 0 20px '+st.color+'18;' : ''}">
@@ -954,7 +957,6 @@ return `
 <div class="tsc-lock-req">${needText}</div>
 <div style="display:flex;gap:8px;margin-top:4px;">
 <span style="font-size:10px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;">📅 연속 ${st.reqDay}일+</span>
-<span style="font-size:10px;color:rgba(255,255,255,.5);font-family:'JetBrains Mono',monospace;">⏱ ${st.reqMin}분+</span>
 </div>
 </div>
 </div>
