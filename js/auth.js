@@ -750,4 +750,6 @@ showPage('column',null);
 setTimeout(()=>showColDetail(idx),100);
 }
 }
+// 팝업 공지 노출 (다른 UI가 뜬 뒤 잠깐 뒤에)
+setTimeout(()=>{ if(typeof showPopupNoticeIfNeeded==='function') showPopupNoticeIfNeeded(); }, 600);
 }).catch(e=>console.log('Firebase 로드 오류:',e));

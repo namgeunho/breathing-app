@@ -58,6 +58,72 @@ const snap = await db.collection('notices').orderBy('createdAt','desc').get();
 _notices = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 } catch(e) { console.log('공지 로드 실패:', e); }
 }
+
+// 팝업 공지 노출 (앱 접속 시 자동 호출)
+function showPopupNoticeIfNeeded(){
+if(!_notices || !_notices.length) return;
+// 팝업 플래그가 켜진 공지만 필터
+const popups = _notices.filter(n => n.popup === true);
+if(!popups.length) return;
+// 중요(pinned) 우선, 그다음 최신순 (이미 createdAt desc로 정렬되어 옴)
+popups.sort((a,b)=>{
+if((b.pinned?1:0)-(a.pinned?1:0)) return (b.pinned?1:0)-(a.pinned?1:0);
+return (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0);
+});
+const target = popups[0];
+if(!target || !target.id) return;
+// "오늘 하루 보지 않기" 체크
+const dismissKey = 'dismissedPopup_' + target.id;
+const dismissedDate = localStorage.getItem(dismissKey);
+const today = new Date();
+const todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+if(dismissedDate === todayStr) return; // 오늘 이미 닫음
+// 이미 열려있는 팝업 있으면 중복 방지
+if(document.getElementById('popupNoticeOverlay')) return;
+// 팝업 생성
+const overlay = document.createElement('div');
+overlay.id = 'popupNoticeOverlay';
+overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:popupFadeIn .3s;';
+const contentHtml = typeof renderContent === 'function' ? renderContent(target.content||'') : (target.content||'').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+overlay.innerHTML = `
+<style>
+@keyframes popupFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popupSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+#popupNoticeBox .pn-btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:background .15s;}
+#popupNoticeBox .pn-btn-primary{background:var(--accent,#d4a84b);color:#fff;}
+#popupNoticeBox .pn-btn-primary:hover{opacity:.9;}
+#popupNoticeBox .pn-btn-outline{background:transparent;color:var(--text2,#888);border:1px solid var(--bg3,#333);}
+#popupNoticeBox .pn-btn-outline:hover{background:var(--bg2,#1a1a1a);}
+</style>
+<div id="popupNoticeBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;animation:popupSlideUp .35s;">
+<div style="padding:22px 22px 16px;">
+${target.pinned?'<div style="color:#d4a84b;font-size:12px;font-weight:500;margin-bottom:8px;">📌 중요 공지</div>':'<div style="color:var(--text2,#888);font-size:12px;margin-bottom:8px;">🔔 공지사항</div>'}
+<div style="font-size:17px;font-weight:600;color:var(--text,#eee);margin-bottom:14px;line-height:1.4;">${(target.title||'').replace(/</g,'&lt;')}</div>
+<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">${contentHtml}</div>
+</div>
+<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);margin-top:4px;">
+<button class="pn-btn pn-btn-outline" id="popupNoticeDismiss">오늘 하루 보지 않기</button>
+<button class="pn-btn pn-btn-primary" id="popupNoticeClose">확인</button>
+</div>
+</div>
+`;
+document.body.appendChild(overlay);
+const close = ()=>{
+overlay.style.opacity='0';
+overlay.style.transition='opacity .25s';
+setTimeout(()=>overlay.remove(), 250);
+};
+document.getElementById('popupNoticeClose').addEventListener('click', close);
+document.getElementById('popupNoticeDismiss').addEventListener('click', ()=>{
+try{ localStorage.setItem(dismissKey, todayStr); }catch(e){}
+close();
+});
+// 오버레이 바깥 클릭 시 닫기 (세션 단위, dismiss 처리 안 함)
+overlay.addEventListener('click', (e)=>{
+if(e.target === overlay) close();
+});
+}
+
 let _guide = null;
 async function loadGuide() {
 try {
