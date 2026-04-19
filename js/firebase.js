@@ -177,7 +177,7 @@ const thumbHtml=c.thumbUrl&&c.thumbUrl.startsWith('http')
 ?`<img src="${c.thumbUrl}" alt="" style="width:100%;border-radius:10px;object-fit:cover;max-height:200px;margin-bottom:1.25rem;display:block;">`:'';
 const cs = c.columnistSnap;
 const columnistHtml = cs && cs.name ? `
-<div style="margin-top:1.5rem;padding:14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;">
+<div style="margin-top:1.5rem;padding:14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;cursor:pointer;" onclick="showColumnistPage('${eh(cs.name||'')}')">
 <div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">칼럼리스트</div>
 <div style="display:flex;align-items:center;gap:12px;">
 <div style="width:44px;height:44px;border-radius:50%;background:var(--bg3);flex-shrink:0;overflow:hidden;border:1px solid var(--bd);">
@@ -241,6 +241,53 @@ function closeColDetail(){
 document.getElementById('colListView').style.display='block';
 document.getElementById('colDetailView').style.display='none';
 renderColList();
+}
+function showColumnistPage(name){
+const cols=_columns.filter(c=>c.columnistSnap&&c.columnistSnap.name===name);
+const cs=cols.length?cols[0].columnistSnap:null;
+if(!cs)return;
+const profileHtml=`
+<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:1.25rem;">
+<div style="display:flex;align-items:center;gap:12px;">
+<div style="width:56px;height:56px;border-radius:50%;background:var(--bg3);flex-shrink:0;overflow:hidden;border:1px solid var(--bd);">
+${cs.photoUrl?`<img src="${eh(cs.photoUrl)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>`}
+</div>
+<div style="flex:1;min-width:0;">
+<div style="font-size:16px;font-weight:700;color:var(--text);">${eh(cs.name)}${cs.nickname?` <span style="font-size:13px;color:var(--text3);font-weight:400;">@${eh(cs.nickname)}</span>`:''}</div>
+${cs.bio?`<div style="font-size:13px;color:var(--text2);margin-top:4px;">${eh(cs.bio)}</div>`:''}
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+${cs.blog?`<a href="${eh(cs.blog)}" target="_blank" style="font-size:12px;color:var(--info);display:flex;align-items:center;gap:3px;"><span>📝</span> 블로그</a>`:''}
+${cs.insta?`<a href="${cs.insta.startsWith('http')?eh(cs.insta):'https://instagram.com/'+cs.insta.replace('@','')}" target="_blank" style="font-size:12px;color:var(--info);display:flex;align-items:center;gap:3px;"><span>📸</span> 인스타그램</a>`:''}
+${cs.youtube?`<a href="${eh(cs.youtube)}" target="_blank" style="font-size:12px;color:var(--info);display:flex;align-items:center;gap:3px;"><span>▶️</span> 유튜브</a>`:''}
+</div>
+</div>
+</div>
+</div>`;
+const listHtml=cols.length?cols.map(c=>{
+const idx=_columns.indexOf(c);
+const thumb=c.thumbUrl?`<img class="col-thumb" src="${c.thumbUrl}" alt="" onerror="this.outerHTML='<div class=\\'col-thumb-empty\\'><span class=\\'col-thumb-brand\\'>BRETHIN</span></div>'">`:`<div class="col-thumb-empty"><span class="col-thumb-brand">BRETHIN</span></div>`;
+const excerpt=(c.content||'').replace(/\[img:[^\]]+\]/g,'').replace(/https?:\/\/\S+/g,'').trim().substring(0,120);
+return `<div class="col-card" onclick="showColDetail(${idx});document.getElementById('colColumnistView').style.display='none';document.getElementById('colDetailView').style.display='block';">
+${thumb}
+<div class="col-info">
+${c.category?`<div class="col-cat">${eh(c.category)}</div>`:''}
+<div class="col-title">${eh(c.title)}</div>
+<div class="col-excerpt">${eh(excerpt)}</div>
+<div class="col-meta">
+<span class="col-date">${fmtDate(c.createdAt)}</span>
+<span class="col-views"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>${c.views||0}</span>
+</div>
+</div>
+</div>`;
+}).join(''):`<div class="nb"><div style="font-size:13px;color:var(--text2);">등록된 칼럼이 없습니다</div></div>`;
+document.getElementById('colColumnistContent').innerHTML=profileHtml+`<div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:0.04em;margin-bottom:10px;">게시된 칼럼 ${cols.length}편</div>`+listHtml;
+document.getElementById('colDetailView').style.display='none';
+document.getElementById('colListView').style.display='none';
+document.getElementById('colColumnistView').style.display='block';
+}
+function closeColumnistPage(){
+document.getElementById('colColumnistView').style.display='none';
+document.getElementById('colDetailView').style.display='block';
 }
 function fmtDate(ts) {
 if (!ts) return '';
