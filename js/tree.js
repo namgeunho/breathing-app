@@ -38,7 +38,7 @@ let treeData = {
 tp: 0, stage: 1, lastDate: '', bornAt: '', health: 'healthy',
 stageHistory: [], totalTpEarned: 0
 };
-let treeOpen = true; 
+let treeOpen = false; 
 function loadTree(){
 try{
 const raw = localStorage.getItem(LS+'tree');
