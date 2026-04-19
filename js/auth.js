@@ -554,7 +554,15 @@ const emoVals={'아주나쁨':1,'나쁨':2,'보통':3,'좋음':4,'아주좋음':
 const wasImproved=(emoVals[prevPostMood]||0)>(emoVals[prevPreMood]||0);
 const isImproved=(emoVals[postMood]||0)>(emoVals[preMood]||0);
 if(isImproved&&!wasImproved){
-// 새로 감정 개선됨 → 보너스 지급
+// 새로 감정 개선됨 → 기존 mood 항목 먼저 제거 후 보너스 지급 (이중 적립 방지)
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(!tpLog[key])tpLog[key]=[];
+// 기존 mood 항목 차감 후 제거
+const prevMoodItems=tpLog[key].filter(e=>e.type==='mood');
+prevMoodItems.forEach(e=>{treeData.tp=Math.max(0,treeData.tp-e.tp);treeData.totalTpEarned=Math.max(0,treeData.totalTpEarned-e.tp);});
+tpLog[key]=tpLog[key].filter(e=>e.type!=='mood');
 const emoBonuses=[3,3,5,8,12,15,20];
 const bonus=emoBonuses[(treeData.stage||1)-1]||3;
 treeData.tp+=bonus;
@@ -564,10 +572,6 @@ if(newStage>treeData.stage){treeData.stageHistory.push({stage:newStage,date:key}
 treeData.stage=newStage;
 saveTree();renderTree();
 // tpLog에 기록
-const logKey=LS+'tpLog';
-let tpLog={};
-try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
-if(!tpLog[key])tpLog[key]=[];
 tpLog[key].push({type:'mood',label:'감정 개선 보너스',tp:bonus});
 try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 showToast(`🌿 감정이 개선됐어요! +${bonus} TP 획득 (로그:${(tpLog[key]||[]).length}건)`);
@@ -634,7 +638,23 @@ let html=`<div class="sl3">감정 · 메모</div>
 </div>`;
 document.getElementById('detailBody').innerHTML=html;
 }
-async function delMemo(key){delete memos[key];save();if(curUser){await saveUserData();}renderCal();renderDB(key);}
+async function delMemo(key){
+// 감정 개선 보너스 회수
+const logKey=LS+'tpLog';
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(tpLog[key]){
+const moodItems=tpLog[key].filter(e=>e.type==='mood');
+moodItems.forEach(e=>{treeData.tp=Math.max(0,treeData.tp-e.tp);treeData.totalTpEarned=Math.max(0,treeData.totalTpEarned-e.tp);});
+if(moodItems.length){
+tpLog[key]=tpLog[key].filter(e=>e.type!=='mood');
+treeData.stage=getTreeStageFromTP(treeData.tp);
+saveTree();renderTree();
+try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
+}
+}
+delete memos[key];save();if(curUser){await saveUserData();}renderCal();renderDB(key);
+}
 function askDeleteDay(){if(!selDate)return;document.getElementById('detailBody').innerHTML=`<div class="cfmb"><div class="cfmm"><strong>${fl(selDate)}</strong>의<br>훈련 기록을 삭제하시겠습니까?</div><div class="cfmbs"><button class="bdng" onclick="confirmDel()">네</button><button onclick="selD('${selDate}')">아니오</button></div></div>`;}
 async function confirmDel(){
 const dateToDelete=selDate;
