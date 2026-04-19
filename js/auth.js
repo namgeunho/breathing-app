@@ -653,12 +653,13 @@ async function confirmDel(){
 const dateToDelete=selDate;
 delete records[dateToDelete];
 delete memos[dateToDelete];
-// 해당 날짜 tpLog 삭제 + treeData.tp 차감
-try{
+// tpLog: 로컬 우선, 없으면 서버에서 가져옴
 const logKey=LS+'tpLog';
-const raw=localStorage.getItem(logKey);
-if(raw){
-const tpLog=JSON.parse(raw);
+let tpLog={};
+try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
+if(curUser&&!tpLog[dateToDelete]){
+try{const snap=await db.collection('users').doc(curUser.uid).get();if(snap.exists&&snap.data().tpLog)tpLog=snap.data().tpLog;}catch(e){}
+}
 if(tpLog[dateToDelete]){
 const dayTP=tpLog[dateToDelete].reduce((s,e)=>s+e.tp,0);
 treeData.tp=Math.max(0,treeData.tp-dayTP);
@@ -667,9 +668,7 @@ treeData.stage=getTreeStageFromTP(treeData.tp);
 saveTree();
 }
 delete tpLog[dateToDelete];
-localStorage.setItem(logKey,JSON.stringify(tpLog));
-}
-}catch(e){}
+try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 selDate=null;
 save();
 if(curUser){
