@@ -104,20 +104,20 @@ async function shareResult(){
 const card=document.getElementById('completeCard');
 const appUrl=window.location.href.split('?')[0];
 const r=lastResult;
-const introUrl=appUrl.replace('index.html','intro.html').replace(/\/[^/]*$/, '/intro.html');
-const shareText=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿\n\n앱 소개 보기 👉 ${introUrl}`;
+const introUrl=appUrl.endsWith('index.html')?appUrl.replace('index.html','intro.html'):appUrl.replace(/\/[^\/]*$/,'/intro.html');
+const shareText=`들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿`;
 try{
 const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
 const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
 const file=new File([blob],'호흡훈련.png',{type:'image/png'});
 if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-await navigator.share({title:'호흡 훈련 완료!',text:shareText,files:[file],url:appUrl});
+await navigator.share({title:'호흡 훈련 완료!',text:shareText,files:[file],url:introUrl});
 giveShareBonus('result');
 } else if(navigator.share){
-await navigator.share({title:'호흡 훈련 완료!',text:shareText,url:appUrl});
+await navigator.share({title:'호흡 훈련 완료!',text:shareText,url:introUrl});
 giveShareBonus('result');
 } else {
-await navigator.clipboard.writeText(shareText+'\n'+appUrl);
+await navigator.clipboard.writeText(shareText+'\n'+introUrl);
 showToast('공유 내용이 복사됐어요!');
 giveShareBonus('result');
 }
