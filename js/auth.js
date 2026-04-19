@@ -56,7 +56,7 @@ body.innerHTML=back+`
 function doResetData(){
 const LS='breath5_';
 ['pp','mode','pi','dur','rec','memo','name','ms','photo','theme','sfx','bgmOn','bgm',
-'sfxVol','bgmVol','page','bookmarks','tree','treeOpen','maxLv'].forEach(k=>localStorage.removeItem(LS+k));
+'sfxVol','bgmVol','page','bookmarks','tree','treeOpen','maxLv','tpLog'].forEach(k=>localStorage.removeItem(LS+k));
 records={};memos={};userName='사용자';userPhoto=null;
 selPI=0;curMode='program';
 presets=defPresets.map(p=>({...p}));
@@ -66,6 +66,7 @@ db.collection('users').doc(curUser.uid).set({
 records:{},memos:{},userName:'사용자',
 presets:defPresets.map(p=>({...p})),
 tree:{tp:0,stage:1,lastDate:'',bornAt:'',health:'healthy',stageHistory:[],totalTpEarned:0},
+tpLog:{},
 maxLv:0,
 updatedAt:firebase.firestore.FieldValue.serverTimestamp()
 }).catch(e=>console.log(e));
