@@ -368,80 +368,63 @@ const postMood = typeof memoData==='object'?memoData.postMood||'':'';
 const dateLabel = fl(key);
 const isToday = key===today();
 const hasMemoData = !!(memo||preMood||postMood);
-let html = `<div class="gdp-header">
-<span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span>
-</div>`;
+const tpEntries=getDayTPLog(key);
+let html = `<div class="gdp-header"><span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span></div>`;
+// 1. 훈련 기록 — 접기/펼치기 박스
 if(recs.length>0){
 const total = recs.reduce((s,r)=>s+r.duration,0);
-html += `<div class="gdp-section-label">훈련 기록</div>`;
+const recId='recGBox_'+key.replace(/-/g,'');
+html+=`<div class="gdp-section-label">훈련 기록</div>`;
+html+=`<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;">`;
+html+=`<div onclick="var d=document.getElementById('${recId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">`;
+html+=`<span style="font-size:13px;font-weight:600;color:var(--text);">총 훈련시간</span>`;
+html+=`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13px;font-weight:600;color:var(--info);">총 ${Math.round(total)}분 훈련</span><span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span></div>`;
+html+=`</div>`;
+html+=`<div id="${recId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 0 4px;">`;
 recs.forEach((r,i)=>{
-const lv = r.level?`<span class="bg bga" style="font-size:10px;padding:1px 5px;margin-left:4px;">${r.level}</span>`:'';
-html += `<div class="gdp-rec">
-<div class="gdp-rec-left">
-<span class="gdp-rec-num">${i+1}회차</span>${lv}
-<span class="gdp-rec-pattern">들숨${r.inhale}·날숨${r.exhale}</span>
-</div>
-<div class="gdp-rec-right">
-<span class="bg bbl" style="font-size:11px;">${r.duration}분</span>
-<span class="bg bgn" style="font-size:11px;">${r.cycles}회</span>
-</div>
-</div>`;
+const lv=r.level?`<span class="bg bga" style="font-size:10px;padding:1px 5px;margin-left:4px;">${r.level}</span>`:'';
+html+=`<div class="gdp-rec" style="padding:7px 16px;"><div class="gdp-rec-left"><span class="gdp-rec-num">${i+1}회차</span>${lv}<span class="gdp-rec-pattern">들숨${r.inhale}·날숨${r.exhale}</span></div><div class="gdp-rec-right"><span class="bg bbl" style="font-size:11px;">${r.duration}분</span><span class="bg bgn" style="font-size:11px;">${r.cycles}회</span></div></div>`;
 });
-html += `<div class="gdp-total">총 ${Math.round(total)}분 훈련</div>`;
+html+=`</div></div>`;
+} else if(recs.length===0&&!hasMemoData&&tpEntries.length===0){
+panel.innerHTML=`<div class="gdp-header"><span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span></div><div class="gdp-empty">이 날의 기록이 없어요</div>`;
+return;
 } else {
-html += `<div class="gdp-empty">훈련 기록이 없어요</div>`;
+html+=`<div class="gdp-empty">훈련 기록이 없어요</div>`;
 }
-if(hasMemoData){
-html += `<div class="gdp-divider"></div><div class="gdp-section-label">감정 · 메모</div>`;
-if(preMood||postMood){
-html += `<div class="gdp-mood">`;
-if(preMood) html += `<span class="gdp-mood-item">훈련 전 <strong>${preMood}</strong></span>`;
-if(preMood&&postMood) html += `<span class="gdp-mood-arrow">→</span>`;
-if(postMood) html += `<span class="gdp-mood-item">훈련 후 <strong>${postMood}</strong></span>`;
-html += `</div>`;
-}
-if(memo) html += `<div class="gdp-memo">${eh(memo)}</div>`;
-html += `<div class="gdp-actions" style="justify-content:space-between;">
-<button class="bsm bshr" onclick="shareRecord('${key}')">
-<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
-공유
-</button>
-<div style="display:flex;gap:8px;">
-<button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button>
-<button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button>
-</div>
-</div>`;
-} else if(recs.length===0){
-html = `<div class="gdp-header"><span class="gdp-date">${dateLabel}${isToday?' <span class="gdp-today-badge">오늘</span>':''}</span></div>
-<div class="gdp-empty">이 날의 기록이 없어요</div>`;
-} else {
-html += `<div class="gdp-actions">
-<button class="bsm bshr" onclick="shareRecord('${key}')">
-<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg>
-공유
-</button>
-</div>`;
-}
-// TP 적립 내역
-const tpEntries=getDayTPLog(key);
+// 2. 오늘 적립 TP — 훈련기록 바로 아래
 if(tpEntries.length>0){
 const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
 const tpId='tpGBox_'+key.replace(/-/g,'');
-html+=`<div style="margin-top:12px;">
-<div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:0.04em;">오늘 적립 TP</div>
-<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;">
-<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">
-<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>
-<div style="display:flex;align-items:center;gap:8px;">
-<span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span>
-<span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span>
-</div>
-</div>
-<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">`;
-tpEntries.forEach(e=>{
-html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;
-});
-html+=`</div></div></div>`;
+html+=`<div class="gdp-section-label">오늘 적립 TP</div>`;
+html+=`<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;">`;
+html+=`<div onclick="var d=document.getElementById('${tpId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">`;
+html+=`<span style="font-size:13px;font-weight:600;color:var(--text);">합계</span>`;
+html+=`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:14px;font-weight:700;color:var(--success);">+${totalTP} TP</span><span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span></div>`;
+html+=`</div>`;
+html+=`<div id="${tpId}" style="display:none;border-top:0.5px solid var(--bd);padding:4px 16px 8px;">`;
+tpEntries.forEach(e=>{html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:12px;"><span style="color:var(--text2);">${e.label}</span><span style="color:var(--success);font-weight:600;">+${e.tp} TP</span></div>`;});
+html+=`</div></div>`;
+}
+// 3. 감정 · 메모 (구분선 제거)
+if(hasMemoData){
+html+=`<div class="gdp-section-label">감정 · 메모</div>`;
+if(preMood||postMood){
+html+=`<div class="gdp-mood">`;
+if(preMood) html+=`<span class="gdp-mood-item">훈련 전 <strong>${preMood}</strong></span>`;
+if(preMood&&postMood) html+=`<span class="gdp-mood-arrow">→</span>`;
+if(postMood) html+=`<span class="gdp-mood-item">훈련 후 <strong>${postMood}</strong></span>`;
+html+=`</div>`;
+}
+if(memo) html+=`<div class="gdp-memo">${eh(memo)}</div>`;
+html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:12px;">
+<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
+<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button><button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button></div>
+</div>`;
+} else if(recs.length>0){
+html+=`<div class="gdp-actions">
+<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
+</div>`;
 }
 panel.innerHTML = html;
 }
