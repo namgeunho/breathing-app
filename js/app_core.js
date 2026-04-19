@@ -240,7 +240,7 @@ ${[
 <div style="padding:12px 16px 14px;">
 <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">TP 계산 방식</div>
 <div style="font-size:12px;color:var(--text2);line-height:1.9;">
-<div><span style="color:var(--text);font-weight:500;">기본</span> · 훈련시간(분) × 1.5</div>
+<div><span style="color:var(--text);font-weight:500;">기본</span> · 훈련시간(분) × 1.5 (소수점 버림)</div>
 <div><span style="color:var(--text);font-weight:500;">시간 보너스</span> · 3분+2 / 5분+5 / 10분+12 / 15분+22 / 20분+35 / 25분+50</div>
 <div><span style="color:var(--text);font-weight:500;">연속 보너스</span> · 연속일 × 0.3 (최대 20)</div>
 <div><span style="color:var(--text);font-weight:500;">첫 훈련 보너스</span> · 오늘 첫 훈련 시 +5</div>
