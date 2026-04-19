@@ -416,7 +416,7 @@ const streak = calcStreak();
 const streakText = (treeData.stage!==7 && nextSt && nextSt.reqDay>0)
 ? ` · 연속 ${streak}일 / ${nextSt.reqDay}일 필요`
 : '';
-const labelHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--text2);white-space:nowrap;">${tpText}</span>${streakText ? `<span style="font-size:11px;color:${st.color};white-space:nowrap;">${streakText.replace(' · ','')}</span>` : ''}</div>`;
+const labelHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--text2);white-space:nowrap;">${tpText}</span>${streakText ? `<span style="font-size:11px;color:var(--text2);white-space:nowrap;">${streakText.replace(' · ','')}</span>` : ''}</div>`;
 const healthIcons = {healthy:'🌿',good:'🌱',caution:'🍂',wilt:'🥀',dormant:'❄️',seed:'🌱'};
 const icon = healthIcons[h] || '🌱';
 if(treeOpen){
@@ -444,7 +444,7 @@ const cLabel = document.getElementById('treeCollapsedLabel');
 const cFill = document.getElementById('treeCollapsedFill');
 if(cIcon) cIcon.innerHTML = getTreeSVG(treeData.stage, null, 28);
 if(cName){ cName.textContent = st.name; cName.style.color = st.color; }
-if(cLabel) cLabel.innerHTML = labelHtml;
+if(cLabel) cLabel.style.display = 'none';
 if(cFill){ cFill.style.width = pct+'%'; cFill.style.background = st.color; }
 }
 } else {
