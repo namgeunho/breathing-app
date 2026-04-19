@@ -752,4 +752,6 @@ setTimeout(()=>showColDetail(idx),100);
 }
 // 팝업 공지 노출 (다른 UI가 뜬 뒤 잠깐 뒤에)
 setTimeout(()=>{ if(typeof showPopupNoticeIfNeeded==='function') showPopupNoticeIfNeeded(); }, 600);
+// 설치 유도 팝업 (팝업 공지가 없거나 닫은 뒤 자연스럽게 노출)
+setTimeout(()=>{ if(typeof showInstallPromptIfNeeded==='function') showInstallPromptIfNeeded(); }, 3000);
 }).catch(e=>console.log('Firebase 로드 오류:',e));

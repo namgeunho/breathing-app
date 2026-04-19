@@ -131,6 +131,189 @@ if(e.target === overlay) close();
 });
 }
 
+// ═══════════════════════════════════════════════════════
+// 홈화면 설치 유도 팝업 (환경별 맞춤 안내)
+// ═══════════════════════════════════════════════════════
+function detectInstallEnv(){
+const ua = navigator.userAgent;
+// 이미 PWA로 설치됨
+if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return 'installed';
+if(window.navigator.standalone === true) return 'installed';
+// 카카오톡 인앱
+if(/KAKAOTALK/i.test(ua)) return 'kakao';
+// 네이버 인앱
+if(/NAVER\(inapp/i.test(ua)) return 'naver';
+// 인스타/페북 인앱
+if(/Instagram|FBAN|FBAV/i.test(ua)) return 'social';
+// iOS Safari (CriOS/FxiOS/EdgiOS 등은 제외)
+if(/iPad|iPhone|iPod/i.test(ua) && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua)) return 'ios_safari';
+// iOS 다른 브라우저
+if(/iPad|iPhone|iPod/i.test(ua)) return 'ios_other';
+// Android Chrome/Samsung/Edge (deferredInstall 이벤트가 떠있는 경우)
+if(typeof deferredInstall !== 'undefined' && deferredInstall) return 'android_chrome';
+// 기타 (PC Chrome, 웨일, 파이어폭스 등)
+return 'other';
+}
+
+function openInChrome(){
+// Android에서 현재 URL을 Chrome으로 강제 오픈 (intent 스킴)
+const ua = navigator.userAgent;
+if(!/Android/i.test(ua)){
+// Android 아니면 alert
+alert('Android에서만 자동 전환이 가능합니다. 브라우저 앱을 직접 열어 주세요.');
+return;
+}
+const url = location.href.replace(/^https?:\/\//,'');
+location.href = 'intent://'+url+'#Intent;scheme=https;package=com.android.chrome;end';
+}
+
+function showInstallPromptIfNeeded(){
+// 팝업 공지가 이미 떠있으면 스킵 (겹침 방지)
+if(document.getElementById('popupNoticeOverlay')) return;
+if(document.getElementById('installPromptOverlay')) return;
+const env = detectInstallEnv();
+// 이미 설치됐으면 노출 안 함 + 영구 저장
+if(env === 'installed'){
+try{ localStorage.setItem('brethin_installed','1'); }catch(e){}
+return;
+}
+// 이미 설치 완료 플래그 있으면 노출 안 함
+try{ if(localStorage.getItem('brethin_installed')==='1') return; }catch(e){}
+// 7일 쿨다운 체크
+try{
+const last = localStorage.getItem('installPromptDismissed');
+if(last){
+const diffDays = (Date.now() - parseInt(last)) / (86400000);
+if(diffDays < 7) return;
+}
+}catch(e){}
+// 환경별 컨텐츠 구성
+let title = '📱 브레스인을 홈화면에 추가하세요!';
+let bodyHtml = '';
+let mainBtnHtml = '';
+
+if(env === 'android_chrome'){
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">Chrome 브라우저로 접속해주셨네요!<br>아래 버튼을 누르면 홈화면에 바로 추가할 수 있어요.<br><br>앱처럼 편하게, 오프라인에서도 사용 가능합니다. ✨</div>`;
+mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🏠 홈화면에 추가하기</button>`;
+}
+else if(env === 'ios_safari'){
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">Safari에서 아래 순서대로 진행해주세요.</div>
+<div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">1</div><div style="font-size:13px;color:var(--text,#ddd);line-height:1.6;">하단의 <b>공유 버튼(⬆️)</b> 을 탭하세요</div></div>
+<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">2</div><div style="font-size:13px;color:var(--text,#ddd);line-height:1.6;"><b>'홈 화면에 추가'</b> 를 탭하세요</div></div>
+<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">3</div><div style="font-size:13px;color:var(--text,#ddd);line-height:1.6;">오른쪽 상단 <b>'추가'</b> 버튼을 탭하면 완료! 🎉</div></div>
+</div>`;
+}
+else if(env === 'ios_other'){
+title = '⚠️ Safari에서 열어주세요';
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">iPhone/iPad에서 홈화면 추가는 <b>Safari 브라우저</b>에서만 가능해요.<br><br>현재 URL을 복사해서 Safari에서 붙여넣어 주세요.</div>`;
+mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">📋 URL 복사하기</button>`;
+}
+else if(env === 'kakao'){
+title = '⚠️ 카카오톡에서는 설치가 어려워요';
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">카카오톡 내부 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>아래 버튼으로 Chrome에서 열어주세요.<br><br><span style="color:var(--text2,#888);font-size:12px;">또는 우측 상단 메뉴(⋮) → '다른 브라우저로 열기' 선택</span></div>`;
+mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🔗 Chrome에서 열기 (Android)</button>`;
+}
+else if(env === 'naver'){
+title = '⚠️ 네이버 앱에서는 설치가 어려워요';
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">네이버 인앱 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>아래 버튼으로 Chrome에서 열어주세요.<br><br><span style="color:var(--text2,#888);font-size:12px;">또는 우측 하단 메뉴 → 'Chrome으로 열기' 선택</span></div>`;
+mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🔗 Chrome에서 열기 (Android)</button>`;
+}
+else if(env === 'social'){
+title = '⚠️ 인앱 브라우저에서는 설치가 어려워요';
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">현재 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>Chrome 또는 Safari에서 열어주세요.</div>`;
+mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🔗 Chrome에서 열기 (Android)</button>`;
+}
+else {
+// 기타 (웨일, 파이어폭스, PC 등)
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">사용 중인 브라우저의 메뉴에서 <b>'홈 화면에 추가'</b> 를 선택해 주세요.</div>
+<div style="margin-top:14px;padding:12px;background:var(--bg2,#1a1a1a);border-radius:8px;font-size:12px;color:var(--text2,#aaa);line-height:1.8;">
+<div><b>Whale</b> · 메뉴 → 홈 화면에 추가</div>
+<div><b>Firefox</b> · 메뉴 → 홈 화면에 추가</div>
+<div><b>PC Chrome</b> · 주소창 오른쪽 설치 아이콘(⊕) 클릭</div>
+</div>`;
+}
+// 팝업 생성
+const overlay = document.createElement('div');
+overlay.id = 'installPromptOverlay';
+overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:popupFadeIn .3s;';
+overlay.innerHTML = `
+<style>
+@keyframes popupFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popupSlideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+#installPromptBox .pn-btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:background .15s;}
+#installPromptBox .pn-btn-primary{background:var(--accent,#d4a84b);color:#fff;}
+#installPromptBox .pn-btn-primary:hover{opacity:.9;}
+#installPromptBox .pn-btn-outline{background:transparent;color:var(--text2,#888);border:1px solid var(--bg3,#333);}
+#installPromptBox .pn-btn-outline:hover{background:var(--bg2,#1a1a1a);}
+#installPromptBox .pn-btn-confirm{background:transparent;color:var(--text,#eee);border:1px solid var(--bg3,#333);}
+#installPromptBox .pn-btn-confirm:hover{background:var(--bg2,#1a1a1a);}
+</style>
+<div id="installPromptBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
+<div style="padding:22px 22px 16px;overflow-y:auto;flex:1;">
+<div style="color:#d4a84b;font-size:12px;font-weight:500;margin-bottom:8px;">📱 앱 설치 안내</div>
+<div style="font-size:17px;font-weight:600;color:var(--text,#eee);margin-bottom:14px;line-height:1.4;">${title}</div>
+${bodyHtml}
+</div>
+<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);flex-wrap:wrap;">
+${mainBtnHtml ? `<div style="display:flex;width:100%;margin-bottom:4px;">${mainBtnHtml}</div>` : ''}
+<button class="pn-btn pn-btn-outline" id="installPromptDismiss">7일 동안 보지 않기</button>
+<button class="pn-btn pn-btn-confirm" id="installPromptClose">닫기</button>
+</div>
+</div>
+`;
+document.body.appendChild(overlay);
+const close = ()=>{
+overlay.style.opacity='0';
+overlay.style.transition='opacity .25s';
+setTimeout(()=>overlay.remove(), 250);
+};
+document.getElementById('installPromptClose').addEventListener('click', close);
+document.getElementById('installPromptDismiss').addEventListener('click', ()=>{
+try{ localStorage.setItem('installPromptDismissed', String(Date.now())); }catch(e){}
+close();
+});
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) close(); });
+// 메인 버튼 동작 분기
+const mainBtn = document.getElementById('installPromptMainBtn');
+if(mainBtn){
+mainBtn.addEventListener('click', async ()=>{
+if(env === 'android_chrome'){
+if(typeof triggerInstall === 'function'){
+await triggerInstall();
+// 성공 시 appinstalled 이벤트가 처리할 것
+} else if(typeof deferredInstall !== 'undefined' && deferredInstall){
+deferredInstall.prompt();
+const r = await deferredInstall.userChoice;
+if(r.outcome === 'accepted'){
+try{ localStorage.setItem('brethin_installed','1'); }catch(e){}
+deferredInstall = null;
+}
+}
+close();
+}
+else if(env === 'kakao' || env === 'naver' || env === 'social'){
+openInChrome();
+}
+else if(env === 'ios_other'){
+try{
+await navigator.clipboard.writeText(location.href);
+mainBtn.textContent = '✅ 복사 완료! Safari에서 붙여넣기';
+mainBtn.disabled = true;
+setTimeout(close, 1500);
+}catch(e){
+prompt('아래 URL을 복사해서 Safari에서 열어주세요:', location.href);
+}
+}
+});
+}
+}
+
+// PWA 설치 완료 감지 (설치 후 다시 안 뜨도록)
+window.addEventListener('appinstalled', ()=>{
+try{ localStorage.setItem('brethin_installed','1'); }catch(e){}
+});
+
 let _guide = null;
 async function loadGuide() {
 try {
