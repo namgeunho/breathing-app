@@ -583,6 +583,22 @@ const st=TREE_STAGES[treeData.stage-1];
 if(st)spawnTreeParticles(st.color);
 if(newStage>prevStage)setTimeout(()=>showLevelUpAnim(newStage),800);
 }
+function getTotalTPByType(){
+const result={train_base:0,train_time:0,train_streak:0,train_first:0,train_mood:0,train_lv:0,share:0};
+try{
+const raw=localStorage.getItem(LS+'tpLog');
+if(raw){
+const log=JSON.parse(raw);
+Object.values(log).forEach(entries=>{
+entries.forEach(e=>{
+if(e.type in result) result[e.type]+=e.tp;
+else if(e.type==='mood') result.train_mood+=e.tp;
+});
+});
+}
+}catch(e){}
+return result;
+}
 function getShareBonusTotal(){
 try{
 const raw=localStorage.getItem(LS+'tpLog');

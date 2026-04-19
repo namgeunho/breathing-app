@@ -217,10 +217,29 @@ const treeNextSt = TREE_STAGES[treeData.stage] || null;
 const treePct = treeNextSt
 ? Math.min(100, Math.round(((treeData.tp - treeSt.tpReq) / (treeNextSt.tpReq - treeSt.tpReq)) * 100))
 : 100;
-const shareTotalTP = getShareBonusTotal();
-const tpFormula = `
-<div class="cfg-group-label" style="margin-top:1.5rem;">TP 계산 방식</div>
-<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.9;">
+const tpByType = (typeof getTotalTPByType==='function') ? getTotalTPByType() : {};
+const tpAccumId = 'tpAccumDetail';
+const tpAccumHtml = `
+<div style="background:var(--bg2);border:0.5px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:1.25rem;">
+<div onclick="var d=document.getElementById('${tpAccumId}');var open=d.style.display!=='none';d.style.display=open?'none':'block';this.querySelector('.tp-arr').style.transform=open?'rotate(0deg)':'rotate(180deg)'" style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;cursor:pointer;">
+<span style="font-size:13px;font-weight:600;color:var(--info);">누적 TP 내역 보기</span>
+<span class="tp-arr" style="font-size:11px;color:var(--text3);transition:transform 0.2s;display:inline-block;">▼</span>
+</div>
+<div id="${tpAccumId}" style="display:none;border-top:0.5px solid var(--bd);">
+<div style="padding:12px 16px 4px;">
+${[
+['기본 훈련시간 합계', tpByType.train_base||0],
+['시간 보너스 합계', tpByType.train_time||0],
+['연속 보너스 합계', tpByType.train_streak||0],
+['첫 훈련 보너스 합계', tpByType.train_first||0],
+['감정 개선 보너스 합계', tpByType.train_mood||0],
+['레벨 보너스 합계', tpByType.train_lv||0],
+['공유 보너스 합계', tpByType.share||0],
+].map(([label,val])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--bg3);font-size:13px;"><span style="color:var(--text2);">${label}</span><span style="color:var(--text);font-weight:600;">${val>0?'+'+val.toLocaleString():val} TP</span></div>`).join('')}
+</div>
+<div style="padding:12px 16px 14px;">
+<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">TP 계산 방식</div>
+<div style="font-size:12px;color:var(--text2);line-height:1.9;">
 <div><span style="color:var(--text);font-weight:500;">기본</span> · 훈련시간(분) × 1.5</div>
 <div><span style="color:var(--text);font-weight:500;">시간 보너스</span> · 3분+2 / 5분+5 / 10분+12 / 15분+22 / 20분+35 / 25분+50</div>
 <div><span style="color:var(--text);font-weight:500;">연속 보너스</span> · 연속일 × 0.3 (최대 20)</div>
@@ -229,7 +248,9 @@ const tpFormula = `
 <div><span style="color:var(--text);font-weight:500;">레벨 보너스</span> · 나의 레벨 × 3</div>
 <div><span style="color:var(--text);font-weight:500;">공유 보너스</span> · 결과+30 / 초대+50 / 기록+15 / 칼럼+10 (하루 1회)</div>
 </div>
-${shareTotalTP>0?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:10px 14px;background:var(--success-bg);border-radius:10px;border:0.5px solid var(--success-bd);"><span style="font-size:13px;color:var(--success);">📤 공유 보너스 누적</span><span style="font-size:13px;font-weight:600;color:var(--success);">+${shareTotalTP.toLocaleString()} TP</span></div>`:''}
+</div>
+</div>
+</div>
 `;
 sub.innerHTML=back+`
 <div style="font-size:16px;font-weight:700;color:var(--text2);letter-spacing:-0.01em;margin-bottom:0.75rem;">나의 레벨</div>
@@ -266,6 +287,7 @@ ${isLoggedIn ? `
 </div>
 ${treeNextSt ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;">다음 단계: <span style="color:${treeNextSt.color};">${treeNextSt.name}</span> (연속 ${treeNextSt.reqDay}일+ · ${treeNextSt.reqMin}분+)</div>` : ''}
 </div>
+${tpAccumHtml}
 <div class="dp">
 <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">숨나무는 꾸준한 훈련으로 성장합니다.</div>
 ${TREE_STAGES.map(st=>{
@@ -299,7 +321,6 @@ return `<div style="display:flex;align-items:center;justify-content:space-betwee
 }
 }).join('')}
 </div>
-${tpFormula}
 ` : `<div style="font-size:13px;color:var(--text2);text-align:center;padding:1rem 0;">로그인하면 숨나무 등급을 확인할 수 있어요 🌱</div>`}
 `;
 sub.scrollTop = 0;
