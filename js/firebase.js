@@ -154,6 +154,7 @@ ${bm?`<svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" stroke
 }
 async function loadColumns() {
 const spinner=document.getElementById('colSpinner');
+colPage=1;
 try {
 const snap=await db.collection('columns').get();
 _columns=snap.docs

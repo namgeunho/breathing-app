@@ -695,8 +695,8 @@ renderSBody();updateSum();
 renderTree();
 const _initPage = curPage||'train';
 const _ub = document.getElementById('userBar');
-if(_initPage==='train'||_initPage==='calendar'){ _ub.style.display='flex'; renderUserBar(); }
-else{ _ub.style.display='none'; }
+if(_initPage==='calendar'){ _ub.style.display='flex'; renderUserBar(); }
+else if(_ub){ _ub.style.display='none'; }
 document.getElementById('circle').style.background=dGrad;
 document.getElementById('remainDisplay').textContent=fmt(parseInt(document.getElementById('duration').value)*60);
 setSound(soundOn);
