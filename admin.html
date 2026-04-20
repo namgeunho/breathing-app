@@ -250,6 +250,19 @@ tr:hover td{background:var(--bg);}
 
       <!-- 대시보드 -->
       <div id="dashboardPage" class="page-section active">
+        <!-- 회원 통계 카드 -->
+        <div class="stats-grid" style="margin-bottom:12px;">
+          <div class="stat-card" style="border-left:3px solid var(--primary,#4f8ef7);">
+            <div class="stat-label">👥 총 가입자</div>
+            <div class="stat-value" id="statTotalUsers">-</div>
+            <div class="stat-sub">전체 가입 회원</div>
+          </div>
+          <div class="stat-card" style="border-left:3px solid #22c55e;">
+            <div class="stat-label">🟢 오늘 활성</div>
+            <div class="stat-value" id="statActiveToday">-</div>
+            <div class="stat-sub" id="statActiveDateLabel">오늘 접속자</div>
+          </div>
+        </div>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">공지사항</div>
@@ -828,6 +841,21 @@ async function loadColumnistsCached(){
 
 /* ── 대시보드 ── */
 function loadDashboard() {
+  // 오늘 날짜 (YYYY-MM-DD)
+  const todayStr = new Date().toISOString().slice(0,10);
+  document.getElementById('statActiveDateLabel').textContent = todayStr + ' 접속자';
+
+  // 회원 통계 (총 가입자 / 오늘 활성)
+  db.collection('users').get().then(snap => {
+    document.getElementById('statTotalUsers').textContent = snap.size;
+    const activeToday = snap.docs.filter(d => d.data().lastActiveDate === todayStr).length;
+    document.getElementById('statActiveToday').textContent = activeToday;
+  }).catch(e => {
+    document.getElementById('statTotalUsers').textContent = '오류';
+    document.getElementById('statActiveToday').textContent = '오류';
+    console.error('회원 통계 로드 실패:', e);
+  });
+
   Promise.all([
     db.collection('notices').get(),
     db.collection('banners').get(),

@@ -41,6 +41,27 @@
     <div class="app-title-line"></div>
     <div class="app-title-sub">들숨과 날숨 사이, 나를 만나는 브레스인</div>
   </div>
+  <!-- 관리자 통계 바 (관리자 계정 로그인 시에만 표시) -->
+  <div id="adminStatBar" style="display:none;background:linear-gradient(90deg,#1e293b,#0f172a);border-bottom:1px solid #334155;padding:8px 16px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:0.05em;">👑 ADMIN</span>
+      <span id="adminStatDate" style="font-size:10px;color:#64748b;"></span>
+      <button onclick="loadAdminStats()" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer;">새로고침</button>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 12px;text-align:center;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:2px;">👥 총 가입자</div>
+        <div id="adminStatTotal" style="font-size:20px;font-weight:700;color:#e2e8f0;">-</div>
+        <div style="font-size:10px;color:#64748b;">명</div>
+      </div>
+      <div style="flex:1;background:#1e293b;border:1px solid #22c55e44;border-radius:8px;padding:8px 12px;text-align:center;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:2px;">🟢 오늘 활성</div>
+        <div id="adminStatActive" style="font-size:20px;font-weight:700;color:#4ade80;">-</div>
+        <div style="font-size:10px;color:#64748b;">명</div>
+      </div>
+    </div>
+  </div>
+
   <div class="tabs">
     <button class="tab active" onclick="showPage('train',this)">훈련</button>
     <button class="tab" onclick="showPage('calendar',this)">기록</button>
@@ -397,6 +418,48 @@
 <script src="js/train.js"></script>
 <script src="js/tree.js"></script>
 <script src="js/auth.js"></script>
+<!-- 관리자 통계 바 스크립트 -->
+<script>
+// ADMIN_EMAILS 는 firebase.js에서 정의됩니다
+async function checkAdminAndShowStats(user) {
+  if (!user) return;
+  let isAdmin = false;
+  // 1차: 이메일 상수 비교
+  if (ADMIN_EMAILS.length > 0 && ADMIN_EMAILS.includes(user.email)) {
+    isAdmin = true;
+  }
+  // 2차: Firestore admins 컬렉션 확인
+  if (!isAdmin) {
+    try {
+      const snap = await db.collection('admins').doc(user.uid).get();
+      if (snap.exists) isAdmin = true;
+    } catch(e) {}
+  }
+  if (isAdmin) {
+    document.getElementById('adminStatBar').style.display = 'block';
+    loadAdminStats();
+  }
+}
+function loadAdminStats() {
+  const todayStr = new Date().toISOString().slice(0,10);
+  document.getElementById('adminStatDate').textContent = todayStr;
+  document.getElementById('adminStatTotal').textContent = '…';
+  document.getElementById('adminStatActive').textContent = '…';
+  db.collection('users').get().then(snap => {
+    document.getElementById('adminStatTotal').textContent = snap.size;
+    const active = snap.docs.filter(d => d.data().lastActiveDate === todayStr).length;
+    document.getElementById('adminStatActive').textContent = active;
+  }).catch(() => {
+    document.getElementById('adminStatTotal').textContent = '-';
+    document.getElementById('adminStatActive').textContent = '-';
+  });
+}
+// auth 상태 변화 감지 (auth.js의 onAuthStateChanged와 별도로 동작)
+firebase.auth().onAuthStateChanged(user => {
+  if (user) checkAdminAndShowStats(user);
+  else document.getElementById('adminStatBar').style.display = 'none';
+});
+</script>
 <script src="js/init.js"></script>
 
 </body>
