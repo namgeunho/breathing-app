@@ -345,35 +345,12 @@ const btn=document.getElementById('androidBtn');if(!deferredInstall){btn.disable
 } else if(menu==='cs'){
 sub.innerHTML=back+`
 <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;">고객센터</div>
-<div class="dp" style="margin-bottom:14px;">
-<div class="ci2" onclick="window.location.href='mailto:support@brethin.app'">
-<div class="cil">
-<div class="cic" style="background:var(--info-bg);">
-<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--info)" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="2"/><polyline points="1,4 8,9 15,4"/></svg>
-</div>
-<div><div class="clb">이메일 문의</div><div class="csb">support@brethin.app</div></div>
-</div>
-<div class="car">›</div>
-</div>
-<div class="ci2" style="border-bottom:none;" onclick="window.open('https://open.kakao.com/','_blank')">
-<div class="cil">
-<div class="cic" style="background:#FEE500;border-radius:8px;">
-<svg width="18" height="18" viewBox="0 0 16 16" fill="#3A1D1D" stroke="none"><path d="M8 1.5C4.134 1.5 1 4.02 1 7.1c0 1.92 1.14 3.61 2.87 4.67l-.73 2.72a.3.3 0 0 0 .44.34L6.7 12.8A8.3 8.3 0 0 0 8 12.7c3.866 0 7-2.52 7-5.6S11.866 1.5 8 1.5z"/></svg>
-</div>
-<div><div class="clb">카카오톡 문의</div><div class="csb">카카오 채널 바로가기</div></div>
-</div>
-<div class="car">›</div>
-</div>
-</div>
-<div class="dp">
-<div style="padding:14px 0 10px;">
-<div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;">앱 버전</div>
-<div style="font-size:13px;color:var(--text2);">BRETHIN v1.0.0</div>
-</div>
-<div style="padding:10px 0;border-top:0.5px solid var(--bd);">
-<div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;">운영 시간</div>
-<div style="font-size:13px;color:var(--text2);line-height:1.7;">평일 10:00 ~ 18:00<br>주말 및 공휴일 제외</div>
-</div>
+<div class="dp" style="padding:20px 0;text-align:center;">
+<a href="https://forms.gle/EuxsnPEWZfizKS5c8" target="_blank" rel="noopener"
+  style="display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;font-size:15px;font-weight:600;border-radius:12px;border:1.5px solid var(--info-bd);background:var(--info-bg);color:var(--info);text-decoration:none;font-family:inherit;">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="2"/><polyline points="1,4 8,9 15,4"/></svg>
+  문의하기
+</a>
 </div>`;
 }
 }
