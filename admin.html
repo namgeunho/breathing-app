@@ -228,6 +228,10 @@ tr:hover td{background:var(--bg);}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           회원 관리
         </div>
+        <div class="nav-item" onclick="showPage('categories',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
+          카테고리 관리
+        </div>
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -250,19 +254,6 @@ tr:hover td{background:var(--bg);}
 
       <!-- 대시보드 -->
       <div id="dashboardPage" class="page-section active">
-        <!-- 회원 통계 카드 -->
-        <div class="stats-grid" style="margin-bottom:12px;">
-          <div class="stat-card" style="border-left:3px solid var(--primary,#4f8ef7);">
-            <div class="stat-label">👥 총 가입자</div>
-            <div class="stat-value" id="statTotalUsers">-</div>
-            <div class="stat-sub">전체 가입 회원</div>
-          </div>
-          <div class="stat-card" style="border-left:3px solid #22c55e;">
-            <div class="stat-label">🟢 오늘 활성</div>
-            <div class="stat-value" id="statActiveToday">-</div>
-            <div class="stat-sub" id="statActiveDateLabel">오늘 접속자</div>
-          </div>
-        </div>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-label">공지사항</div>
@@ -384,6 +375,18 @@ tr:hover td{background:var(--bg);}
         </div>
         <div class="card">
           <div class="card-body table-wrap" id="memberTableWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 카테고리 관리 -->
+      <div id="categoriesPage" class="page-section">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="btn btn-primary btn-sm" onclick="openCategoryModal()">+ 새 카테고리</button>
+        </div>
+        <div class="card">
+          <div class="card-body" id="categoryListWrap">
             <div class="loading">불러오는 중...</div>
           </div>
         </div>
@@ -565,7 +568,10 @@ tr:hover td{background:var(--bg);}
       </div>
       <div class="form-group">
         <label class="form-label">카테고리</label>
-        <input class="form-input" id="columnCategory" placeholder="예: 건강, 명상, 호흡법">
+        <select class="form-select" id="columnCategory">
+          <option value="">카테고리 없음</option>
+        </select>
+        <div class="form-hint">카테고리는 '카테고리 관리' 메뉴에서 먼저 등록해주세요.</div>
       </div>
       <div class="form-group">
         <label class="form-label">칼럼리스트 연결</label>
@@ -816,6 +822,7 @@ function showPage(id, el) {
   if (id==='sounds')      loadSoundsAdmin();
   if (id==='guide')       loadGuideAdmin();
   if (id==='members')     loadMembers();
+  if (id==='categories')  loadCategories();
 }
 
 // 칼럼리스트 관리 화면으로 이동 (칼럼 관리 메뉴 활성 유지)
@@ -841,21 +848,6 @@ async function loadColumnistsCached(){
 
 /* ── 대시보드 ── */
 function loadDashboard() {
-  // 오늘 날짜 (YYYY-MM-DD)
-  const todayStr = new Date().toISOString().slice(0,10);
-  document.getElementById('statActiveDateLabel').textContent = todayStr + ' 접속자';
-
-  // 회원 통계 (총 가입자 / 오늘 활성)
-  db.collection('users').get().then(snap => {
-    document.getElementById('statTotalUsers').textContent = snap.size;
-    const activeToday = snap.docs.filter(d => d.data().lastActiveDate === todayStr).length;
-    document.getElementById('statActiveToday').textContent = activeToday;
-  }).catch(e => {
-    document.getElementById('statTotalUsers').textContent = '오류';
-    document.getElementById('statActiveToday').textContent = '오류';
-    console.error('회원 통계 로드 실패:', e);
-  });
-
   Promise.all([
     db.collection('notices').get(),
     db.collection('banners').get(),
@@ -1327,10 +1319,11 @@ function loadColumns() {
 function openColumnModal() {
   editingId=null;colThumbFile=null;colThumbData=null;
   document.getElementById('columnModalTitle').textContent='새 칼럼';
-  ['columnTitle','columnSubtitle','columnContent','columnCategory'].forEach(id=>document.getElementById(id).value='');
+  ['columnTitle','columnSubtitle','columnContent'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('colThumbPreview').style.display='none';
   document.getElementById('colThumbPlaceholder').style.display='block';
   loadColumnistSelect('');
+  loadCategorySelect('');
   document.getElementById('columnModal').classList.add('open');
 }
 
@@ -1343,12 +1336,24 @@ function editColumn(id) {
     document.getElementById('columnTitle').value=v.title||'';
     document.getElementById('columnSubtitle').value=v.subtitle||'';
     document.getElementById('columnContent').value=v.content||'';
-    document.getElementById('columnCategory').value=v.category||'';
     if(v.thumbUrl){colThumbData=v.thumbUrl;document.getElementById('colThumbPreview').src=v.thumbUrl;document.getElementById('colThumbPreview').style.display='block';document.getElementById('colThumbPlaceholder').style.display='none';}
     else{document.getElementById('colThumbPreview').style.display='none';document.getElementById('colThumbPlaceholder').style.display='block';}
     loadColumnistSelect(v.columnistId||'');
+    loadCategorySelect(v.category||'');
     document.getElementById('columnModal').classList.add('open');
   });
+}
+
+async function loadCategorySelect(selectedCat) {
+  const sel = document.getElementById('columnCategory');
+  if(!sel) return;
+  try {
+    const snap = await db.collection('categories').orderBy('order').get();
+    sel.innerHTML = '<option value="">카테고리 없음</option>' +
+      snap.docs.map(d=>`<option value="${eh(d.data().name)}" ${selectedCat===d.data().name?'selected':''}>${eh(d.data().name)}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">카테고리 없음</option>';
+  }
 }
 
 function saveColumn() {
@@ -1574,6 +1579,101 @@ function saveGuide() {
     :db.collection('guide').add({content,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(r=>{_guideDocId=r.id;});
   p.then(()=>showAlert('이용가이드가 저장됐습니다!')).catch(e=>alert('저장 실패: '+e.message));
 }
+
+/* ── 카테고리 관리 ── */
+async function loadCategories() {
+  const wrap = document.getElementById('categoryListWrap');
+  if(!wrap) return;
+  wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
+  try {
+    const snap = await db.collection('categories').orderBy('order').get();
+    if(snap.empty) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">등록된 카테고리가 없습니다</div></div>';
+      return;
+    }
+    wrap.innerHTML = `<table><thead><tr><th>순서</th><th>카테고리명</th><th>등록일</th><th>관리</th></tr></thead><tbody>
+    ${snap.docs.map(d=>`<tr>
+      <td style="color:var(--text2);font-size:13px;">${d.data().order||0}</td>
+      <td style="font-weight:500;">${eh(d.data().name)}</td>
+      <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
+      <td><div style="display:flex;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="editCategory('${d.id}','${eh(d.data().name)}',${d.data().order||0})">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCategory('${d.id}')">삭제</button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table>`;
+    // 칼럼 등록 모달 드롭다운도 업데이트
+    renderCategorySelect(snap.docs.map(d=>d.data().name));
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>';
+  }
+}
+
+function renderCategorySelect(cats) {
+  const sel = document.getElementById('columnCategory');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">카테고리 없음</option>' +
+    cats.map(c=>`<option value="${eh(c)}" ${cur===c?'selected':''}>${eh(c)}</option>`).join('');
+}
+
+let editingCategoryId = null;
+function openCategoryModal(id, name, order) {
+  editingCategoryId = id || null;
+  document.getElementById('categoryModalTitle').textContent = id ? '카테고리 수정' : '새 카테고리';
+  document.getElementById('categoryName').value = name || '';
+  document.getElementById('categoryOrder').value = order !== undefined ? order : 0;
+  document.getElementById('categoryModal').classList.add('open');
+}
+function editCategory(id, name, order) { openCategoryModal(id, name, order); }
+
+async function saveCategory() {
+  const name = document.getElementById('categoryName').value.trim();
+  const order = parseInt(document.getElementById('categoryOrder').value)||0;
+  if(!name) { alert('카테고리명을 입력하세요.'); return; }
+  try {
+    if(editingCategoryId) {
+      await db.collection('categories').doc(editingCategoryId).update({name, order});
+    } else {
+      await db.collection('categories').add({name, order, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    }
+    showAlert(editingCategoryId ? '카테고리가 수정됐습니다!' : '카테고리가 등록됐습니다!');
+    document.getElementById('categoryModal').classList.remove('open');
+    editingCategoryId = null;
+    loadCategories();
+  } catch(e) { alert('저장 실패: ' + e.message); }
+}
+
+async function deleteCategory(id) {
+  if(!confirm('카테고리를 삭제하시겠습니까?')) return;
+  await db.collection('categories').doc(id).delete();
+  showAlert('삭제됐습니다.');
+  loadCategories();
+}
 </script>
+
+<!-- 카테고리 모달 -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title" id="categoryModalTitle">새 카테고리</div>
+      <button class="modal-close" onclick="document.getElementById('categoryModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">카테고리명 <span style="color:var(--danger)">*</span></label>
+        <input class="form-input" id="categoryName" placeholder="예: 건강, 명상, 호흡법">
+      </div>
+      <div class="form-group">
+        <label class="form-label">정렬 순서</label>
+        <input class="form-input" type="number" id="categoryOrder" value="0" placeholder="0, 1, 2... (낮을수록 앞에 표시)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('categoryModal').classList.remove('open')">취소</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCategory()">저장</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
