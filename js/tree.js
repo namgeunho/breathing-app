@@ -685,6 +685,8 @@ const guestEl = document.getElementById('treeGuest');
 const colLoginEl = document.getElementById('treeCollapsedLogin');
 const colGuestEl = document.getElementById('treeCollapsedGuest');
 if(!loginEl) return;
+// 비로그인 시 항상 닫힌 상태로 고정
+if(!curUser) treeOpen = false;
 applyToggleBtn();
 if(curUser){
 guestEl.style.display = 'none';
