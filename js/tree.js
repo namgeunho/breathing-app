@@ -276,7 +276,9 @@ if(raw) treeData = {...treeData, ...JSON.parse(raw)};
 if(!treeData.bornAt) treeData.bornAt = today();
 }catch(e){}
 const saved = localStorage.getItem(LS+'treeOpen');
-if(saved !== null) treeOpen = saved !== '0';
+// 비로그인 시 초기값은 닫힘 (이후 토글은 자유롭게 허용)
+if(!curUser) treeOpen = false;
+else if(saved !== null) treeOpen = saved !== '0';
 }
 function saveTree(){
 try{ localStorage.setItem(LS+'tree', JSON.stringify(treeData)); }catch(e){}
@@ -685,8 +687,6 @@ const guestEl = document.getElementById('treeGuest');
 const colLoginEl = document.getElementById('treeCollapsedLogin');
 const colGuestEl = document.getElementById('treeCollapsedGuest');
 if(!loginEl) return;
-// 비로그인 시 항상 닫힌 상태로 고정
-if(!curUser) treeOpen = false;
 applyToggleBtn();
 if(curUser){
 guestEl.style.display = 'none';
