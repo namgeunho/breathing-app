@@ -126,7 +126,8 @@ const card=document.getElementById('completeCard');
 if(!card){showToast('저장할 이미지를 찾을 수 없어요');return;}
 const now=new Date();
 const dateStr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
-const filename=`BRETHIN_호흡훈련_${dateStr}.png`;
+const timeStr=String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+const filename=`BRETHIN_호흡훈련_${dateStr}_${timeStr}.png`;
 showToast('이미지를 만들고 있어요...');
 try{
 const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});

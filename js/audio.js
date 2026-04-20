@@ -326,11 +326,12 @@ screenOff=false;document.getElementById('screenOffBtn').className='ib';
 releaseWakeLock();
 const s=getAS();
 const nm=curMode==='program'?presets[selPI>=0?selPI:0].name:null;
-lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm};
+lastResult={duration:Math.round(totalElapsed/60*10)/10,cycles:cyclesDone,...s,date:fl(today()),time:nt(),level:nm,earnedTP:0};
 logEvent('training_complete',{mode:curMode,preset:nm||'manual',duration_min:lastResult.duration,cycles:cyclesDone});
 if(curUser){
 saveRec();
 const treeResult=updateTreeAfterTrain(lastResult.duration,'','');
+lastResult.earnedTP = treeResult.gained || 0;
 // TP 로그 기록 (항목별 분리)
 const logKey=LS+'tpLog';
 let tpLog={};
@@ -360,9 +361,10 @@ const ampm=hh<12?'오전':'오후';
 const h12=hh%12||12;
 const timeStr=`${ampm} ${h12}:${String(mm).padStart(2,'0')}`;
 document.getElementById('cc-datetime').textContent=`${r.date}  ·  ${timeStr}`;
-// 훈련시간/횟수
+// 훈련시간/횟수/적립TP
 document.getElementById('cc-duration').textContent=r.duration;
 document.getElementById('cc-cycles').textContent=r.cycles;
+document.getElementById('cc-tp').textContent=r.earnedTP||0;
 // 패턴
 let pat=r.level?`[${r.level}]  `:'';
 pat+=`들숨 ${r.inhale}초`;
