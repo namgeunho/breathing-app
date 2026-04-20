@@ -258,8 +258,7 @@ bgm: curBgm,
 sfxVol: sfxVolume,
 bgmVol: bgmVolume,
 },
-updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-lastActiveDate: new Date().toISOString().slice(0,10)
+updatedAt: firebase.firestore.FieldValue.serverTimestamp()
 },{merge:true});
 }catch(e){ console.log('저장 실패:',e); }
 }
@@ -421,7 +420,7 @@ html+=`</div>`;
 if(memo) html+=`<div class="gdp-memo">${eh(memo)}</div>`;
 html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:12px;">
 <button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
-<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button><button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button></div>
+<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemoFromGraph('${key}')">메모수정</button><button class="bsm bdng" onclick="delMemoFromGraph('${key}')">메모삭제</button></div>
 </div>`;
 } else if(recs.length>0){
 html+=`<div class="gdp-actions">
@@ -493,7 +492,7 @@ html+=`</div>`;
 if(memo) html+=`<div class="gdp-memo">${eh(memo)}</div>`;
 html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:12px;">
 <button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
-<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemo('${key}')">수정</button><button class="bsm bdng" onclick="delMemo('${key}')">삭제</button></div>
+<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemo('${key}')">메모수정</button><button class="bsm bdng" onclick="delMemo('${key}')">메모삭제</button></div>
 </div>`;
 } else {
 html+=`<div class="gdp-section-label">감정 · 메모</div>
