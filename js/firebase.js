@@ -98,19 +98,19 @@ overlay.innerHTML = `
 #popupNoticeBox .pn-btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:background .15s;}
 #popupNoticeBox .pn-btn-primary{background:var(--accent,#d4a84b);color:#fff;}
 #popupNoticeBox .pn-btn-primary:hover{opacity:.9;}
-#popupNoticeBox .pn-btn-outline{background:transparent;color:var(--text2);border:1px solid var(--bg3);}
-#popupNoticeBox .pn-btn-outline:hover{background:var(--bg2);}
-#popupNoticeBox .pn-btn-confirm{background:transparent;color:var(--text);border:1px solid var(--bg3);}
-#popupNoticeBox .pn-btn-confirm:hover{background:var(--bg2);}
+#popupNoticeBox .pn-btn-outline{background:transparent;color:var(--text2,#888);border:1px solid var(--bg3,#333);}
+#popupNoticeBox .pn-btn-outline:hover{background:var(--bg2,#1a1a1a);}
+#popupNoticeBox .pn-btn-confirm{background:transparent;color:var(--text,#eee);border:1px solid var(--bg3,#333);}
+#popupNoticeBox .pn-btn-confirm:hover{background:var(--bg2,#1a1a1a);}
 </style>
-<div id="popupNoticeBox" style="background:var(--bg);border:1px solid var(--bd);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
+<div id="popupNoticeBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
 <div style="padding:22px 22px 16px;overflow-y:auto;flex:1;">
-${target.pinned?'<div style="color:#d4a84b;font-size:12px;font-weight:500;margin-bottom:8px;">📌 중요 공지</div>':'<div style="color:var(--text2);font-size:12px;margin-bottom:8px;">🔔 공지사항</div>'}
-<div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:14px;line-height:1.4;">${(target.title||'').replace(/</g,'&lt;')}</div>
+${target.pinned?'<div style="color:#d4a84b;font-size:12px;font-weight:500;margin-bottom:8px;">📌 중요 공지</div>':'<div style="color:var(--text2,#888);font-size:12px;margin-bottom:8px;">🔔 공지사항</div>'}
+<div style="font-size:17px;font-weight:600;color:var(--text,#eee);margin-bottom:14px;line-height:1.4;">${(target.title||'').replace(/</g,'&lt;')}</div>
 ${imageHtml}
-<div style="font-size:14px;color:var(--text);line-height:1.7;">${contentHtml}</div>
+<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">${contentHtml}</div>
 </div>
-<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bd);flex-wrap:wrap;">
+<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);flex-wrap:wrap;">
 ${linkBtnHtml ? `<div style="display:flex;width:100%;margin-bottom:4px;">${linkBtnHtml}</div>` : ''}
 <button class="pn-btn pn-btn-outline" id="popupNoticeDismiss">오늘 하루 보지 않기</button>
 <button class="pn-btn pn-btn-confirm" id="popupNoticeClose">확인</button>
@@ -231,41 +231,41 @@ let bodyHtml = '';
 let mainBtnHtml = '';
 
 if(env === 'android_chrome'){
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">Chrome 브라우저로 접속해주셨네요!<br>아래 버튼을 누르면 홈화면에 바로 추가할 수 있어요.<br><br>앱처럼 편하게, 오프라인에서도 사용 가능합니다. ✨</div>`;
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">Chrome 브라우저로 접속해주셨네요!<br>아래 버튼을 누르면 홈화면에 바로 추가할 수 있어요.<br><br>앱처럼 편하게, 오프라인에서도 사용 가능합니다. ✨</div>`;
 mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🏠 홈화면에 추가하기</button>`;
 }
 else if(env === 'ios_safari'){
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">Safari에서 아래 순서대로 진행해주세요.</div>
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">Safari에서 아래 순서대로 진행해주세요.</div>
 <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
-<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">1</div><div style="font-size:13px;color:var(--text);line-height:1.6;">하단의 <b>공유 버튼(⬆️)</b> 을 탭하세요</div></div>
-<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">2</div><div style="font-size:13px;color:var(--text);line-height:1.6;"><b>'홈 화면에 추가'</b> 를 탭하세요</div></div>
-<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">3</div><div style="font-size:13px;color:var(--text);line-height:1.6;">오른쪽 상단 <b>'추가'</b> 버튼을 탭하면 완료! 🎉</div></div>
+<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">1</div><div style="font-size:13px;color:var(--text,#ddd);line-height:1.6;">하단의 <b>공유 버튼(⬆️)</b> 을 탭하세요</div></div>
+<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">2</div><div style="font-size:13px;color:var(--text,#ddd);line-height:1.6;"><b>'홈 화면에 추가'</b> 를 탭하세요</div></div>
+<div style="display:flex;align-items:flex-start;gap:10px;"><div style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(212,168,75,0.15);color:#d4a84b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;">3</div><div style="font-size:13px;color:var(--text,#ddd);line-height:1.6;">오른쪽 상단 <b>'추가'</b> 버튼을 탭하면 완료! 🎉</div></div>
 </div>`;
 }
 else if(env === 'ios_other'){
 title = '⚠️ Safari에서 열어주세요';
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">iPhone/iPad에서 홈화면 추가는 <b>Safari 브라우저</b>에서만 가능해요.<br><br>현재 URL을 복사해서 Safari에서 붙여넣어 주세요.</div>`;
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">iPhone/iPad에서 홈화면 추가는 <b>Safari 브라우저</b>에서만 가능해요.<br><br>현재 URL을 복사해서 Safari에서 붙여넣어 주세요.</div>`;
 mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">📋 URL 복사하기</button>`;
 }
 else if(env === 'kakao'){
 title = '⚠️ 카카오톡에서는 설치가 어려워요';
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">카카오톡 내부 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>아래 버튼으로 Chrome에서 열어주세요.<br><br><span style="color:var(--text2);font-size:12px;">또는 우측 상단 메뉴(⋮) → '다른 브라우저로 열기' 선택</span></div>`;
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">카카오톡 내부 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>아래 버튼으로 Chrome에서 열어주세요.<br><br><span style="color:var(--text2,#888);font-size:12px;">또는 우측 상단 메뉴(⋮) → '다른 브라우저로 열기' 선택</span></div>`;
 mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🔗 Chrome에서 열기 (Android)</button>`;
 }
 else if(env === 'naver'){
 title = '⚠️ 네이버 앱에서는 설치가 어려워요';
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">네이버 인앱 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>아래 버튼으로 Chrome에서 열어주세요.<br><br><span style="color:var(--text2);font-size:12px;">또는 우측 하단 메뉴 → 'Chrome으로 열기' 선택</span></div>`;
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">네이버 인앱 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>아래 버튼으로 Chrome에서 열어주세요.<br><br><span style="color:var(--text2,#888);font-size:12px;">또는 우측 하단 메뉴 → 'Chrome으로 열기' 선택</span></div>`;
 mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🔗 Chrome에서 열기 (Android)</button>`;
 }
 else if(env === 'social'){
 title = '⚠️ 인앱 브라우저에서는 설치가 어려워요';
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">현재 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>Chrome 또는 Safari에서 열어주세요.</div>`;
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">현재 브라우저에서는 홈화면 추가가 불가능합니다.<br><br>Chrome 또는 Safari에서 열어주세요.</div>`;
 mainBtnHtml = `<button class="pn-btn pn-btn-primary" id="installPromptMainBtn">🔗 Chrome에서 열기 (Android)</button>`;
 }
 else {
 // 기타 (웨일, 파이어폭스, PC 등)
-bodyHtml = `<div style="font-size:14px;color:var(--text);line-height:1.7;">사용 중인 브라우저의 메뉴에서 <b>'홈 화면에 추가'</b> 를 선택해 주세요.</div>
-<div style="margin-top:14px;padding:12px;background:var(--bg2);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.8;">
+bodyHtml = `<div style="font-size:14px;color:var(--text,#ddd);line-height:1.7;">사용 중인 브라우저의 메뉴에서 <b>'홈 화면에 추가'</b> 를 선택해 주세요.</div>
+<div style="margin-top:14px;padding:12px;background:var(--bg2,#1a1a1a);border-radius:8px;font-size:12px;color:var(--text2,#aaa);line-height:1.8;">
 <div><b>Whale</b> · 메뉴 → 홈 화면에 추가</div>
 <div><b>Firefox</b> · 메뉴 → 홈 화면에 추가</div>
 <div><b>PC Chrome</b> · 주소창 오른쪽 설치 아이콘(⊕) 클릭</div>
@@ -282,18 +282,18 @@ overlay.innerHTML = `
 #installPromptBox .pn-btn{flex:1;padding:12px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:background .15s;}
 #installPromptBox .pn-btn-primary{background:var(--accent,#d4a84b);color:#fff;}
 #installPromptBox .pn-btn-primary:hover{opacity:.9;}
-#installPromptBox .pn-btn-outline{background:transparent;color:var(--text2);border:1px solid var(--bg3);}
-#installPromptBox .pn-btn-outline:hover{background:var(--bg2);}
-#installPromptBox .pn-btn-confirm{background:transparent;color:var(--text);border:1px solid var(--bg3);}
-#installPromptBox .pn-btn-confirm:hover{background:var(--bg2);}
+#installPromptBox .pn-btn-outline{background:transparent;color:var(--text2,#888);border:1px solid var(--bg3,#333);}
+#installPromptBox .pn-btn-outline:hover{background:var(--bg2,#1a1a1a);}
+#installPromptBox .pn-btn-confirm{background:transparent;color:var(--text,#eee);border:1px solid var(--bg3,#333);}
+#installPromptBox .pn-btn-confirm:hover{background:var(--bg2,#1a1a1a);}
 </style>
-<div id="installPromptBox" style="background:var(--bg);border:1px solid var(--bd);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
+<div id="installPromptBox" style="background:var(--bg1,#0b0b0b);border:1px solid var(--bg3,#333);border-radius:14px;max-width:480px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;animation:popupSlideUp .35s;">
 <div style="padding:22px 22px 16px;overflow-y:auto;flex:1;">
 <div style="color:#d4a84b;font-size:12px;font-weight:500;margin-bottom:8px;">📱 앱 설치 안내</div>
-<div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:14px;line-height:1.4;">${title}</div>
+<div style="font-size:17px;font-weight:600;color:var(--text,#eee);margin-bottom:14px;line-height:1.4;">${title}</div>
 ${bodyHtml}
 </div>
-<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bd);flex-wrap:wrap;">
+<div style="padding:12px 22px 22px;display:flex;gap:8px;border-top:1px solid var(--bg3,#2a2a2a);flex-wrap:wrap;">
 ${mainBtnHtml ? `<div style="display:flex;width:100%;margin-bottom:4px;">${mainBtnHtml}</div>` : ''}
 <button class="pn-btn pn-btn-outline" id="installPromptDismiss">7일 동안 보지 않기</button>
 <button class="pn-btn pn-btn-confirm" id="installPromptClose">닫기</button>
@@ -362,6 +362,8 @@ if (!snap.empty) _guide = snap.docs[0].data();
 let _columns = [];
 let _bookmarks = JSON.parse(localStorage.getItem('breath5_bookmarks')||'[]');
 let colFilter = 'all';
+let colCategoryFilter = 'all';
+let colCategoryMenuOpen = false;
 let colSearchQuery = '';
 let colPage = 1;
 const COL_PAGE_SIZE = 4;
@@ -384,11 +386,60 @@ saveBookmarks();
 }
 function setColFilter(f){
 colFilter=f;
+colCategoryFilter='all';
 colPage=1;
+// 카테고리 메뉴 닫기
+colCategoryMenuOpen=false;
+const menu=document.getElementById('colCategoryMenu');
+if(menu) menu.style.display='none';
+const arrow=document.getElementById('colBtnAllArrow');
+if(arrow) arrow.style.transform='';
 document.querySelectorAll('.col-tb-btn').forEach(b=>b.classList.remove('act'));
 const btn=document.getElementById(f==='all'?'colBtnAll':'colBtnBookmark');
 if(btn)btn.classList.add('act');
 renderColList();
+}
+function toggleCategoryMenu(){
+colCategoryMenuOpen=!colCategoryMenuOpen;
+const menu=document.getElementById('colCategoryMenu');
+const arrow=document.getElementById('colBtnAllArrow');
+if(menu) menu.style.display=colCategoryMenuOpen?'flex':'none';
+if(arrow) arrow.style.transform=colCategoryMenuOpen?'rotate(180deg)':'';
+// 전체 버튼 활성화 & 북마크 비활성화
+document.querySelectorAll('.col-tb-btn').forEach(b=>b.classList.remove('act'));
+document.getElementById('colBtnAll').classList.add('act');
+colFilter='all';
+colCategoryFilter='all';
+colPage=1;
+const catAllBtn=document.getElementById('colCatBtnAll');
+if(catAllBtn){
+document.querySelectorAll('#colCategoryMenu .col-tb-btn').forEach(b=>b.classList.remove('act'));
+catAllBtn.classList.add('act');
+}
+renderColList();
+}
+function setColCategoryFilter(cat){
+colCategoryFilter=cat;
+colFilter='all';
+colPage=1;
+document.querySelectorAll('#colCategoryMenu .col-tb-btn').forEach(b=>b.classList.remove('act'));
+const targetId=cat==='all'?'colCatBtnAll':'colCat_'+cat.replace(/[^a-zA-Z0-9가-힣]/g,'_');
+const btn=document.getElementById(targetId);
+if(btn)btn.classList.add('act');
+// 상단 전체 버튼도 활성 유지
+document.getElementById('colBtnAll').classList.add('act');
+document.getElementById('colBtnBookmark').classList.remove('act');
+renderColList();
+}
+function renderCategoryBtns(){
+const wrap=document.getElementById('colCatBtns');
+if(!wrap) return;
+const cats=[...new Set(_columns.map(c=>c.category).filter(Boolean))];
+if(!cats.length){wrap.innerHTML='';return;}
+wrap.innerHTML=cats.map(cat=>{
+const safeId='colCat_'+cat.replace(/[^a-zA-Z0-9가-힣]/g,'_');
+return `<button class="col-tb-btn" id="${safeId}" onclick="setColCategoryFilter('${cat.replace(/'/g,"\\'")}')">${eh(cat)}</button>`;
+}).join('');
 }
 function openSearch(){
 document.getElementById('colSearchWrap').style.display='flex';
@@ -419,6 +470,7 @@ function renderColList(){
 const list=document.getElementById('colList');
 let cols=_columns;
 if(colFilter==='bookmark')cols=cols.filter(c=>isBookmarked(c.id));
+if(colCategoryFilter!=='all')cols=cols.filter(c=>c.category===colCategoryFilter);
 if(colSearchQuery)cols=cols.filter(c=>(c.title||'').toLowerCase().includes(colSearchQuery)||(c.content||'').toLowerCase().includes(colSearchQuery));
 if(!cols.length){
 list.innerHTML=`<div class="nb"><div style="font-size:28px;margin-bottom:10px;">✍️</div><div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;">${colFilter==='bookmark'?'북마크된 칼럼이 없습니다':'등록된 칼럼이 없습니다'}</div></div>`;
@@ -457,6 +509,7 @@ _columns=snap.docs
 spinner.style.display='none';
 const btn=document.getElementById('colBtnAll');
 if(btn)btn.classList.add('act');
+renderCategoryBtns();
 renderColList();
 } catch(e){
 console.error('칼럼 로드 실패:', e);
