@@ -1,3 +1,6 @@
+// ★ 관리자 이메일 목록 — 여기에 본인 이메일 추가
+const ADMIN_EMAILS = [''];
+
 const firebaseConfig = {
 apiKey: "AIzaSyAuKsnJixQbgwYudA6tpJyNO9IXmxHwg-0",
 authDomain: "breathing-app-f51cb.firebaseapp.com",

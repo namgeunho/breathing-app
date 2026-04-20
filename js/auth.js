@@ -258,7 +258,8 @@ bgm: curBgm,
 sfxVol: sfxVolume,
 bgmVol: bgmVolume,
 },
-updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+lastActiveDate: new Date().toISOString().slice(0,10)
 },{merge:true});
 }catch(e){ console.log('저장 실패:',e); }
 }
