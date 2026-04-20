@@ -228,10 +228,6 @@ tr:hover td{background:var(--bg);}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           회원 관리
         </div>
-        <div class="nav-item" onclick="showPage('categories',this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h10M4 18h6"/></svg>
-          카테고리 관리
-        </div>
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -319,6 +315,16 @@ tr:hover td{background:var(--bg);}
             <div class="loading">불러오는 중...</div>
           </div>
         </div>
+        <!-- 카테고리 관리 (칼럼 관리 하위) -->
+        <div class="card" style="margin-top:1.5rem;">
+          <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="card-title">🏷️ 카테고리 관리</div>
+            <button class="btn btn-primary btn-sm" onclick="openCategoryModal()">+ 새 카테고리</button>
+          </div>
+          <div class="card-body" id="categoryListWrap">
+            <div class="loading">불러오는 중...</div>
+          </div>
+        </div>
       </div>
 
       <!-- 칼럼리스트 -->
@@ -375,18 +381,6 @@ tr:hover td{background:var(--bg);}
         </div>
         <div class="card">
           <div class="card-body table-wrap" id="memberTableWrap">
-            <div class="loading">불러오는 중...</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 카테고리 관리 -->
-      <div id="categoriesPage" class="page-section">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
-          <button class="btn btn-primary btn-sm" onclick="openCategoryModal()">+ 새 카테고리</button>
-        </div>
-        <div class="card">
-          <div class="card-body" id="categoryListWrap">
             <div class="loading">불러오는 중...</div>
           </div>
         </div>
@@ -817,12 +811,11 @@ function showPage(id, el) {
   if (id==='dashboard')   loadDashboard();
   if (id==='notices')     loadNotices();
   if (id==='banners')     loadBanners();
-  if (id==='columns')     { loadColumnistsCached(); loadColumns(); }
+  if (id==='columns')     { loadColumnistsCached(); loadColumns(); loadCategories(); }
   if (id==='columnists')  loadColumnists();
   if (id==='sounds')      loadSoundsAdmin();
   if (id==='guide')       loadGuideAdmin();
   if (id==='members')     loadMembers();
-  if (id==='categories')  loadCategories();
 }
 
 // 칼럼리스트 관리 화면으로 이동 (칼럼 관리 메뉴 활성 유지)
@@ -1348,9 +1341,10 @@ async function loadCategorySelect(selectedCat) {
   const sel = document.getElementById('columnCategory');
   if(!sel) return;
   try {
-    const snap = await db.collection('categories').orderBy('order').get();
+    const snap = await db.collection('categories').get();
+    const docs = snap.docs.sort((a,b)=>(a.data().order||0)-(b.data().order||0));
     sel.innerHTML = '<option value="">카테고리 없음</option>' +
-      snap.docs.map(d=>`<option value="${eh(d.data().name)}" ${selectedCat===d.data().name?'selected':''}>${eh(d.data().name)}</option>`).join('');
+      docs.map(d=>`<option value="${eh(d.data().name)}" ${selectedCat===d.data().name?'selected':''}>${eh(d.data().name)}</option>`).join('');
   } catch(e) {
     sel.innerHTML = '<option value="">카테고리 없음</option>';
   }
@@ -1586,13 +1580,14 @@ async function loadCategories() {
   if(!wrap) return;
   wrap.innerHTML = '<div class="loading">불러오는 중...</div>';
   try {
-    const snap = await db.collection('categories').orderBy('order').get();
+    const snap = await db.collection('categories').get();
     if(snap.empty) {
       wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-text">등록된 카테고리가 없습니다</div></div>';
       return;
     }
+    const docs = snap.docs.sort((a,b)=>(a.data().order||0)-(b.data().order||0));
     wrap.innerHTML = `<table><thead><tr><th>순서</th><th>카테고리명</th><th>등록일</th><th>관리</th></tr></thead><tbody>
-    ${snap.docs.map(d=>`<tr>
+    ${docs.map(d=>`<tr>
       <td style="color:var(--text2);font-size:13px;">${d.data().order||0}</td>
       <td style="font-weight:500;">${eh(d.data().name)}</td>
       <td style="color:var(--text2);font-size:13px;">${fmtDate(d.data().createdAt)}</td>
@@ -1602,10 +1597,9 @@ async function loadCategories() {
       </div></td>
     </tr>`).join('')}
     </tbody></table>`;
-    // 칼럼 등록 모달 드롭다운도 업데이트
-    renderCategorySelect(snap.docs.map(d=>d.data().name));
+    renderCategorySelect(docs.map(d=>d.data().name));
   } catch(e) {
-    wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패</div></div>';
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-text">불러오기 실패: '+e.message+'</div></div>';
   }
 }
 
@@ -1670,7 +1664,7 @@ async function deleteCategory(id) {
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('categoryModal').classList.remove('open')">취소</button>
+      <button class="btn btn-outline btn-sm" style="white-space:nowrap;" onclick="document.getElementById('categoryModal').classList.remove('open')">취소</button>
       <button class="btn btn-primary btn-sm" onclick="saveCategory()">저장</button>
     </div>
   </div>
