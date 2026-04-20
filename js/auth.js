@@ -14,18 +14,51 @@ if(wrap) wrap.style.paddingTop=`calc(env(safe-area-inset-top,0px) + ${h}px)`;
 })();
 function openInChrome(){
 const url=window.location.href;
-const ua=navigator.userAgent.toLowerCase();
-if(/android/.test(ua)){
-const intentUrl='intent://'+url.replace(/^https?:\/\//,'//');window.location.href=intentUrl;
-} else if(/iphone|ipad|ipod/.test(ua)){
-const chromeUrl=url.replace(/^https?/,'googlechrome');
-const iframe=document.createElement('iframe');
-iframe.style.display='none';
-iframe.src=chromeUrl;
-document.body.appendChild(iframe);
+const ua=navigator.userAgent;
+const uaL=ua.toLowerCase();
+if(/android/.test(uaL)){
+// 카카오톡 인앱: 카카오 전용 외부 브라우저 스킴 우선 시도
+if(/kakaotalk/i.test(ua)){
+window.location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url);
+return;
+}
+// 네이버 인앱: 크롬 직접 실행 스킴 먼저 시도 → 실패 시 intent 폴백
+if(/naver/i.test(ua)){
+window.location.href='googlechrome://navigate?url='+encodeURIComponent(url);
 setTimeout(()=>{
-document.body.removeChild(iframe);
-window.location.href=url;
+// 아직 페이지에 있으면 intent 스킴으로 재시도
+const hostAndPath=url.replace(/^https?:\/\//,'');
+window.location.href='intent://'+hostAndPath+'#Intent;scheme=https;package=com.android.chrome;end';
+},800);
+return;
+}
+// 인스타/페북 등 기타 인앱: intent 스킴 우선
+const hostAndPath=url.replace(/^https?:\/\//,'');
+window.location.href='intent://'+hostAndPath+'#Intent;scheme=https;package=com.android.chrome;end';
+// 폴백: 일정 시간 후에도 안 열리면 URL 복사 안내
+setTimeout(()=>{
+if(document.visibilityState==='visible'){
+try{
+navigator.clipboard.writeText(url);
+if(typeof showToast==='function'){
+showToast('크롬이 설치 안 된 것 같아요. URL을 복사했어요.');
+} else {
+alert('크롬이 설치되어 있지 않거나 차단됐어요.\nURL이 복사됐으니 Chrome에 붙여넣어 주세요.');
+}
+}catch(e){
+prompt('아래 URL을 복사해서 Chrome에서 열어주세요:', url);
+}
+}
+},2500);
+} else if(/iphone|ipad|ipod/.test(uaL)){
+// iOS: googlechrome 스킴
+const chromeUrl=url.replace(/^https?/,'googlechrome');
+window.location.href=chromeUrl;
+setTimeout(()=>{
+if(document.visibilityState==='visible'){
+try{ navigator.clipboard.writeText(url); alert('Chrome 앱이 없거나 열 수 없어요.\nURL이 복사됐어요.'); }
+catch(e){ prompt('아래 URL을 복사해서 Chrome 또는 Safari에서 열어주세요:', url); }
+}
 },1500);
 } else {
 window.open(url,'_blank');
@@ -420,7 +453,7 @@ html+=`</div>`;
 if(memo) html+=`<div class="gdp-memo">${eh(memo)}</div>`;
 html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:12px;">
 <button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
-<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemoFromGraph('${key}')">메모수정</button><button class="bsm bdng" onclick="delMemoFromGraph('${key}')">메모삭제</button></div>
+<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemoFromGraph('${key}')">수정</button><button class="bsm bdng" onclick="delMemoFromGraph('${key}')">삭제</button></div>
 </div>`;
 } else if(recs.length>0){
 html+=`<div class="gdp-actions">
@@ -492,7 +525,7 @@ html+=`</div>`;
 if(memo) html+=`<div class="gdp-memo">${eh(memo)}</div>`;
 html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:12px;">
 <button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
-<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemo('${key}')">메모수정</button><button class="bsm bdng" onclick="delMemo('${key}')">메모삭제</button></div>
+<div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemo('${key}')">수정</button><button class="bsm bdng" onclick="delMemo('${key}')">삭제</button></div>
 </div>`;
 } else {
 html+=`<div class="gdp-section-label">감정 · 메모</div>

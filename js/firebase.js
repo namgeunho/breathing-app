@@ -159,15 +159,50 @@ return 'other';
 }
 
 function openInChrome(){
-// Android에서 현재 URL을 Chrome으로 강제 오픈 (intent 스킴)
+const url = location.href;
 const ua = navigator.userAgent;
-if(!/Android/i.test(ua)){
-// Android 아니면 alert
-alert('Android에서만 자동 전환이 가능합니다. 브라우저 앱을 직접 열어 주세요.');
+const uaL = ua.toLowerCase();
+if(/android/.test(uaL)){
+// 카카오톡 인앱: 카카오 전용 외부 브라우저 스킴
+if(/kakaotalk/i.test(ua)){
+location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
 return;
 }
-const url = location.href.replace(/^https?:\/\//,'');
-location.href = 'intent://'+url+'#Intent;scheme=https;package=com.android.chrome;end';
+// 네이버 인앱: googlechrome 스킴 → intent 폴백
+if(/naver/i.test(ua)){
+location.href = 'googlechrome://navigate?url=' + encodeURIComponent(url);
+setTimeout(()=>{
+const hostAndPath = url.replace(/^https?:\/\//,'');
+location.href = 'intent://' + hostAndPath + '#Intent;scheme=https;package=com.android.chrome;end';
+},800);
+return;
+}
+// 기타 Android: intent 스킴
+const hostAndPath = url.replace(/^https?:\/\//,'');
+location.href = 'intent://' + hostAndPath + '#Intent;scheme=https;package=com.android.chrome;end';
+// 실패 폴백
+setTimeout(()=>{
+if(document.visibilityState==='visible'){
+try{
+navigator.clipboard.writeText(url);
+alert('크롬이 설치되어 있지 않거나 차단됐어요.\nURL이 복사됐으니 Chrome에 붙여넣어 주세요.');
+}catch(e){
+prompt('아래 URL을 복사해서 Chrome에서 열어주세요:', url);
+}
+}
+},2500);
+} else if(/iphone|ipad|ipod/.test(uaL)){
+const chromeUrl = url.replace(/^https?/,'googlechrome');
+location.href = chromeUrl;
+setTimeout(()=>{
+if(document.visibilityState==='visible'){
+try{ navigator.clipboard.writeText(url); alert('Chrome 앱이 없거나 열 수 없어요.\nURL이 복사됐어요.'); }
+catch(e){ prompt('아래 URL을 복사해서 Chrome 또는 Safari에서 열어주세요:', url); }
+}
+},1500);
+} else {
+alert('Android 또는 iOS에서만 자동 전환이 가능합니다.\n브라우저 앱을 직접 열어 주세요.');
+}
 }
 
 function showInstallPromptIfNeeded(){
