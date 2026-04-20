@@ -86,6 +86,8 @@ screenOff=false;document.getElementById('screenOffBtn').className='ib';
 const tSec=parseInt(document.getElementById('duration').value)*60;
 document.getElementById('mainArea').style.display='block';
 document.getElementById('completeArea').style.display='none';
+const underTreeBar=document.getElementById('underTreeBar');
+if(underTreeBar) underTreeBar.style.display='';
 const treeMsg=document.getElementById('treeCompleteMsg');
 if(treeMsg) treeMsg.style.display='none';
 document.getElementById('phaseLabel').textContent='준비';
