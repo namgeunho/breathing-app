@@ -397,15 +397,17 @@
 <script src="js/train.js"></script>
 <script src="js/tree.js"></script>
 <script src="js/auth.js"></script>
-<!-- 훈련 완료 시 undertree 바 자동 숨김/복원 -->
+<!-- 훈련 완료 시 undertree 바 + 숨나무 자동 숨김/복원 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const completeArea = document.getElementById('completeArea');
   const underTreeBar = document.getElementById('underTreeBar');
-  if (!completeArea || !underTreeBar) return;
+  const treeWrap = document.getElementById('treeWrap');
+  if (!completeArea) return;
   new MutationObserver(() => {
     const isComplete = completeArea.style.display !== 'none' && completeArea.style.display !== '';
-    underTreeBar.style.display = isComplete ? 'none' : '';
+    if (underTreeBar) underTreeBar.style.display = isComplete ? 'none' : '';
+    if (treeWrap) treeWrap.style.display = isComplete ? 'none' : '';
   }).observe(completeArea, { attributes: true, attributeFilter: ['style'] });
 });
 </script>
