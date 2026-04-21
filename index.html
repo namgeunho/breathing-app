@@ -41,6 +41,27 @@
     <div class="app-title-line"></div>
     <div class="app-title-sub">들숨과 날숨 사이, 나를 만나는 브레스인</div>
   </div>
+  <!-- 관리자 통계 바 (관리자 계정 로그인 시에만 표시) -->
+  <div id="adminStatBar" style="display:none;background:linear-gradient(90deg,#1e293b,#0f172a);border-bottom:1px solid #334155;padding:8px 16px;margin-bottom:6px;border-radius:10px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:0.05em;">👑 ADMIN</span>
+      <span id="adminStatDate" style="font-size:10px;color:#64748b;"></span>
+      <button onclick="loadAdminStats()" style="margin-left:auto;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #334155;background:transparent;color:#94a3b8;cursor:pointer;">새로고침</button>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 12px;text-align:center;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:2px;">👥 총 가입자</div>
+        <div id="adminStatTotal" style="font-size:20px;font-weight:700;color:#e2e8f0;">-</div>
+        <div style="font-size:10px;color:#64748b;">명</div>
+      </div>
+      <div style="flex:1;background:#1e293b;border:1px solid #22c55e44;border-radius:8px;padding:8px 12px;text-align:center;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:2px;">🟢 오늘 활성</div>
+        <div id="adminStatActive" style="font-size:20px;font-weight:700;color:#4ade80;">-</div>
+        <div style="font-size:10px;color:#64748b;">명</div>
+      </div>
+    </div>
+  </div>
+
   <div class="tabs">
     <button class="tab active" onclick="showPage('train',this)">훈련</button>
     <button class="tab" onclick="showPage('calendar',this)">기록</button>
@@ -208,6 +229,11 @@
           <div class="cc-stat-item">
             <div class="cc-stat-val"><span id="cc-cycles"></span><span class="cc-stat-unit">회</span></div>
             <div class="cc-stat-lbl">완료 횟수</div>
+          </div>
+          <div class="cc-stat-sep"></div>
+          <div class="cc-stat-item">
+            <div class="cc-stat-val"><span id="cc-tp"></span><span class="cc-stat-unit" style="font-size:18px;">TP</span></div>
+            <div class="cc-stat-lbl">적립 TP</div>
           </div>
         </div>
         <div class="cc-pattern-area">
@@ -405,16 +431,46 @@
 <script src="js/train.js"></script>
 <script src="js/tree.js"></script>
 <script src="js/auth.js"></script>
-<!-- 훈련 완료 시 undertree 바 자동 숨김/복원 -->
+<!-- 훈련 완료 시 undertree 바 + 숨나무 자동 숨김/복원 -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const completeArea = document.getElementById('completeArea');
   const underTreeBar = document.getElementById('underTreeBar');
-  if (!completeArea || !underTreeBar) return;
+  const treeWrap = document.getElementById('treeWrap');
+  if (!completeArea) return;
   new MutationObserver(() => {
     const isComplete = completeArea.style.display !== 'none' && completeArea.style.display !== '';
-    underTreeBar.style.display = isComplete ? 'none' : '';
+    if (underTreeBar) underTreeBar.style.display = isComplete ? 'none' : '';
+    if (treeWrap) treeWrap.style.display = isComplete ? 'none' : '';
   }).observe(completeArea, { attributes: true, attributeFilter: ['style'] });
+});
+</script>
+
+<!-- 관리자 통계 바 -->
+<script>
+const ADMIN_EMAILS = [];
+async function checkAdminAndShowStats(user) {
+  if (!user) return;
+  let isAdmin = false;
+  if (ADMIN_EMAILS.length > 0 && ADMIN_EMAILS.includes(user.email)) isAdmin = true;
+  if (!isAdmin) {
+    try { const snap = await db.collection('admins').doc(user.uid).get(); if (snap.exists) isAdmin = true; } catch(e) {}
+  }
+  if (isAdmin) { document.getElementById('adminStatBar').style.display = 'block'; loadAdminStats(); }
+}
+function loadAdminStats() {
+  const todayStr = new Date().toISOString().slice(0,10);
+  document.getElementById('adminStatDate').textContent = todayStr;
+  document.getElementById('adminStatTotal').textContent = '…';
+  document.getElementById('adminStatActive').textContent = '…';
+  db.collection('users').get().then(snap => {
+    document.getElementById('adminStatTotal').textContent = snap.size;
+    document.getElementById('adminStatActive').textContent = snap.docs.filter(d => d.data().lastActiveDate === todayStr).length;
+  }).catch(() => { document.getElementById('adminStatTotal').textContent = '-'; document.getElementById('adminStatActive').textContent = '-'; });
+}
+firebase.auth().onAuthStateChanged(user => {
+  if (user) checkAdminAndShowStats(user);
+  else document.getElementById('adminStatBar').style.display = 'none';
 });
 </script>
 <script src="js/init.js"></script>
