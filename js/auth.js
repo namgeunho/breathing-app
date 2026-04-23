@@ -457,7 +457,6 @@ html+=`<div class="gdp-actions" style="justify-content:flex-end;margin-top:12px;
 } else if(recs.length>0){
 html+=`<div style="height:4px;"></div>`;
 }
-}
 panel.innerHTML = html;
 }
 function editMemoFromGraph(key){
