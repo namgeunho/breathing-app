@@ -256,18 +256,18 @@ sub.innerHTML=back+`
 <div style="font-size:16px;font-weight:700;color:var(--text2);letter-spacing:-0.01em;margin-bottom:0.75rem;">나의 레벨</div>
 <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-<div style="font-size:16px;font-weight:600;color:${lv.fill.startsWith('linear')?'#7F77DD':lv.fill};">${lv.name}</div>
-<div style="font-size:12px;color:var(--text3);">${isLoggedIn ? lv.desc : ''}</div>
+<div style="font-size:16px;font-weight:600;color:var(--text);">${lv.name}</div>
+<div style="font-size:12px;color:var(--text);">${isLoggedIn ? lv.desc : ''}</div>
 </div>
 <div style="font-size:13px;color:var(--text2);margin-bottom:10px;">연속 달성 ${s}일${isLoggedIn && lv.next ? ' / 목표 '+lv.next+'일' : ''}</div>
 <div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:${isLoggedIn && lv.demoted ? '10px' : '0'};">
-<div style="height:100%;width:${isLoggedIn && lv.next ? Math.min(100,Math.round((s/lv.next)*100)) : 100}%;background:${lv.fill};border-radius:2px;transition:width .6s;"></div>
+<div style="height:100%;width:${isLoggedIn && lv.next ? Math.min(100,Math.round((s/lv.next)*100)) : 100}%;background:#c8a030;border-radius:2px;transition:width .6s;"></div>
 </div>
 ${isLoggedIn && lv.demoted ? `<div style="font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:8px;">⚠️ 7일 이상 미훈련으로 한 단계 강등됐습니다. 오늘 훈련을 재개해보세요!</div>` : ''}
 </div>
 <div class="dp" style="margin-bottom:1.5rem;">
 <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">7일 이상 미훈련 시 최고 레벨에서 한 단계 강등됩니다.</div>
-${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:${isLoggedIn&&lv.lv===l.n?'700':'500'};color:${isLoggedIn&&lv.lv===l.n?l.c:'var(--text)'};">${l.l}</div><div style="font-size:12px;color:var(--text2);">연속 ${l.r}</div></div></div>${isLoggedIn && lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}
+${lvList.map(l=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);"><div style="display:flex;align-items:center;gap:10px;"><div style="width:10px;height:10px;border-radius:50%;background:${l.c};"></div><div><div style="font-size:14px;font-weight:${isLoggedIn&&lv.lv===l.n?'700':'500'};color:${isLoggedIn&&lv.lv===l.n?l.c:'var(--text3)'};">${l.l}</div><div style="font-size:12px;color:var(--text3);">연속 ${l.r}</div></div></div>${isLoggedIn && lv.lv===l.n?`<span style="font-size:12px;padding:3px 10px;border-radius:20px;background:var(--info-bg);color:var(--info);">현재</span>`:''}</div>`).join('')}
 </div>
 ${isLoggedIn ? `
 <div style="font-size:16px;font-weight:700;color:var(--text2);letter-spacing:-0.01em;margin-bottom:0.75rem;">숨나무 등급</div>
