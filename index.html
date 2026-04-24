@@ -444,6 +444,18 @@
   </div>
 </div>
 
+<!-- 세션 충돌 팝업 -->
+<div class="auth-overlay" id="sessionOverlay" style="display:none;">
+  <div class="auth-sheet" style="text-align:center;">
+    <div style="font-size:32px;margin-bottom:12px;">📱</div>
+    <div class="auth-title">다른 기기에서 로그인 중</div>
+    <div class="auth-sub" style="white-space:pre-line;">현재 다른 기기에서 로그인되어 있어요.
+이 기기로 전환하면 다른 기기는 로그아웃돼요.</div>
+    <button class="auth-btn-google" style="margin-top:8px;" onclick="switchSession()">이 기기로 전환</button>
+    <button class="cfg-signout-btn" onclick="handleSessionLogout()">로그아웃</button>
+  </div>
+</div>
+
 <div class="auth-overlay" id="authOverlay" style="display:none;" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-sheet">
     <button class="auth-close" onclick="closeAuthModal()">✕</button>
