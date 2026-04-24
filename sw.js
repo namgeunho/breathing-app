@@ -13,8 +13,11 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // GET 요청만 처리
+  const url = e.request.url;
+
+  // GET 요청만 처리, chrome-extension 등 비http 스킴 제외
   if (e.request.method !== 'GET') return;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) return;
 
   e.respondWith(
     fetch(e.request)
