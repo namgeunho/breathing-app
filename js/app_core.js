@@ -114,12 +114,12 @@ document.getElementById('userBar').innerHTML=`
 <div class="ubd" style="flex-shrink:0;"></div>
 <div style="flex:1;min-width:0;cursor:pointer;" onclick="showPage('config',null);setTimeout(()=>showSub('grade'),50);">
 <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
-<span style="font-size:13px;font-weight:700;color:${lvColor[lv.cls]||'var(--text2)'};">${lv.name}</span>
-<span style="font-size:11px;color:var(--text3);">${lv.next?`레벨${lv.lv+1}까지 ${lv.next-s}일`:'최고 등급'}</span>
+<span style="font-size:13px;font-weight:700;color:var(--text);">${lv.name}</span>
+<span style="font-size:11px;color:var(--text);">${lv.next?`레벨${lv.lv+1}까지 ${lv.next-s}일`:'최고 등급'}</span>
 </div>
-<div style="font-size:11px;color:var(--text2);margin-bottom:5px;">연속 달성 ${s}일${lv.next?' / 목표 '+lv.next+'일':''}</div>
+<div style="font-size:11px;color:var(--text);margin-bottom:5px;">연속 달성 ${s}일${lv.next?' / 목표 '+lv.next+'일':''}</div>
 <div style="height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;">
-<div style="height:100%;width:${barPct}%;background:${lv.fill.startsWith('linear')?'#7F77DD':lv.fill};border-radius:2px;transition:width .6s;"></div>
+<div style="height:100%;width:${barPct}%;background:#c8a030;border-radius:2px;transition:width .6s;"></div>
 </div>
 </div>
 ${authBtn}`;
