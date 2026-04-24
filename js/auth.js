@@ -206,7 +206,11 @@ async function checkSession(uid){
   try{
     const ref = db.collection('users').doc(uid);
     const snap = await ref.get();
-    if(!snap.exists) return;
+    if(!snap.exists){
+      // 첫 로그인 - 세션 등록
+      await ref.set({sessionId: getDeviceSessionId()}, {merge: true});
+      return false;
+    }
     const data = snap.data();
     const savedSession = data.sessionId;
     const mySession = getDeviceSessionId();
@@ -214,14 +218,15 @@ async function checkSession(uid){
       // 다른 기기 세션 감지 → 팝업 표시
       const overlay = document.getElementById('sessionOverlay');
       if(overlay) overlay.style.display = 'flex';
-      throw new Error('session_conflict');
+      return true; // 충돌
     } else {
       // 내 세션으로 갱신
       await ref.set({sessionId: mySession}, {merge: true});
+      return false;
     }
   }catch(e){
-    if(e.message === 'session_conflict') throw e;
     console.log('세션 체크 오류:', e);
+    return false;
   }
 }
 
@@ -259,7 +264,8 @@ async function syncUserData(){
 if(!curUser) return;
 if(syncUserData._skip){syncUserData._skip=false;return;}
 // 세션 체크
-await checkSession(curUser.uid);
+const sessionConflict = await checkSession(curUser.uid);
+if(sessionConflict) return;
 const ref=db.collection('users').doc(curUser.uid);
 try{
 const snap=await ref.get();
