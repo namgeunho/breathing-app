@@ -190,6 +190,63 @@ await auth.signOut();
 showToast('로그아웃됐어요.');
 showPage('train',null);
 }
+// ── 세션 관리 ──────────────────────────────────────────────
+
+function getDeviceSessionId(){
+  const LS_KEY = 'breath5_sessionId';
+  let sid = localStorage.getItem(LS_KEY);
+  if(!sid){
+    sid = 'dev_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    localStorage.setItem(LS_KEY, sid);
+  }
+  return sid;
+}
+
+async function checkSession(uid){
+  try{
+    const ref = db.collection('users').doc(uid);
+    const snap = await ref.get();
+    if(!snap.exists) return;
+    const data = snap.data();
+    const savedSession = data.sessionId;
+    const mySession = getDeviceSessionId();
+    if(savedSession && savedSession !== mySession){
+      // 다른 기기 세션 감지 → 팝업 표시
+      const overlay = document.getElementById('sessionOverlay');
+      if(overlay) overlay.style.display = 'flex';
+      throw new Error('session_conflict');
+    } else {
+      // 내 세션으로 갱신
+      await ref.set({sessionId: mySession}, {merge: true});
+    }
+  }catch(e){
+    if(e.message === 'session_conflict') throw e;
+    console.log('세션 체크 오류:', e);
+  }
+}
+
+async function switchSession(){
+  try{
+    const mySession = getDeviceSessionId();
+    const ref = db.collection('users').doc(curUser.uid);
+    await ref.set({sessionId: mySession}, {merge: true});
+    const overlay = document.getElementById('sessionOverlay');
+    if(overlay) overlay.style.display = 'none';
+    showToast('이 기기로 전환됐어요 ✅');
+    syncUserData._skip = false;
+    await syncUserData();
+  }catch(e){
+    showToast('전환 중 오류가 발생했어요');
+  }
+}
+
+async function handleSessionLogout(){
+  const overlay = document.getElementById('sessionOverlay');
+  if(overlay) overlay.style.display = 'none';
+  await auth.signOut();
+  showToast('로그아웃됐어요');
+}
+
 function openAuthModal(msg){
 const sub=document.getElementById('authSubMsg');
 if(msg&&sub) sub.textContent=msg;
@@ -201,6 +258,8 @@ document.getElementById('authOverlay').style.display='none';
 async function syncUserData(){
 if(!curUser) return;
 if(syncUserData._skip){syncUserData._skip=false;return;}
+// 세션 체크
+await checkSession(curUser.uid);
 const ref=db.collection('users').doc(curUser.uid);
 try{
 const snap=await ref.get();
