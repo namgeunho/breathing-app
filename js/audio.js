@@ -338,7 +338,15 @@ let tpLog={};
 try{const raw=localStorage.getItem(logKey);if(raw)tpLog=JSON.parse(raw);}catch(e){}
 const td=today();
 if(!tpLog[td])tpLog[td]=[];
-(treeResult.tpItems||[{type:'train',label:`${Math.round(lastResult.duration)}분 훈련`,tp:treeResult.gained}]).forEach(item=>{tpLog[td].push(item);});
+// 하루 1번만 적립되어야 하는 항목
+const oncePerDay=['train_streak','train_lv','train_first'];
+(treeResult.tpItems||[{type:'train',label:`${Math.round(lastResult.duration)}분 훈련`,tp:treeResult.gained}]).forEach(item=>{
+  if(oncePerDay.includes(item.type)){
+    // 당일 tpLog에 같은 type이 이미 있으면 skip
+    if(tpLog[td].some(e=>e.type===item.type)) return;
+  }
+  tpLog[td].push(item);
+});
 try{localStorage.setItem(logKey,JSON.stringify(tpLog));}catch(e){}
 clearTimeout(finish._tpSave);
 finish._tpSave=setTimeout(()=>{if(typeof saveUserData==='function')saveUserData();},2000);
