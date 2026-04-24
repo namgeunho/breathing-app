@@ -527,8 +527,7 @@ if(postMood) html+=`<span class="gdp-mood-item">훈련 후 <strong>${postMood}</
 html+=`</div>`;
 }
 if(memo) html+=`<div class="gdp-memo">${eh(memo)}</div>`;
-html+=`<div class="gdp-actions" style="justify-content:space-between;margin-top:12px;">
-<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>
+html+=`<div class="gdp-actions" style="justify-content:flex-end;margin-top:12px;">
 <div style="display:flex;gap:8px;"><button class="bsm" onclick="editMemo('${key}')">수정</button><button class="bsm bdng" onclick="delMemo('${key}')">삭제</button></div>
 </div>`;
 } else {
@@ -536,8 +535,7 @@ html+=`<div class="gdp-section-label">감정 · 메모</div>
 <div class="emotion-row"><div class="emotion-lbl">훈련 전 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" data-type="pre" onclick="selEmo(this,'pre')">${e}</button>`).join('')}</div></div>
 <div class="emotion-row"><div class="emotion-lbl">훈련 후 상태</div><div class="emotion-btns">${EMOTIONS.map(e=>`<button class="emo-btn" data-type="post" onclick="selEmo(this,'post')">${e}</button>`).join('')}</div></div>
 <textarea class="mi" id="memoInput" placeholder="오늘의 컨디션, 소감을 적어보세요..."></textarea>
-<div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
-${recs.length>0?`<button class="bsm bshr" onclick="shareRecord('${key}')"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="1.5"/><circle cx="12" cy="13" r="1.5"/><circle cx="3" cy="8" r="1.5"/><line x1="10.6" y1="3.9" x2="4.4" y2="7.1"/><line x1="10.6" y1="12.1" x2="4.4" y2="8.9"/></svg> 공유</button>`:'<span></span>'}
+<div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
 <button class="bsm bp" onclick="saveMemo('${key}')">저장</button>
 </div>`;
 }
