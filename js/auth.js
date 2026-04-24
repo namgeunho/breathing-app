@@ -545,6 +545,12 @@ body.innerHTML=html;
 // detailTPBox 숨김 (TP는 body 안으로 통합)
 const tpBox=document.getElementById('detailTPBox');
 if(tpBox){tpBox.style.display='none';tpBox.innerHTML='';}
+// 하단 버튼 표시 (훈련기록 또는 메모가 있을 때)
+const actionBtns=document.getElementById('detailActionBtns');
+if(actionBtns){
+const hasContent=(recs.length>0)||(memo||preMood||postMood);
+actionBtns.style.display=hasContent?'block':'none';
+}
 }
 function selEmo(btn,type){
 const group=btn.closest('.emotion-btns');
@@ -552,6 +558,90 @@ group.querySelectorAll('.emo-btn').forEach(b=>b.classList.remove('sel-emo'));
 btn.classList.add('sel-emo');
 btn.dataset.type=type;
 }
+
+// ── 캘린더 기록 하단 버튼 함수들 ──────────────────────────────
+
+function getDetailStats(key){
+const recs=records[key]||[];
+const totalMin=Math.round(recs.reduce((s,r)=>s+r.duration,0));
+const tpEntries=getDayTPLog(key);
+const totalTP=tpEntries.reduce((s,e)=>s+e.tp,0);
+const streak=calcStreak();
+let pattern='';
+if(recs.length>0){
+const r=recs[0];
+const parts=[];
+if(r.inhale) parts.push('들숨'+r.inhale+'s');
+if(r.holdIn) parts.push('참기'+r.holdIn+'s');
+if(r.exhale) parts.push('날숨'+r.exhale+'s');
+if(r.holdOut) parts.push('비우기'+r.holdOut+'s');
+pattern=parts.join(' · ');
+}
+return {totalMin,totalTP,streak,pattern};
+}
+
+async function saveDetailImage(){
+if(!selDate){showToast('날짜를 선택해 주세요');return;}
+const card=document.getElementById('detailShareCard');
+if(!card){showToast('이미지를 만들 수 없어요');return;}
+const stats=getDetailStats(selDate);
+card.querySelector('#dsc-date').textContent=fl(selDate);
+card.querySelector('#dsc-min').textContent=stats.totalMin;
+card.querySelector('#dsc-tp').textContent=stats.totalTP;
+card.querySelector('#dsc-streak').textContent=stats.streak;
+card.querySelector('#dsc-pattern').textContent=stats.pattern||'BRETHIN 호흡 훈련';
+const now=new Date();
+const dateStr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+const filename=`BRETHIN_기록_${dateStr}.png`;
+showToast('이미지를 만들고 있어요...');
+try{
+const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
+const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+if(!blob){showToast('이미지 생성에 실패했어요');return;}
+const file=new File([blob],filename,{type:'image/png'});
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+if(isIOS&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+try{await navigator.share({files:[file],title:'BRETHIN 훈련 기록'});showToast('이미지가 저장됐어요 📸');}
+catch(e){if(e.name!=='AbortError')showToast('저장을 취소했어요');}
+return;
+}
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download=filename;
+document.body.appendChild(a);a.click();document.body.removeChild(a);
+setTimeout(()=>URL.revokeObjectURL(url),1000);
+showToast('이미지가 저장됐어요 📸');
+}catch(e){showToast('이미지 저장에 실패했어요');}
+}
+
+async function shareDetailRecord(){
+if(!selDate){showToast('날짜를 선택해 주세요');return;}
+const stats=getDetailStats(selDate);
+const appUrl=window.location.href.split('?')[0];
+const text='BRETHIN 훈련 기록 📅 '+fl(selDate)+'\n'
+  +'⏱️ 누적 훈련시간 '+stats.totalMin+'분\n'
+  +'✨ 누적 적립 TP '+stats.totalTP+' TP\n'
+  +'🔥 연속 달성 '+stats.streak+'일\n'
+  +'\n들숨과 날숨 사이, 나를 만나는 브레스인\nBRETHIN 🌿';
+try{
+if(navigator.share) await navigator.share({title:'BRETHIN 훈련 기록',text:text,url:appUrl});
+else{await navigator.clipboard.writeText(text+'\n'+appUrl);showToast('기록이 복사됐어요!');}
+giveShareBonus('record');
+}catch(e){if(e.name!=='AbortError')showToast('공유를 취소했어요');}
+}
+
+function closeDetail(){
+selDate=null;
+const titleEl=document.getElementById('detailTitle');
+const bodyEl=document.getElementById('detailBody');
+const xBtn=document.getElementById('xBtn');
+const actionBtns=document.getElementById('detailActionBtns');
+if(titleEl) titleEl.textContent='날짜를 선택해 주세요';
+if(bodyEl) bodyEl.innerHTML='<div class="gdp-empty" style="text-align:left;">날짜를 클릭하면 기록과 메모를 확인할 수 있어요</div>';
+if(xBtn) xBtn.style.display='none';
+if(actionBtns) actionBtns.style.display='none';
+renderCal();
+}
+
 async function shareRecord(key){
 const recs=records[key]||[];
 const memoData=memos[key]||{};
