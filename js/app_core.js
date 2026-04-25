@@ -112,7 +112,7 @@ naturalLv === 1 ? `레벨2까지 ${20-s}일` :
 `레벨1까지 ${10-s}일`,
 };
 }
-function avHtml(sz,fsz,fb){if(userPhoto)return`<img src="${userPhoto}" alt="" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;">`;return`<span style="font-size:${fsz}px;">${eh(fb)}</span>`;}
+function avHtml(sz,fsz,fb){if(userPhoto)return`<img src="${userPhoto}" alt="" style="width:${sz}px;height:${sz}px;border-radius:50%;object-fit:cover;">`;const txtSize=sz>=64?13:(sz>=44?11:9);return`<span style="font-size:${txtSize}px;color:var(--text2);font-weight:500;">사용자</span>`;}
 function renderUserBar(){
 const s = curUser ? calcStreak() : 0;
 const lv=calcLv(s);const ini=userName.substring(0,2);
@@ -186,13 +186,14 @@ const html=_guide
 sub.innerHTML=back+html;
 } else if(menu==='profile'){
 const ini=userName.substring(0,2);
+const photoGuideText=curUser?'사진을 탭하거나 버튼으로 변경하세요':'로그인 후 변경 가능합니다';
 sub.innerHTML=back+`
 <div class="dp" style="margin-bottom:14px;">
 <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:1rem;">사용자 정보</div>
 <div class="pua">
 <div class="ppv" id="ppv" onclick="triggerPhoto()">${avHtml(64,24,ini)}</div>
-<div class="pur"><div class="pud">사진을 탭하거나 버튼으로 변경하세요</div>
-<div class="pub"><button class="pbtn" onclick="triggerPhoto()">사진 변경</button>${userPhoto?`<button class="pbtn pdel" onclick="deletePhoto()">삭제</button>`:''}</div></div>
+<div class="pur"><div class="pud">${photoGuideText}</div>
+<div class="pub"><button class="pbtn" onclick="triggerPhoto()">사진 변경</button>${(curUser&&userPhoto)?`<button class="pbtn pdel" onclick="deletePhoto()">삭제</button>`:''}</div></div>
 </div>
 <div style="font-size:13px;color:var(--text2);margin-bottom:4px;">닉네임</div>
 <input class="ni" id="nameInput" value="${eh(userName)}" maxlength="20" placeholder="닉네임을 입력하세요">
@@ -371,8 +372,14 @@ sub.innerHTML=back+`
 }
 function selTheme(t){applyTheme(t);save();document.querySelectorAll('.theme-card').forEach(c=>c.classList.remove('act-t'));const el=document.getElementById(t==='white'?'tw':'tb');if(el)el.classList.add('act-t');renderConfigMain();}
 function closeSub(){document.getElementById('configMain').style.display='block';document.getElementById('configSub').style.display='none';renderConfigMain();}
-function triggerPhoto(){document.getElementById('photoFileInput').click();}
-function handlePhotoUpload(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{userPhoto=ev.target.result;save();renderUserBar();const p=document.getElementById('ppv');if(p)p.innerHTML=`<img src="${userPhoto}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">`;};r.readAsDataURL(f);e.target.value='';}
-function deletePhoto(){userPhoto=null;save();renderUserBar();}
+function triggerPhoto(){
+if(!curUser){
+openAuthModal('로그인하면 프로필 사진을\n변경할 수 있어요.');
+return;
+}
+document.getElementById('photoFileInput').click();
+}
+function handlePhotoUpload(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{userPhoto=ev.target.result;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();showSub('profile');};r.readAsDataURL(f);e.target.value='';}
+function deletePhoto(){userPhoto=null;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();showSub('profile');}
 function saveName(){const i=document.getElementById('nameInput');if(!i)return;const v=i.value.trim();if(v){userName=v;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();closeSub();}}
 async function triggerInstall(){if(!deferredInstall)return;deferredInstall.prompt();const r=await deferredInstall.userChoice;if(r.outcome==='accepted')deferredInstall=null;}

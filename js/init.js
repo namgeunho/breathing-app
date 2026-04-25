@@ -17,7 +17,6 @@ auth.onAuthStateChanged(async user=>{
 curUser=user;
 if(user){
 if(!userName||userName==='사용자') userName=user.displayName||'사용자';
-if(!userPhoto&&user.photoURL) userPhoto=user.photoURL;
 await syncUserData();
 if(curPage==='calendar') showPage('calendar',null);
 }
