@@ -263,9 +263,8 @@ document.getElementById('authOverlay').style.display='none';
 async function syncUserData(){
 if(!curUser) return;
 if(syncUserData._skip){syncUserData._skip=false;return;}
-// 세션 체크
+// 세션 체크 (충돌이어도 데이터 로드는 계속 진행)
 const sessionConflict = await checkSession(curUser.uid);
-if(sessionConflict) return;
 const ref=db.collection('users').doc(curUser.uid);
 try{
 const snap=await ref.get();
