@@ -651,7 +651,30 @@ card.querySelector('#dsc-date').textContent=fl(selDate);
 card.querySelector('#dsc-min').textContent=stats.totalMin;
 card.querySelector('#dsc-tp').textContent=stats.totalTP;
 card.querySelector('#dsc-streak').textContent=stats.streak;
-card.querySelector('#dsc-pattern').textContent=stats.pattern||'BRETHIN 호흡 훈련';
+// 숨나무 정보 채우기
+try{
+  const stage=treeData.stage||1;
+  const tp=treeData.tp||0;
+  const curStage=TREE_STAGES[stage-1];
+  const nextStage=TREE_STAGES[stage];
+  card.querySelector('#dsc-tree-name').textContent=curStage.name;
+  card.querySelector('#dsc-tree-name').style.color=curStage.color;
+  card.querySelector('#dsc-tree-en').textContent=curStage.en;
+  card.querySelector('#dsc-tree-thumb').style.background=curStage.color;
+  card.querySelector('#dsc-tree-tp').textContent=tp+' TP';
+  card.querySelector('#dsc-tree-bar').style.background=curStage.color;
+  if(nextStage){
+    const remain=Math.max(0,nextStage.tpReq-tp);
+    const pct=Math.min(100,Math.round((tp/nextStage.tpReq)*100));
+    card.querySelector('#dsc-tree-next').textContent='다음까지 '+remain+' TP';
+    card.querySelector('#dsc-tree-bar').style.width=pct+'%';
+    card.querySelector('#dsc-tree-next-info').textContent='다음 단계: '+nextStage.name+' (연속 '+nextStage.reqDay+'일+)';
+  } else {
+    card.querySelector('#dsc-tree-next').textContent='최고 단계';
+    card.querySelector('#dsc-tree-bar').style.width='100%';
+    card.querySelector('#dsc-tree-next-info').textContent='최고 단계 달성';
+  }
+}catch(e){console.log('숨나무 정보 채우기 실패:',e);}
 const now=new Date();
 const dateStr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
 const filename=`BRETHIN_기록_${dateStr}.png`;
