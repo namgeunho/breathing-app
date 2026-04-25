@@ -660,7 +660,7 @@ try{
   card.querySelector('#dsc-tree-name').textContent=curStage.name;
   card.querySelector('#dsc-tree-name').style.color=curStage.color;
   card.querySelector('#dsc-tree-en').textContent=curStage.en;
-  card.querySelector('#dsc-tree-thumb').style.background=curStage.color;
+  card.querySelector('#dsc-tree-thumb').src='images/tree/stage'+stage+'.png';
   card.querySelector('#dsc-tree-tp').textContent=tp+' TP';
   card.querySelector('#dsc-tree-bar').style.background=curStage.color;
   if(nextStage){
@@ -680,6 +680,15 @@ const dateStr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(
 const filename=`BRETHIN_기록_${dateStr}.png`;
 showToast('이미지를 만들고 있어요...');
 try{
+// 썸네일 이미지 로딩 대기
+const thumbImg=card.querySelector('#dsc-tree-thumb');
+if(thumbImg && thumbImg.src && !thumbImg.complete){
+  await new Promise(res=>{
+    thumbImg.onload=res;
+    thumbImg.onerror=res;
+    setTimeout(res,2000); // 안전 타임아웃
+  });
+}
 const canvas=await html2canvas(card,{scale:2,useCORS:true,backgroundColor:null});
 const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
 if(!blob){showToast('이미지 생성에 실패했어요');return;}
