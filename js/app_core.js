@@ -40,7 +40,22 @@ function nt(){const n=new Date();return n.getHours()+':'+p2(n.getMinutes());}
 function fl(key){const[y,m,d]=key.split('-');return y+'년 '+parseInt(m)+'월 '+parseInt(d)+'일';}
 function eh(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function applyTheme(t){curTheme=t;document.body.setAttribute('data-theme',t);}
-function calcStreak(){let s=0;const t=new Date();for(let i=0;i<365;i++){const d=new Date(t);d.setDate(d.getDate()-i);const k=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());if(records[k]&&records[k].length>0)s++;else break;}return s;}
+function calcStreak(){
+let s=0;
+const t=new Date();
+const tk=t.getFullYear()+'-'+p2(t.getMonth()+1)+'-'+p2(t.getDate());
+const todayHas=records[tk]&&records[tk].length>0;
+// 오늘 훈련 안 했으면 어제부터 카운트 (어제까지 연속이면 그 값 유지)
+const startOffset=todayHas?0:1;
+for(let i=startOffset;i<365;i++){
+const d=new Date(t);
+d.setDate(d.getDate()-i);
+const k=d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+if(records[k]&&records[k].length>0)s++;
+else break;
+}
+return s;
+}
 function getMaxAchievedLv(){
 try{
 const saved = localStorage.getItem(LS+'maxLv');
