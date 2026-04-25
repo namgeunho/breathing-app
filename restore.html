@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRETHIN 데이터 복구</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #d0d0d0; padding: 20px; max-width: 600px; margin: 0 auto; line-height: 1.6; }
+h1 { font-size: 22px; color: #fff; margin-bottom: 8px; }
+.sub { color: #888; font-size: 14px; margin-bottom: 24px; }
+.box { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.btn { display: block; width: 100%; padding: 14px; border-radius: 10px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px; font-family: inherit; }
+.btn-primary { background: #c8a030; color: #fff; }
+.btn-secondary { background: #2a2a2a; color: #ccc; border: 1px solid rgba(255,255,255,0.15); }
+.btn-danger { background: #6b1f1f; color: #fff; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.day-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+.day-row:last-child { border-bottom: none; }
+.warn { background: #2a1a0a; border: 1px solid #6b4a1a; color: #c8a030; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+.success { background: #0a2a0a; border: 1px solid #2a6b2a; color: #6aaa6a; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+.danger { background: #2a0a0a; border: 1px solid #6b1f1f; color: #c87070; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+#status { font-size: 13px; color: #888; }
+</style>
+</head>
+<body>
+
+<h1>🌿 BRETHIN 데이터 복구</h1>
+<div class="sub">tpLog 데이터로 records를 복원합니다</div>
+
+<div class="warn">
+⚠️ 이 페이지는 일회성 복구용입니다. 복구 완료 후 삭제해주세요.<br>
+복구 시 호흡 패턴은 <b>초급(들숨4/날숨4)</b> 으로 채워집니다.
+</div>
+
+<div id="step1" class="box">
+  <div style="font-size:15px;font-weight:600;margin-bottom:10px;">1단계 · 로그인</div>
+  <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Google 로그인</button>
+  <div id="userInfo" style="display:none;font-size:13px;color:#888;"></div>
+</div>
+
+<div id="step2" class="box" style="display:none;">
+  <div style="font-size:15px;font-weight:600;margin-bottom:10px;">2단계 · tpLog 분석</div>
+  <button class="btn btn-secondary" id="analyzeBtn" onclick="analyzeData()">데이터 분석하기</button>
+  <div id="analysisResult"></div>
+</div>
+
+<div id="step3" class="box" style="display:none;">
+  <div style="font-size:15px;font-weight:600;margin-bottom:10px;">3단계 · 복구 실행</div>
+  <div class="warn" id="confirmMsg">위 데이터를 records 필드에 저장합니다. 기존 records는 빈 상태이므로 안전합니다.</div>
+  <button class="btn btn-danger" id="restoreBtn" onclick="doRestore()">복구 실행</button>
+  <div id="restoreResult"></div>
+</div>
+
+<div id="status"></div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAuKsnJixQbgwYudA6tpJyNO9IXmxHwg-0",
+  authDomain: "breathing-app-f51cb.firebaseapp.com",
+  projectId: "breathing-app-f51cb",
+  storageBucket: "breathing-app-f51cb.firebasestorage.app",
+  messagingSenderId: "967554724404",
+  appId: "1:967554724404:web:0e5cc0ec05a6e92bba5061"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+let curUser = null;
+let analyzedRecords = null;
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+async function doLogin() {
+  try {
+    setStatus('로그인 중...');
+    await auth.signInWithPopup(googleProvider);
+  } catch (e) {
+    setStatus('로그인 실패: ' + e.message);
+  }
+}
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    curUser = user;
+    document.getElementById('loginBtn').style.display = 'none';
+    const info = document.getElementById('userInfo');
+    info.style.display = 'block';
+    info.innerHTML = `✅ 로그인됨: <b>${user.email}</b><br>UID: ${user.uid}`;
+    document.getElementById('step2').style.display = 'block';
+    setStatus('');
+  }
+});
+
+async function analyzeData() {
+  if (!curUser) { setStatus('로그인이 필요합니다'); return; }
+  setStatus('데이터 불러오는 중...');
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+
+  try {
+    const ref = db.collection('users').doc(curUser.uid);
+    const snap = await ref.get();
+    if (!snap.exists) {
+      document.getElementById('analysisResult').innerHTML = '<div class="danger">사용자 문서가 없어요</div>';
+      btn.disabled = false;
+      return;
+    }
+    const data = snap.data();
+    const tpLog = data.tpLog || {};
+    const existingRecords = data.records || {};
+
+    if (Object.keys(tpLog).length === 0) {
+      document.getElementById('analysisResult').innerHTML = '<div class="danger">tpLog가 비어있어요</div>';
+      btn.disabled = false;
+      return;
+    }
+
+    // tpLog에서 train_base 항목만 추출하여 records 형태로 변환
+    const records = {};
+    let totalDays = 0;
+    let totalSessions = 0;
+
+    for (const dateKey in tpLog) {
+      const entries = tpLog[dateKey];
+      if (!Array.isArray(entries)) continue;
+
+      const trainEntries = entries.filter(e => e.type === 'train_base');
+      if (trainEntries.length === 0) continue;
+
+      records[dateKey] = trainEntries.map(e => {
+        // label에서 분 추출 (예: "1분 훈련" → 1)
+        const match = (e.label || '').match(/(\d+)\s*분/);
+        const minutes = match ? parseInt(match[1]) : 1;
+        return {
+          duration: minutes,
+          inhale: 4,
+          holdIn: 0,
+          exhale: 4,
+          holdOut: 0,
+          presetName: '초급',
+          timestamp: Date.now()
+        };
+      });
+
+      totalDays++;
+      totalSessions += trainEntries.length;
+    }
+
+    analyzedRecords = records;
+
+    // 결과 표시
+    let html = `<div class="success">✅ 분석 완료: <b>${totalDays}일</b>, 총 <b>${totalSessions}회</b> 훈련 기록을 찾았어요</div>`;
+    html += '<div style="max-height:300px;overflow-y:auto;background:#0a0a0a;border-radius:8px;padding:12px;margin-top:8px;">';
+    const sortedDates = Object.keys(records).sort();
+    for (const dateKey of sortedDates) {
+      const recs = records[dateKey];
+      const totalMin = recs.reduce((s, r) => s + r.duration, 0);
+      html += `<div class="day-row"><span>${dateKey}</span><span>${recs.length}회 / 총 ${totalMin}분</span></div>`;
+    }
+    html += '</div>';
+
+    if (Object.keys(existingRecords).length > 0) {
+      html += `<div class="warn" style="margin-top:12px;">⚠️ 기존 records에 ${Object.keys(existingRecords).length}일치 데이터가 이미 있습니다. 복구 시 병합됩니다 (기존 데이터 우선).</div>`;
+    }
+
+    document.getElementById('analysisResult').innerHTML = html;
+    document.getElementById('step3').style.display = 'block';
+    setStatus('');
+  } catch (e) {
+    document.getElementById('analysisResult').innerHTML = '<div class="danger">오류: ' + e.message + '</div>';
+    btn.disabled = false;
+    setStatus('');
+  }
+}
+
+async function doRestore() {
+  if (!curUser || !analyzedRecords) return;
+  if (!confirm('정말 복구를 실행하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+
+  const btn = document.getElementById('restoreBtn');
+  btn.disabled = true;
+  setStatus('복구 중...');
+
+  try {
+    const ref = db.collection('users').doc(curUser.uid);
+    const snap = await ref.get();
+    const existing = snap.exists ? (snap.data().records || {}) : {};
+
+    // 병합 (기존 데이터 우선)
+    const merged = { ...analyzedRecords, ...existing };
+
+    await ref.set({ records: merged }, { merge: true });
+
+    document.getElementById('restoreResult').innerHTML =
+      '<div class="success" style="margin-top:12px;">✅ 복구 완료! 앱으로 돌아가서 새로고침(Ctrl+Shift+R)해 주세요.</div>';
+    setStatus('');
+  } catch (e) {
+    document.getElementById('restoreResult').innerHTML = '<div class="danger">복구 실패: ' + e.message + '</div>';
+    btn.disabled = false;
+    setStatus('');
+  }
+}
+</script>
+
+</body>
+</html>
