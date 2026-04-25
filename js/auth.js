@@ -342,7 +342,7 @@ localStorage.setItem(LS+'tpLog',JSON.stringify(tpLog));
 }catch(e){}
 await db.collection('users').doc(curUser.uid).set({
 records, memos, userName,
-userPhoto: userPhoto&&!userPhoto.startsWith('http')?'':userPhoto||'',
+userPhoto: userPhoto||'',
 presets: presets.map(p=>({...p})),
 maxLv: getMaxAchievedLv(),
 bookmarks: (()=>{try{return JSON.parse(localStorage.getItem(LS+'bookmarks')||'[]')}catch(e){return []}})(),

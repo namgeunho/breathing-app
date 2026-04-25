@@ -379,7 +379,40 @@ return;
 }
 document.getElementById('photoFileInput').click();
 }
-function handlePhotoUpload(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{userPhoto=ev.target.result;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();showSub('profile');};r.readAsDataURL(f);e.target.value='';}
+function handlePhotoUpload(e){
+const f=e.target.files[0];
+if(!f)return;
+const r=new FileReader();
+r.onload=ev=>{
+const img=new Image();
+img.onload=()=>{
+try{
+const SIZE=256;
+const canvas=document.createElement('canvas');
+canvas.width=SIZE;canvas.height=SIZE;
+const ctx=canvas.getContext('2d');
+// 가운데 정사각형 크롭
+const minSide=Math.min(img.width,img.height);
+const sx=(img.width-minSide)/2;
+const sy=(img.height-minSide)/2;
+ctx.fillStyle='#ffffff';
+ctx.fillRect(0,0,SIZE,SIZE);
+ctx.drawImage(img,sx,sy,minSide,minSide,0,0,SIZE,SIZE);
+userPhoto=canvas.toDataURL('image/jpeg',0.85);
+save();
+if(typeof saveUserData==='function')saveUserData();
+renderUserBar();
+showSub('profile');
+}catch(err){
+showToast('이미지 처리에 실패했어요');
+}
+};
+img.onerror=()=>showToast('이미지를 불러올 수 없어요');
+img.src=ev.target.result;
+};
+r.readAsDataURL(f);
+e.target.value='';
+}
 function deletePhoto(){userPhoto=null;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();showSub('profile');}
 function saveName(){const i=document.getElementById('nameInput');if(!i)return;const v=i.value.trim();if(v){userName=v;save();if(typeof saveUserData==='function')saveUserData();renderUserBar();closeSub();}}
 async function triggerInstall(){if(!deferredInstall)return;deferredInstall.prompt();const r=await deferredInstall.userChoice;if(r.outcome==='accepted')deferredInstall=null;}
